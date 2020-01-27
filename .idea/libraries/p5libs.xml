@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="p5libs">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Documents/Processing 3/libraries/themidibus/library/themidibus.jar!/" />
+      <root url="jar://$USER_HOME$/Documents/Processing 3/libraries/oscP5/library/oscP5.jar!/" />
+      <root url="jar://$USER_HOME$/Documents/Processing 3/libraries/Ilda/library/ilda.jar!/" />
+      <root url="jar://$USER_HOME$/Documents/Processing 3/libraries/cgui/library/cgui.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$USER_HOME$/Documents/Processing 3/libraries/themidibus/src" />
+      <root url="file://$USER_HOME$/Documents/Processing 3/libraries/oscP5/src" />
+    </SOURCES>
+  </library>
+</component>
