@@ -1,12 +1,19 @@
 package be.generativelasers.output;
 
+import be.generativelasers.procedures.Procedure;
 import ilda.IldaFrame;
 
 /**
  * @author Florian
  * Created on 27/01/2020
  */
-public interface LaserOutput
+public abstract class LaserOutput
 {
-    void project(IldaFrame frame);
+    Procedure procedure;
+    public abstract void project();
+
+    public void setProcedure(Procedure currentProcedure)
+    {
+        this.procedure = currentProcedure;
+    }
 }

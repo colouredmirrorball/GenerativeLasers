@@ -1,8 +1,11 @@
 package be.generativelasers;
 
+import be.generativelasers.output.LaserOutput;
+import be.generativelasers.output.LsxOscOutput;
 import be.generativelasers.procedures.Procedure;
 import be.generativelasers.procedures.trees.Trees;
 import cmb.soft.cgui.CGui;
+import netP5.NetAddress;
 
 /**
  * @author Florian
@@ -10,8 +13,11 @@ import cmb.soft.cgui.CGui;
  */
 public class GenerativeLasers
 {
-    Procedure currentProcedure;
-    CGui gui;
+    private Procedure currentProcedure;
+    private LaserOutput currentOutput;
+    private CGui gui;
+
+    public final static String VERSION = "0.0.1 Alpha";
 
     public static void main(String[] args)
     {
@@ -20,12 +26,19 @@ public class GenerativeLasers
         instance.gui.setTitle("Generative Lasers");
         instance.gui.launch();
         instance.currentProcedure = new Trees(instance.gui.getDefaultWindow());
+        instance.currentOutput = new LsxOscOutput(instance.gui.getDefaultWindow(), 0, 10, new NetAddress("127.0.0.1", 10000));
+        instance.currentOutput.setProcedure(instance.currentProcedure);
+
         instance.run();
     }
 
     private void run()
     {
-       new ProcedureThread().start();
-       new OutputThread().start();
+        ProcedureThread procedureThread = new ProcedureThread();
+        procedureThread.addProcedure(currentProcedure);
+        procedureThread.start();
+        OutputThread outputThread = new OutputThread();
+        outputThread.addOutput(currentOutput);
+        outputThread.start();
     }
 }

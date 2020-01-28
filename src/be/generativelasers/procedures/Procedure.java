@@ -1,12 +1,11 @@
 package be.generativelasers.procedures;
 
-import be.generativelasers.output.LaserOutput;
+
 import ilda.IldaFrame;
 import ilda.IldaRenderer;
 import processing.core.PApplet;
 
-import java.util.ArrayList;
-import java.util.List;
+
 
 /**
  * @author Florian
@@ -14,19 +13,22 @@ import java.util.List;
  */
 public abstract class Procedure
 {
-    protected List<LaserOutput> outputs;
     protected IldaFrame frame = new IldaFrame();
-    protected IldaRenderer renderer;
+    protected final IldaRenderer renderer;
 
     public Procedure(PApplet applet)
     {
         renderer = new IldaRenderer(applet);
-        outputs = new ArrayList<>();
+        renderer.setOverwrite(false);
     }
 
     public abstract void update();
 
-    public abstract void project();
+    public IldaFrame getRenderedFrame()
+    {
+        if(frame == null) return null;
+        return frame;
+    }
 
     public abstract void trigger(float value);
 }
