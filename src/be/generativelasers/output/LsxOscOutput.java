@@ -1,13 +1,14 @@
 package be.generativelasers.output;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import ilda.IldaFrame;
 import ilda.IldaPoint;
 import netP5.NetAddress;
 import oscP5.OscMessage;
 import oscP5.OscP5;
 import processing.core.PApplet;
-
-import java.nio.ByteBuffer;
 
 import static processing.core.PApplet.constrain;
 import static processing.core.PApplet.map;
@@ -21,7 +22,7 @@ public class LsxOscOutput extends LaserOutput
     private int timeline;
     private int destinationFrame;
     private NetAddress destination;
-    private OscP5 osc;
+    private final OscP5 osc;
     private int fps = 30;
 
     public LsxOscOutput(PApplet parent, int timeline, int destinationFrame, NetAddress destination)
@@ -40,11 +41,12 @@ public class LsxOscOutput extends LaserOutput
 
         int pointCount = frame.getPoints().size();
         ByteBuffer b = ByteBuffer.allocate(12+11*pointCount);
+        b.order(ByteOrder.LITTLE_ENDIAN);
 
         // LSX frame OSC message
         //HEADER
 
-        b.put((byte) 2);         //type: 0=XYRGB; 1=XYZRGB; 2=XYZPPrRGB
+        b.put((byte) 1);         //type: 0=XYRGB; 1=XYZRGB; 2=XYZPPrRGB
         b.put((byte) 1);         //store: 0 = buffer, 1 = store in frame
         b.put((byte) timeline);  //scanner/timeline
         b.put((byte) 0);         //future
@@ -73,12 +75,12 @@ public class LsxOscOutput extends LaserOutput
             //    First bit: normal vector    1 = regular point    0 = normal vector
             //    Second bit: blanking        1 = blanked          0 = unblanked
             //    Third to eighth bit: palette idx (0-63)
-            b.put((byte) (1<<7 |(p.isBlanked() ?  1 << 6 :  0)));
+            //b.put((byte) (1<<7 |(p.isBlanked() ?  1 << 6 :  0)));
 
             // Parts-Repeats byte
             //    First to fourth bit: parts (0-15)
             //    Fifth to eighth bit: repeats (0-15)
-            b.put((byte)0);
+            //b.put((byte)0);
 
 
             int red = (p.getColour() >> 16) & 0xFF;
@@ -92,7 +94,6 @@ public class LsxOscOutput extends LaserOutput
                 blue = 0;
             }
 
-
             b.put((byte) red);
             b.put((byte) green);
             b.put((byte) blue);
@@ -101,9 +102,39 @@ public class LsxOscOutput extends LaserOutput
         //Add the blob to the OSC message
         m.add(b.array());
 
-
-        osc.send(m, destination);              // send the OSC message to the remote location defined in setup()
+        osc.send(m,
+            destination);              // send the OSC message to the remote location defined in setup()
     }
 
+    public int getTimeline() {
+        return timeline;
+    }
 
+    public void setTimeline(int timeline) {
+        this.timeline = timeline;
+    }
+
+    public int getDestinationFrame() {
+        return destinationFrame;
+    }
+
+    public void setDestinationFrame(int destinationFrame) {
+        this.destinationFrame = destinationFrame;
+    }
+
+    public NetAddress getDestination() {
+        return destination;
+    }
+
+    public void setDestination(NetAddress destination) {
+        this.destination = destination;
+    }
+
+    public int getFps() {
+        return fps;
+    }
+
+    public void setFps(int fps) {
+        this.fps = fps;
+    }
 }

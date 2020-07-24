@@ -15,9 +15,11 @@ public abstract class Procedure
 {
     protected IldaFrame frame = new IldaFrame();
     protected final IldaRenderer renderer;
+    protected final PApplet parent;
 
     public Procedure(PApplet applet)
     {
+        this.parent = applet;
         renderer = new IldaRenderer(applet);
         renderer.setOverwrite(false);
     }
