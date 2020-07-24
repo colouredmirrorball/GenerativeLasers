@@ -22,7 +22,7 @@ public class GenerativeLasers
     public static void main(String[] args)
     {
         GenerativeLasers instance = new GenerativeLasers();
-        instance.gui = new CGui();
+        instance.gui = CGui.getInstance();
         instance.gui.setTitle("Generative Lasers");
         instance.gui.launch();
         instance.currentProcedure = new Trees(instance.gui.getDefaultWindow());

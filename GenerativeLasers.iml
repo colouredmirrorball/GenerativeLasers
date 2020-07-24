@@ -9,5 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="core" level="project" />
     <orderEntry type="library" name="p5libs" level="project" />
+    <orderEntry type="module" module-name="cgui" />
+    <orderEntry type="module" module-name="Ilda" />
   </component>
 </module>
