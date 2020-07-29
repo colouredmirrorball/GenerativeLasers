@@ -19,6 +19,7 @@ public class UIBuilder
     {
         CLayout mainButtonsLayout = new CLayout("mainButtons");
         mainButtonsLayout.addButton(gui, "procedures");
+        mainButtonsLayout.addButton(gui, "button2");
         CPane pane = new CPane(mainButtonsLayout);
         gui.addPane(pane);
     }
