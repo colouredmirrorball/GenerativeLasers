@@ -17,7 +17,11 @@ public class DotOnMouse extends Procedure {
     public void update() {
         renderer.beginDraw();
         renderer.stroke(255, 255, 255);
-        renderer.point(parent.mouseX, parent.mouseY);
+        for (int i = 0; i < 250; i++)
+        {
+            renderer.point(parent.mouseX, parent.mouseY);
+        }
+
         renderer.endDraw();
         frame = renderer.getCurrentFrame();
     }

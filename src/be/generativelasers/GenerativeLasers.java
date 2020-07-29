@@ -4,6 +4,7 @@ import be.generativelasers.output.LaserOutput;
 import be.generativelasers.output.LsxOscOutput;
 import be.generativelasers.procedures.Procedure;
 import be.generativelasers.procedures.test.DotOnMouse;
+import be.generativelasers.ui.UIBuilder;
 import cmb.soft.cgui.CGui;
 import netP5.NetAddress;
 
@@ -24,6 +25,7 @@ public class GenerativeLasers {
         instance.gui = CGui.getInstance();
         instance.gui.setTitle("Generative Lasers");
         instance.gui.launch();
+        UIBuilder.buildUI(instance.gui);
         instance.currentProcedure = new DotOnMouse(instance.gui.getDefaultWindow());
         instance.currentOutput = new LsxOscOutput(instance.gui.getDefaultWindow(), 0, 10,
             new NetAddress("127.0.0.1", 10000));
