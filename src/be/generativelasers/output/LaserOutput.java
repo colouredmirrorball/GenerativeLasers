@@ -12,7 +12,7 @@ public abstract class LaserOutput
     Procedure procedure;
     public abstract void project();
 
-    public void setProcedure(Procedure currentProcedure)
+    public synchronized void setProcedure(Procedure currentProcedure)
     {
         this.procedure = currentProcedure;
     }

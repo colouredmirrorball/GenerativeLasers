@@ -18,7 +18,7 @@ public class GenerativeLasers {
     private LaserOutput currentOutput;
     private CGui gui;
 
-    public final static String VERSION = "0.0.1 Alpha";
+    public static final String VERSION = "0.0.1 Alpha";
 
     public static void main(String[] args) {
         GenerativeLasers instance = new GenerativeLasers();

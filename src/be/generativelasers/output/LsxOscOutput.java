@@ -36,7 +36,7 @@ public class LsxOscOutput extends LaserOutput
     }
 
     @Override
-    public void project()
+    public synchronized void project()
     {
         IldaFrame frame = procedure.getRenderedFrame();
         OscMessage m = new OscMessage("/LSX_0/Frame");
@@ -104,6 +104,7 @@ public class LsxOscOutput extends LaserOutput
         m.add(b.array());
 
         osc.send(m, destination);              // send the OSC message to the remote location defined in setup()
+        b.clear();
     }
 
     public int getTimeline()

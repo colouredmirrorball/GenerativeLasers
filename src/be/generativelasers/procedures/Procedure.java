@@ -1,7 +1,10 @@
 package be.generativelasers.procedures;
 
 
+import java.util.List;
+
 import ilda.IldaFrame;
+import ilda.IldaPoint;
 import ilda.IldaRenderer;
 import processing.core.PApplet;
 
@@ -17,7 +20,7 @@ public abstract class Procedure
     protected final IldaRenderer renderer;
     protected final PApplet parent;
 
-    public Procedure(PApplet applet)
+    protected Procedure(PApplet applet)
     {
         this.parent = applet;
         renderer = new IldaRenderer(applet);
@@ -26,10 +29,13 @@ public abstract class Procedure
 
     public abstract void update();
 
-    public IldaFrame getRenderedFrame()
+    public synchronized IldaFrame getRenderedFrame()
     {
         if(frame == null) return null;
-        return frame;
+        IldaFrame ildaFrame = new IldaFrame();
+        List<IldaPoint> points = frame.getPoints();
+        points.forEach(ildaFrame::addPoint);
+        return ildaFrame;
     }
 
     public abstract void trigger(float value);

@@ -14,8 +14,9 @@ public class DotOnMouse extends Procedure {
     }
 
     @Override
-    public void update() {
+    public synchronized void update() {
         renderer.beginDraw();
+        renderer.background();
         renderer.stroke(255, 255, 255);
         for (int i = 0; i < 250; i++)
         {
