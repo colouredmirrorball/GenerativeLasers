@@ -1,10 +1,10 @@
 package be.generativelasers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import be.generativelasers.procedures.Procedure;
 import cmb.soft.cgui.CGui;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Florian
