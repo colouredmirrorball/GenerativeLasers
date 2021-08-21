@@ -1,9 +1,10 @@
 package be.generativelasers;
 
-import be.generativelasers.procedures.Procedure;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import be.generativelasers.procedures.Procedure;
+import cmb.soft.cgui.CGui;
 
 /**
  * @author Florian
@@ -17,20 +18,21 @@ public class ProcedureThread extends Thread
 
     }
 
-    public void run()
-    {
-        while (true)
-        {
-            try
-            {
-                for (Procedure procedure : procedures)
-                {
+    @Override
+    public void run() {
+        boolean interrupted = false;
+        while (!interrupted) {
+            try {
+                for (Procedure procedure : procedures) {
                     procedure.update();
                 }
                 Thread.sleep(1);
-            } catch (Exception e)
-            {
-                e.printStackTrace();
+            } catch (InterruptedException exception) {
+                interrupt();
+                interrupted = true;
+            } catch (Exception exception) {
+                exception.printStackTrace();
+                CGui.log(exception);
             }
         }
     }

@@ -3,6 +3,7 @@ package be.generativelasers.ui;
 import cmb.soft.cgui.CGui;
 import cmb.soft.cgui.CLayout;
 import cmb.soft.cgui.CPane;
+import cmb.soft.cgui.celements.CRadioButtons;
 
 /**
  * @author Florian
@@ -15,11 +16,13 @@ public class UIBuilder
     {
     }
 
-    public static void buildUI(CGui gui)
-    {
+    public static void buildUI(CGui gui) {
         CLayout mainButtonsLayout = new CLayout("mainButtons");
-        mainButtonsLayout.addButton(gui, "procedures");
-        mainButtonsLayout.addButton(gui, "button2");
+        CRadioButtons procedureButtons = mainButtonsLayout.addRadioButtons(gui, "procedures")
+            .withHeader();
+        //        mainButtonsLayout.addButton(gui, "procedures").addAction(new
+        //        ToggleProceduresAction());
+        //        mainButtonsLayout.addButton(gui, "button2");
         CPane pane = new CPane(mainButtonsLayout);
         gui.addPane(pane);
     }

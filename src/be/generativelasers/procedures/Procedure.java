@@ -24,7 +24,7 @@ public abstract class Procedure
     {
         this.parent = applet;
         renderer = new IldaRenderer(applet);
-        renderer.setOverwrite(false);
+        renderer.setOverwrite(true);
     }
 
     public abstract void update();
