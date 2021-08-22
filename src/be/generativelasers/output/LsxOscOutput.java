@@ -23,7 +23,7 @@ public class LsxOscOutput extends LaserOutput
     private int timeline;
     private int destinationFrame;
     private NetAddress destination;
-    private int fps = 30;
+
 
     public LsxOscOutput(PApplet parent, int timeline, int destinationFrame, NetAddress destination)
     {
@@ -137,13 +137,5 @@ public class LsxOscOutput extends LaserOutput
         this.destination = destination;
     }
 
-    public int getFps()
-    {
-        return fps;
-    }
 
-    public void setFps(int fps)
-    {
-        this.fps = fps;
-    }
 }

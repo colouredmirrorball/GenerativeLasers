@@ -97,9 +97,9 @@ public class GenerativeLasers
         ProcedureThread procedureThread = new ProcedureThread();
         procedureThread.addProcedure(currentProcedure);
         procedureThread.start();
-        OutputThread outputThread = new OutputThread();
-        outputThread.addOutput(currentOutput);
-        outputThread.start();
+        OutputAggregator outputAggregator = new OutputAggregator();
+        outputAggregator.addOutput(currentOutput);
+        outputAggregator.start();
         CGui.log("Generative Lasers version " + VERSION + " booted");
     }
 
