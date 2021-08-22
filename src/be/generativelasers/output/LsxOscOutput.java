@@ -36,9 +36,9 @@ public class LsxOscOutput extends LaserOutput
     }
 
     @Override
-    public synchronized void project()
+    public synchronized void project(IldaFrame frame)
     {
-        IldaFrame frame = procedure.getRenderedFrame();
+
         OscMessage m = new OscMessage("/LSX_0/Frame");
 
         int pointCount = frame.getPoints().size();
