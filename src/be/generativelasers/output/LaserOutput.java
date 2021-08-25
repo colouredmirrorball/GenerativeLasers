@@ -2,7 +2,9 @@ package be.generativelasers.output;
 
 import be.generativelasers.procedures.Procedure;
 import cmb.soft.cgui.CGui;
-import ilda.IldaFrame;
+import ilda.IldaPoint;
+
+import java.util.List;
 
 /**
  * @author Florian Created on 27/01/2020
@@ -18,6 +20,11 @@ public abstract class LaserOutput extends Thread
     private long millisecondsPerFrame = 1000L / fps;
     private int lastFramePointCount = 0;
 
+    protected LaserOutput()
+    {
+        setName("Laser output");
+    }
+
     @Override
     public void run()
     {
@@ -28,39 +35,43 @@ public abstract class LaserOutput extends Thread
 
             try
             {
-                long currentTime = System.currentTimeMillis();
-                if (!paused && canProject(lastTime, currentTime))
+                if (!paused)
                 {
-                    IldaFrame frame = procedure.getRenderedFrame();
-                    project(frame);
-                    lastFramePointCount = frame.getPointCount();
+                    List<IldaPoint> points = procedure.getPoints();
+                    project(points);
+                    lastFramePointCount = points.size();
                 }
-            } catch (Exception exception)
+                long sleepTime = getSleepTime(lastTime, lastFramePointCount);
+                lastTime = System.currentTimeMillis();
+                sleep(sleepTime);
+            } catch (InterruptedException exception)
             {
                 CGui.log(exception.getMessage());
                 exception.printStackTrace();
+                interrupt();
                 interrupted = true;
             }
+        }
+    }
+
+    private long getSleepTime(long lastTime, int lastFramePointCount)
+    {
+        long currentTime = System.currentTimeMillis();
+        switch (mode)
+        {
+            case STATIC_FPS:
+                return Math.max(0, millisecondsPerFrame - (currentTime - lastTime));
+            case STATIC_PPS:
+                long allottedFrameDuration = lastFramePointCount == 0 ? 33 : lastFramePointCount / pps;
+                return Math.max(0, allottedFrameDuration - (currentTime - lastTime));
+            default:
+                throw new IllegalStateException("Unexpected value: " + mode);
         }
     }
 
     public synchronized void setProcedure(Procedure currentProcedure)
     {
         this.procedure = currentProcedure;
-    }
-
-    protected boolean canProject(long lastTime, long currentTime)
-    {
-        switch (mode)
-        {
-            case STATIC_FPS:
-                return currentTime - lastTime > millisecondsPerFrame;
-            case STATIC_PPS:
-                long allottedFrameDuration = lastFramePointCount / pps;
-                return currentTime - lastTime > allottedFrameDuration;
-            default:
-                throw new IllegalStateException("Unexpected value: " + mode);
-        }
     }
 
     public int getPps()
@@ -91,7 +102,7 @@ public abstract class LaserOutput extends Thread
         return this;
     }
 
-    public abstract void project(IldaFrame frame);
+    public abstract void project(List<IldaPoint> points);
 
     public Mode getMode()
     {

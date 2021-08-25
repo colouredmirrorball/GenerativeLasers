@@ -15,7 +15,7 @@ public class ProcedureThread extends Thread
     List<Procedure> procedures = new ArrayList<>();
     public ProcedureThread()
     {
-
+        setName("Procedure");
     }
 
     @Override

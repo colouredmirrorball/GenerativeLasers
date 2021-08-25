@@ -8,6 +8,7 @@ import ilda.IldaRenderer;
 import processing.core.PApplet;
 
 import javax.sound.midi.MidiMessage;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -31,16 +32,6 @@ public abstract class Procedure
     }
 
     public abstract void update();
-
-    public synchronized IldaFrame getRenderedFrame()
-    {
-        if (frame == null) return null;
-        IldaFrame ildaFrame = new IldaFrame();
-        List<IldaPoint> points = frame.getCopyOnWritePoints();
-        points.forEach(ildaFrame::addPoint);
-
-        return ildaFrame;
-    }
 
     public abstract void trigger(float value);
 
@@ -73,4 +64,11 @@ public abstract class Procedure
     {
         return activeNotes;
     }
+
+    public List<IldaPoint> getPoints()
+    {
+        if (frame == null) return Collections.emptyList();
+        return frame.getCopyOnWritePoints();
+    }
+
 }

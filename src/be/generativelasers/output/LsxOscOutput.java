@@ -1,6 +1,5 @@
 package be.generativelasers.output;
 
-import ilda.IldaFrame;
 import ilda.IldaPoint;
 import netP5.NetAddress;
 import oscP5.OscMessage;
@@ -9,6 +8,7 @@ import processing.core.PApplet;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 import static processing.core.PApplet.constrain;
 import static processing.core.PApplet.map;
@@ -24,7 +24,6 @@ public class LsxOscOutput extends LaserOutput
     private int destinationFrame;
     private NetAddress destination;
 
-
     public LsxOscOutput(PApplet parent, int timeline, int destinationFrame, NetAddress destination)
     {
         osc = new OscP5(parent, 4850);
@@ -33,15 +32,16 @@ public class LsxOscOutput extends LaserOutput
         this.destination = destination;
         b = ByteBuffer.allocate(45068); //largest point count LSX can handle is 4096
         b.order(ByteOrder.LITTLE_ENDIAN);
+        setName("LSX OSC output");
     }
 
     @Override
-    public synchronized void project(IldaFrame frame)
+    public synchronized void project(List<IldaPoint> points)
     {
 
         OscMessage m = new OscMessage("/LSX_0/Frame");
 
-        int pointCount = frame.getPoints().size();
+        int pointCount = points.size();
         b.position(0);
 
         // LSX frame OSC message
@@ -60,7 +60,7 @@ public class LsxOscOutput extends LaserOutput
         int max = 32767;
         for (int i = 0; i < Math.min(pointCount, 4096); i++)
         {
-            IldaPoint p = frame.getPoints().get(i);
+            IldaPoint p = points.get(i);
             short x = (short) constrain(map(p.getPosition().x, -1, 1, -max, max), -max, max);
             b.putShort(x);
 
