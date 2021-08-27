@@ -61,6 +61,11 @@ public class LsxOscOutput extends LaserOutput
         for (int i = 0; i < Math.min(pointCount, 4096); i++)
         {
             IldaPoint p = points.get(i);
+            if (p == null)
+            {
+                // Suspicious! Points shouldn't be null here. This could mean a concurrency issue and flickering output.
+                continue;
+            }
             short x = (short) constrain(map(p.getPosition().x, -1, 1, -max, max), -max, max);
             b.putShort(x);
 

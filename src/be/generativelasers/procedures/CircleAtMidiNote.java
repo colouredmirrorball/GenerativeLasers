@@ -22,10 +22,9 @@ public class CircleAtMidiNote extends Procedure
     }
 
     @Override
-    public void update()
+    public void updateRender()
     {
         List<MidiNote> activeNotes = getActiveNotes();
-        renderer.beginDraw();
         renderer.background();
         renderer.colorMode(PConstants.HSB);
 
@@ -43,8 +42,6 @@ public class CircleAtMidiNote extends Procedure
             hue = (hue + 1) % 255;
             hue2 = (hue2 + 1) % 255;
         }
-        renderer.endDraw();
-        frame = renderer.getCurrentFrame();
     }
 
     @Override

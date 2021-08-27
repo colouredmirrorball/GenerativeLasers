@@ -14,17 +14,14 @@ public class DotOnMouse extends Procedure {
     }
 
     @Override
-    public synchronized void update() {
-        renderer.beginDraw();
+    public synchronized void updateRender()
+    {
         renderer.background();
         renderer.stroke(255, 255, 255);
         for (int i = 0; i < 250; i++)
         {
             renderer.point(parent.mouseX, parent.mouseY);
         }
-
-        renderer.endDraw();
-        frame = renderer.getCurrentFrame();
     }
 
     @Override

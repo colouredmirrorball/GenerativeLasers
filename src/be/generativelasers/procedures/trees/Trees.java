@@ -16,14 +16,11 @@ public class Trees extends Procedure
     }
 
     @Override
-    public void update()
+    public void updateRender()
     {
-        renderer.beginDraw();
         renderer.stroke(255, 255, 255);
         renderer.ellipse(200, 200, 200, 200);
         renderer.point(parent.mouseX, parent.mouseY);
-        renderer.endDraw();
-        frame = renderer.getCurrentFrame();
     }
 
     @Override

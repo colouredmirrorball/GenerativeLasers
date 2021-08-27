@@ -2,8 +2,8 @@ package be.generativelasers;
 
 import be.generativelasers.output.LaserOutput;
 import be.generativelasers.output.LsxOscOutput;
-import be.generativelasers.procedures.CircleAtMidiNote;
 import be.generativelasers.procedures.Procedure;
+import be.generativelasers.procedures.test.StringTest;
 import be.generativelasers.ui.UIBuilder;
 import cmb.soft.cgui.CGui;
 import cmb.soft.cgui.CWindow;
@@ -35,15 +35,13 @@ public class GenerativeLasers
         gui.launch();
         UIBuilder.buildUI(gui);
         CWindow window = gui.getDefaultWindow();
-        currentProcedure = new CircleAtMidiNote(window);
+        currentProcedure = new StringTest(window);
         currentOutput = new LsxOscOutput(window, 0, 10, new NetAddress("127.0.0.1", 10000));
         currentOutput.setProcedure(currentProcedure);
-        midiBus = new MidiBus(window);
+        midiBus = new MidiBus(window, "bus1");
         println(MidiBus.availableInputs());
         midiBus.addInput("USB-MIDI");
-        midiBus.addMidiListener((StandardMidiListener) (message, timeStamp) -> {
-            processMidiMessage(message);
-        });
+        midiBus.addMidiListener((StandardMidiListener) (message, timeStamp) -> processMidiMessage(message));
         midiBus.addMidiListener(new SimpleMidiListener()
         {
             @Override

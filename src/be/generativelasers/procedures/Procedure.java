@@ -6,10 +6,12 @@ import ilda.IldaFrame;
 import ilda.IldaPoint;
 import ilda.IldaRenderer;
 import processing.core.PApplet;
+import processing.core.PGraphics;
 
 import javax.sound.midi.MidiMessage;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
@@ -23,15 +25,25 @@ public abstract class Procedure
     protected final IldaRenderer renderer;
     protected final PApplet parent;
     private final CopyOnWriteArrayList<MidiNote> activeNotes = new CopyOnWriteArrayList<>();
+    private final PGraphics renderedFrame;
 
     protected Procedure(PApplet applet)
     {
         this.parent = applet;
-        renderer = new IldaRenderer(applet);
+        renderer = new IldaRenderer(applet, applet.height, applet.height);
         renderer.setOverwrite(true);
+        renderedFrame = applet.createGraphics(applet.height, applet.height);
     }
 
-    public abstract void update();
+    public void update()
+    {
+        renderer.beginDraw();
+        updateRender();
+        renderer.endDraw();
+        frame = renderer.getCurrentFrame();
+    }
+
+    public abstract void updateRender();
 
     public abstract void trigger(float value);
 
@@ -69,6 +81,14 @@ public abstract class Procedure
     {
         if (frame == null) return Collections.emptyList();
         return frame.getCopyOnWritePoints();
+    }
+
+    public void draw()
+    {
+        renderedFrame.beginDraw();
+        Optional.ofNullable(renderer.getCurrentFrame()).ifPresent(ildaFrame -> ildaFrame.renderFrame(renderedFrame,
+                true));
+        renderedFrame.endDraw();
     }
 
 }
