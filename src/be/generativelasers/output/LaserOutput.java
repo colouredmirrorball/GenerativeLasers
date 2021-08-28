@@ -5,6 +5,7 @@ import cmb.soft.cgui.CGui;
 import ilda.IldaPoint;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author Florian Created on 27/01/2020
@@ -37,7 +38,7 @@ public abstract class LaserOutput extends Thread
             {
                 if (!paused)
                 {
-                    List<IldaPoint> points = procedure.getPoints();
+                    List<IldaPoint> points = new CopyOnWriteArrayList<>(procedure.getPoints());
                     project(points);
                     lastFramePointCount = points.size();
                 }

@@ -9,7 +9,6 @@ import processing.core.PApplet;
 import processing.core.PGraphics;
 
 import javax.sound.midi.MidiMessage;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -21,17 +20,20 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public abstract class Procedure
 {
-    protected IldaFrame frame = new IldaFrame();
+
     protected final IldaRenderer renderer;
     protected final PApplet parent;
-    private final CopyOnWriteArrayList<MidiNote> activeNotes = new CopyOnWriteArrayList<>();
+    private final List<MidiNote> activeNotes = new CopyOnWriteArrayList<>();
     private final PGraphics renderedFrame;
+    private final List<IldaPoint> pointBuffer = new CopyOnWriteArrayList<>();
+
 
     protected Procedure(PApplet applet)
     {
         this.parent = applet;
         renderer = new IldaRenderer(applet, applet.height, applet.height);
         renderer.setOverwrite(true);
+        renderer.setOptimise(false);
         renderedFrame = applet.createGraphics(applet.height, applet.height);
     }
 
@@ -40,7 +42,16 @@ public abstract class Procedure
         renderer.beginDraw();
         updateRender();
         renderer.endDraw();
-        frame = renderer.getCurrentFrame();
+        IldaFrame currentFrame = renderer.getCurrentFrame();
+        if (currentFrame != null)
+        {
+            synchronized (pointBuffer)
+            {
+                pointBuffer.clear();
+                pointBuffer.addAll(currentFrame.getCopyOnWritePoints());
+            }
+
+        }
     }
 
     public abstract void updateRender();
@@ -79,8 +90,11 @@ public abstract class Procedure
 
     public List<IldaPoint> getPoints()
     {
-        if (frame == null) return Collections.emptyList();
-        return frame.getCopyOnWritePoints();
+        synchronized (pointBuffer)
+        {
+            return pointBuffer;
+        }
+
     }
 
     public void draw()

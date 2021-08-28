@@ -20,6 +20,21 @@
       <root url="jar://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/core/library/jogl-all.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/app/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/app/test/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/build/jre/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/build/macosx/appbundler/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/build/shared/tools/MovieMaker/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/core/methods/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/core/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/java/libraries/dxf/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/java/libraries/io/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/java/libraries/net/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/java/libraries/pdf/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/java/libraries/serial/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/java/libraries/svg/src" />
+      <root url="file://$PROJECT_DIR$/../../Processing 3/processing-3.5.4/processing-processing-0270-3.5.4/java/src" />
+    </SOURCES>
   </library>
 </component>
