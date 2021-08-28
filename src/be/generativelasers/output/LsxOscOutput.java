@@ -60,28 +60,28 @@ public class LsxOscOutput extends LaserOutput
         int max = 32767;
         for (int i = 0; i < Math.min(pointCount, 4096); i++)
         {
-            IldaPoint p = points.get(i);
-            if (p == null)
+            IldaPoint point = points.get(i);
+            if (point == null)
             {
                 // Suspicious! Points shouldn't be null here. This could mean a concurrency issue and flickering output.
                 continue;
             }
-            short x = (short) constrain(map(p.getPosition().x, -1, 1, -max, max), -max, max);
+            short x = (short) constrain(map(point.getPosition().x, -1, 1, -max, max), -max, max);
             b.putShort(x);
 
 
-            short y = (short) constrain(map(p.getPosition().y, -1, 1, -max, max), -max, max);
+            short y = (short) constrain(map(point.getPosition().y, -1, 1, -max, max), -max, max);
             b.putShort(y);
 
 
-            short z = (short) constrain(map(p.getPosition().z, -1, 1, -max, max), -max, max);
+            short z = (short) constrain(map(point.getPosition().z, -1, 1, -max, max), -max, max);
             b.putShort(z);
 
             // Palette byte:
             //    First bit: normal vector    1 = regular point    0 = normal vector
             //    Second bit: blanking        1 = blanked          0 = unblanked
             //    Third to eighth bit: palette idx (0-63)
-            b.put((byte) (1 << 7 | (p.isBlanked() ? 1 << 6 : 0)));
+            b.put((byte) (1 << 7 | (point.isBlanked() ? 1 << 6 : 0)));
 
             // Parts-Repeats byte
             //    First to fourth bit: parts (0-15)
@@ -89,11 +89,11 @@ public class LsxOscOutput extends LaserOutput
             b.put((byte) 0);
 
 
-            int red = (p.getColour() >> 16) & 0xFF;
-            int green = (p.getColour() >> 8) & 0xFF;
-            int blue = (p.getColour() & 0xFF);
+            int red = (point.getColour() >> 16) & 0xFF;
+            int green = (point.getColour() >> 8) & 0xFF;
+            int blue = (point.getColour() & 0xFF);
 
-            if (p.isBlanked())
+            if (point.isBlanked())
             {
                 red = 0;
                 green = 0;
