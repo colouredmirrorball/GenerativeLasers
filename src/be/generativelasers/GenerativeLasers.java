@@ -2,8 +2,8 @@ package be.generativelasers;
 
 import be.generativelasers.output.LaserOutput;
 import be.generativelasers.output.LsxOscOutput;
+import be.generativelasers.procedures.MidiEffects;
 import be.generativelasers.procedures.Procedure;
-import be.generativelasers.procedures.test.StringTest;
 import be.generativelasers.ui.UIBuilder;
 import cmb.soft.cgui.CGui;
 import cmb.soft.cgui.CWindow;
@@ -24,7 +24,6 @@ public class GenerativeLasers
 
     private final Procedure currentProcedure;
     private final LaserOutput currentOutput;
-    private MidiBus midiBus;
 
     public static final String VERSION = "0.0.1 Alpha";
 
@@ -35,11 +34,11 @@ public class GenerativeLasers
         gui.launch();
         UIBuilder.buildUI(gui);
         CWindow window = gui.getDefaultWindow();
-        currentProcedure = new StringTest(window);
-        currentOutput = new LsxOscOutput(window, 0, 10, new NetAddress("127.0.0.1", 10000));
+        currentProcedure = new MidiEffects(window);
+        currentOutput = new LsxOscOutput(window, 0, 9, new NetAddress("127.0.0.1", 10000));
         currentOutput.setProcedure(currentProcedure);
-        midiBus = new MidiBus(window, "bus1");
-        println(MidiBus.availableInputs());
+        MidiBus midiBus = new MidiBus(window, "bus1");
+        println((Object) MidiBus.availableInputs());
         midiBus.addInput("USB-MIDI");
         midiBus.addMidiListener((StandardMidiListener) (message, timeStamp) -> processMidiMessage(message));
         midiBus.addMidiListener(new SimpleMidiListener()

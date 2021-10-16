@@ -45,4 +45,10 @@ public class MidiNote
         this.velocity = velocity;
         return this;
     }
+
+    @Override
+    public String toString()
+    {
+        return "Channel: " + channel + " pitch: " + pitch + " velocity: " + velocity;
+    }
 }

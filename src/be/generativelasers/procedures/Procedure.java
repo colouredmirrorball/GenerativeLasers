@@ -5,6 +5,7 @@ import be.generativelasers.MidiNote;
 import ilda.IldaFrame;
 import ilda.IldaPoint;
 import ilda.IldaRenderer;
+import ilda.OptimisationSettings;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 
@@ -33,7 +34,10 @@ public abstract class Procedure
         this.parent = applet;
         renderer = new IldaRenderer(applet, applet.height, applet.height);
         renderer.setOverwrite(true);
-        renderer.setOptimise(false);
+        renderer.setOptimise(true);
+        OptimisationSettings settings =
+                new OptimisationSettings().setAngleDwell(false).setInterpolateBlanked(false).setInterpolateLit(false);
+        renderer.setOptimisationSettings(settings);
         renderedFrame = applet.createGraphics(applet.height, applet.height);
     }
 

@@ -32,8 +32,8 @@ public class CircleAtMidiNote extends Procedure
         for (MidiNote note : activeNotes)
         {
             renderer.stroke(even ? hue : hue2, 255, 255);
-            renderer.ellipse(map(note.getPitch(), 0, 127, 0, renderer.width), renderer.height * 0.5f, note.getVelocity(),
-                    note.getVelocity());
+            renderer.ellipse(map(note.getPitch(), 16, 112, 0, renderer.width), renderer.height * 0.5f,
+                    note.getVelocity(), note.getVelocity());
             even = !even;
         }
         counter++;
