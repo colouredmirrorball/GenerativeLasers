@@ -1,13 +1,12 @@
 package be.generativelasers;
 
+import be.generativelasers.output.EtherdreamOutput;
 import be.generativelasers.output.LaserOutput;
-import be.generativelasers.output.LsxOscOutput;
-import be.generativelasers.procedures.MidiEffects;
 import be.generativelasers.procedures.Procedure;
+import be.generativelasers.procedures.test.StringTest;
 import be.generativelasers.ui.UIBuilder;
 import cmb.soft.cgui.CGui;
 import cmb.soft.cgui.CWindow;
-import netP5.NetAddress;
 import themidibus.MidiBus;
 import themidibus.SimpleMidiListener;
 import themidibus.StandardMidiListener;
@@ -22,20 +21,22 @@ import static processing.core.PApplet.println;
 public class GenerativeLasers
 {
 
+    public static final String VERSION = "0.0.1 Alpha";
     private final Procedure currentProcedure;
     private final LaserOutput currentOutput;
-
-    public static final String VERSION = "0.0.1 Alpha";
+    private OutputAggregator outputAggregator;
 
     private GenerativeLasers()
     {
         CGui gui = CGui.getInstance();
         gui.setTitle("Generative Lasers");
+        gui.addExitListener(this::stop);
         gui.launch();
         UIBuilder.buildUI(gui);
         CWindow window = gui.getDefaultWindow();
-        currentProcedure = new MidiEffects(window);
-        currentOutput = new LsxOscOutput(window, 0, 9, new NetAddress("127.0.0.1", 10000));
+        currentProcedure = new StringTest(window);
+//        currentOutput = new LsxOscOutput(window, 0, 9, new NetAddress("127.0.0.1", 10000));
+        currentOutput = new EtherdreamOutput();
         currentOutput.setProcedure(currentProcedure);
         MidiBus midiBus = new MidiBus(window, "bus1");
         println((Object) MidiBus.availableInputs());
@@ -94,10 +95,15 @@ public class GenerativeLasers
         ProcedureThread procedureThread = new ProcedureThread();
         procedureThread.addProcedure(currentProcedure);
         procedureThread.start();
-        OutputAggregator outputAggregator = new OutputAggregator();
+        outputAggregator = new OutputAggregator();
         outputAggregator.addOutput(currentOutput);
         outputAggregator.start();
         CGui.log("Generative Lasers version " + VERSION + " booted");
+    }
+
+    public void stop()
+    {
+        outputAggregator.stop();
     }
 
 }

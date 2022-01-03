@@ -4,6 +4,7 @@ import be.generativelasers.procedures.Procedure;
 import cmb.soft.cgui.CGui;
 import ilda.IldaPoint;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -20,6 +21,7 @@ public abstract class LaserOutput extends Thread
     private Mode mode = Mode.STATIC_PPS;
     private long millisecondsPerFrame = 1000L / fps;
     private int lastFramePointCount = 0;
+    private boolean interrupted = false;
 
     protected LaserOutput()
     {
@@ -29,7 +31,6 @@ public abstract class LaserOutput extends Thread
     @Override
     public void run()
     {
-        boolean interrupted = false;
         long lastTime = 0L;
         while (!interrupted)
         {
@@ -45,7 +46,7 @@ public abstract class LaserOutput extends Thread
                 long sleepTime = getSleepTime(lastTime, lastFramePointCount);
                 lastTime = System.currentTimeMillis();
                 sleep(sleepTime);
-            } catch (InterruptedException exception)
+            } catch (InterruptedException | IOException exception)
             {
                 CGui.log(exception.getMessage());
                 exception.printStackTrace();
@@ -103,7 +104,7 @@ public abstract class LaserOutput extends Thread
         return this;
     }
 
-    public abstract void project(List<IldaPoint> points);
+    public abstract void project(List<IldaPoint> points) throws IOException;
 
     public Mode getMode()
     {
@@ -119,5 +120,10 @@ public abstract class LaserOutput extends Thread
     public enum Mode
     {
         STATIC_FPS, STATIC_PPS
+    }
+
+    public void halt()
+    {
+        interrupted = true;
     }
 }

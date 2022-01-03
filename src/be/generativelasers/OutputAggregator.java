@@ -25,4 +25,8 @@ public class OutputAggregator
         }
     }
 
+    public void stop()
+    {
+        outputs.forEach(LaserOutput::halt);
+    }
 }
