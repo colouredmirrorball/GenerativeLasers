@@ -5,7 +5,7 @@ import static be.generativelasers.output.etherdream.Etherdream.isFlag;
 public class EtherdreamPlaybackFlags
 {
     private final boolean shutterState;
-    private final boolean underFlow;
+    private final boolean underFlow;    //Likely bugged and not sent when an underflow occurs
     private final boolean eStop;
 
     public EtherdreamPlaybackFlags(short flags)

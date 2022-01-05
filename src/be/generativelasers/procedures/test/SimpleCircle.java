@@ -4,12 +4,13 @@ import be.generativelasers.procedures.Procedure;
 import processing.core.PApplet;
 
 /**
- * @author Florian
- * Created on 24/07/2020
+ * @author Florian Created on 24/07/2020
  */
-public class DotOnMouse extends Procedure {
+public class SimpleCircle extends Procedure
+{
 
-    public DotOnMouse(PApplet applet) {
+    public SimpleCircle(PApplet applet)
+    {
         super(applet);
     }
 
@@ -18,14 +19,12 @@ public class DotOnMouse extends Procedure {
     {
         renderer.background();
         renderer.stroke(255, 255, 255);
-        for (int i = 0; i < 20; i++)
-        {
-            renderer.point(parent.mouseX, parent.mouseY);
-        }
+        renderer.ellipse(parent.width * 0.5f, parent.width * 0.5f, parent.width * 0.25f, parent.width * 0.25f);
     }
 
     @Override
-    public void trigger(float value) {
+    public void trigger(float value)
+    {
 
     }
 }

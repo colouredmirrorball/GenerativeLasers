@@ -40,6 +40,7 @@ public class EtherdreamDiscoverer implements Runnable
                 String mac = broadcast.getMac();
                 synchronized (devices)
                 {
+                    CGui.log("found device in discoverer");
                     Etherdream etherdream = devices.get(mac);
                     if (etherdream == null)
                     {

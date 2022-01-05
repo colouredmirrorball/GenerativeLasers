@@ -1,28 +1,22 @@
 package be.generativelasers.output.etherdream;
 
-import cmb.soft.cgui.CGui;
 import ilda.IldaPoint;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.util.List;
 
 public class Etherdream
 {
-    private final InetAddress address;
-    private boolean connected = false;
+    private final EtherdreamCommunicationThread thread;
     private EtherdreamBroadcast broadcast;
-    private Socket socket;
-    private OutputStream output;
-    private InputStream input;
+    private boolean connectionFailed = false;
+
 
     public Etherdream(InetAddress address, EtherdreamBroadcast broadcast)
     {
-        this.address = address;
         this.broadcast = broadcast;
+        thread = new EtherdreamCommunicationThread(address, this);
+        thread.start();
     }
 
     public static boolean isFlag(short flags, int position)
@@ -35,89 +29,28 @@ public class Etherdream
         this.broadcast = broadcast;
     }
 
-    public void prepareStream() throws IOException
+    public void project(List<IldaPoint> points, int pps)
     {
-        ensureConnection();
-        if (broadcast == null) return;
-        EtherdreamStatus status = broadcast.getStatus();
-        EtherdreamLightEngineState lightEngineState = status.getLightEngineState();
-        if (!EtherdreamLightEngineState.READY.equals(lightEngineState))
-        {
-            CGui.log("Warning: Etherdream state is not ready but " + lightEngineState.name());
-        }
-        write(new byte[]{'p'});
+        thread.project(points, pps);
     }
 
-    private void write(byte[] bytes) throws IOException
+    public void stop()
     {
-        try
-        {
-            output.write(bytes);
-            processResponse();
-        } catch (Exception exception)
-        {
-            connected = false;
-            socket.close();
-            CGui.log(exception);
-        }
+        thread.halt();
     }
 
-    private void processResponse() throws IOException
+    public boolean connectionFailed()
     {
-        byte[] buffer = new byte[512];
-        int i = 0;
-        boolean received = false;
-        while (input.available() > 0)
-        {
-            buffer[i++] = (byte) input.read();
-            received = true;
-        }
-        if (received)
-        {
-            EtherdreamResponse response = new EtherdreamResponse(buffer);
-            if (!EtherdreamResponseStatus.ACK.equals(response.getResponse()))
-            {
-                CGui.log("No acknowledge received from Etherdream!");
-            }
-        } else
-        {
-            CGui.log("No response from Etherdream...");
-        }
-
+        return connectionFailed;
     }
 
-
-    private void ensureConnection() throws IOException
+    void setConnectionFailed()
     {
-        if (!connected)
-        {
-            connect();
-        }
+        this.connectionFailed = true;
     }
 
-    private void connect() throws IOException
+    public EtherdreamBroadcast getBroadcast()
     {
-        socket = new Socket(address, 7765);
-
-        output = socket.getOutputStream();
-        input = socket.getInputStream();
-        connected = true;
-        processResponse();
-
-    }
-
-    public void writeData(List<IldaPoint> points)
-    {
-    }
-
-    public void beginPlayback(int pps) throws IOException
-    {
-        if (broadcast.getMaxPointRate() < pps)
-        {
-            throw new RuntimeException("Etherdream max point rate is " + broadcast.getMaxPointRate() + " but " +
-                    "requested " + pps);
-        }
-        EtherdreamCommand command = new BeginPlaybackCommand(pps);
-        write(command.getBytes());
+        return broadcast;
     }
 }

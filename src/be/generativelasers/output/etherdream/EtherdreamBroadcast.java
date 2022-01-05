@@ -5,6 +5,11 @@ import java.nio.ByteOrder;
 
 import static processing.core.PApplet.hex;
 
+/**
+ * Bundles all information received in a broadcast message from the Etherdream. Contains mac address (used as primary
+ * identifier), metadata and status information.
+ */
+
 public class EtherdreamBroadcast
 {
     private final byte[] macAddress = new byte[6];

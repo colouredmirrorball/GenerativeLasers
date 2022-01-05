@@ -1,6 +1,7 @@
 package be.generativelasers.output.etherdream;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class EtherdreamResponse
 {
@@ -12,6 +13,7 @@ public class EtherdreamResponse
     public EtherdreamResponse(byte[] bytes)
     {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
         response = EtherdreamResponseStatus.get((char) buffer.get());
         command = (char) buffer.get();
         status = new EtherdreamStatus(buffer);

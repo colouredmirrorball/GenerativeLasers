@@ -3,7 +3,7 @@ package be.generativelasers;
 import be.generativelasers.output.EtherdreamOutput;
 import be.generativelasers.output.LaserOutput;
 import be.generativelasers.procedures.Procedure;
-import be.generativelasers.procedures.test.StringTest;
+import be.generativelasers.procedures.test.SimpleCircle;
 import be.generativelasers.ui.UIBuilder;
 import cmb.soft.cgui.CGui;
 import cmb.soft.cgui.CWindow;
@@ -34,7 +34,7 @@ public class GenerativeLasers
         gui.launch();
         UIBuilder.buildUI(gui);
         CWindow window = gui.getDefaultWindow();
-        currentProcedure = new StringTest(window);
+        currentProcedure = new SimpleCircle(window);
 //        currentOutput = new LsxOscOutput(window, 0, 9, new NetAddress("127.0.0.1", 10000));
         currentOutput = new EtherdreamOutput();
         currentOutput.setProcedure(currentProcedure);

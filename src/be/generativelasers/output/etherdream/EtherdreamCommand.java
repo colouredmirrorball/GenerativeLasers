@@ -1,7 +1,8 @@
 package be.generativelasers.output.etherdream;
 
-public abstract class EtherdreamCommand
+public interface EtherdreamCommand
 {
+    byte[] getBytes();
 
-    public abstract byte[] getBytes();
+    char getCommandChar();
 }

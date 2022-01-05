@@ -19,7 +19,7 @@ public enum EtherdreamResponseStatus
                     case 'F' -> NAK_FULL;
                     case 'I' -> NAK_INVALID;
                     case '!' -> NAK_STOP_CONDITION;
-                    default -> throw new IllegalStateException("Unexpected value: " + state);
+                    default -> throw new IllegalStateException("Unexpected response status value value: " + state);
                 };
     }
 }
