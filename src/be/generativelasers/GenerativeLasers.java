@@ -3,7 +3,7 @@ package be.generativelasers;
 import javax.sound.midi.MidiMessage;
 
 import be.cmbsoft.laseroutput.EtherdreamOutput;
-import be.generativelasers.output.LaserOutput;
+import be.cmbsoft.laseroutput.LaserOutput;
 import be.generativelasers.procedures.Procedure;
 import be.generativelasers.procedures.test.SimpleCircle;
 import be.generativelasers.ui.UIBuilder;
@@ -37,7 +37,7 @@ public class GenerativeLasers
         currentProcedure = new SimpleCircle(window);
 //        currentOutput = new LsxOscOutput(window, 0, 9, new NetAddress("127.0.0.1", 10000));
         currentOutput = new EtherdreamOutput();
-        currentOutput.setProcedure(currentProcedure);
+        currentProcedure.setOutput(currentOutput);
         MidiBus midiBus = new MidiBus(window, "bus1");
         println((Object) MidiBus.availableInputs());
         midiBus.addInput("USB-MIDI");

@@ -1,6 +1,12 @@
 package be.generativelasers.procedures;
 
 
+import javax.sound.midi.MidiMessage;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import be.cmbsoft.laseroutput.LaserOutput;
 import be.generativelasers.MidiNote;
 import ilda.IldaFrame;
 import ilda.IldaPoint;
@@ -8,11 +14,6 @@ import ilda.IldaRenderer;
 import ilda.OptimisationSettings;
 import processing.core.PApplet;
 import processing.core.PGraphics;
-
-import javax.sound.midi.MidiMessage;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 
 /**
@@ -22,11 +23,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public abstract class Procedure
 {
 
-    protected final IldaRenderer renderer;
-    protected final PApplet parent;
-    private final List<MidiNote> activeNotes = new CopyOnWriteArrayList<>();
-    private final PGraphics renderedFrame;
-    private final List<IldaPoint> pointBuffer = new CopyOnWriteArrayList<>();
+    protected final IldaRenderer    renderer;
+    protected final PApplet         parent;
+    private final   List<MidiNote>  activeNotes = new CopyOnWriteArrayList<>();
+    private final   PGraphics       renderedFrame;
+    private final   List<IldaPoint> pointBuffer = new CopyOnWriteArrayList<>();
+    private         LaserOutput     output;
 
 
     protected Procedure(PApplet applet)
@@ -54,7 +56,7 @@ public abstract class Procedure
                 pointBuffer.clear();
                 pointBuffer.addAll(currentFrame.getCopyOnWritePoints());
             }
-
+            Optional.ofNullable(output).ifPresent(l -> output.setCurrentFrame(currentFrame));
         }
     }
 
@@ -105,8 +107,13 @@ public abstract class Procedure
     {
         renderedFrame.beginDraw();
         Optional.ofNullable(renderer.getCurrentFrame()).ifPresent(ildaFrame -> ildaFrame.renderFrame(renderedFrame,
-                true));
+            true));
         renderedFrame.endDraw();
+    }
+
+    public void setOutput(LaserOutput currentOutput)
+    {
+        this.output = currentOutput;
     }
 
 }
