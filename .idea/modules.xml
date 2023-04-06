@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/GenerativeLasers.iml" filepath="$PROJECT_DIR$/GenerativeLasers.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Ilda/Ilda.iml" filepath="$PROJECT_DIR$/../Ilda/Ilda.iml" />
       <module fileurl="file://$PROJECT_DIR$/../CGui/cgui.iml" filepath="$PROJECT_DIR$/../CGui/cgui.iml" />
     </modules>
   </component>

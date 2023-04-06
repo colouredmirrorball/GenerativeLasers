@@ -11,5 +11,6 @@
     <orderEntry type="library" name="p5libs" level="project" />
     <orderEntry type="module" module-name="cgui" />
     <orderEntry type="module" module-name="Ilda" />
+    <orderEntry type="module" module-name="LaserOutput" />
   </component>
 </module>

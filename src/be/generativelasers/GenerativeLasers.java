@@ -1,6 +1,8 @@
 package be.generativelasers;
 
-import be.generativelasers.output.EtherdreamOutput;
+import javax.sound.midi.MidiMessage;
+
+import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.generativelasers.output.LaserOutput;
 import be.generativelasers.procedures.Procedure;
 import be.generativelasers.procedures.test.SimpleCircle;
@@ -10,8 +12,6 @@ import cmb.soft.cgui.CWindow;
 import themidibus.MidiBus;
 import themidibus.SimpleMidiListener;
 import themidibus.StandardMidiListener;
-
-import javax.sound.midi.MidiMessage;
 
 import static processing.core.PApplet.println;
 
