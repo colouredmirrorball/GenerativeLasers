@@ -1,0 +1,23 @@
+<component name="ArtifactManager">
+  <artifact name="Ilda2">
+    <output-path>$USER_HOME$/Documents/Processing/libraries/ilda</output-path>
+    <root id="root">
+      <element id="directory" name="library">
+        <element id="archive" name="ilda.jar">
+          <element id="module-output" name="Ilda" />
+          <element id="module-output" name="javaosc-core" />
+          <element id="module-output" name="LaserOutput" />
+          <element id="library" level="project" name="Maven: org.slf4j:slf4j-simple:1.7.25" />
+          <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.25" />
+          <element id="library" level="project" name="Maven: org.slf4j:slf4j-ext:1.7.25" />
+        </element>
+      </element>
+      <element id="directory" name="examples">
+        <element id="dir-copy" path="$PROJECT_DIR$/../Ilda/examples" />
+      </element>
+      <element id="directory" name="reference">
+        <element id="dir-copy" path="$PROJECT_DIR$/../Ilda/docs" />
+      </element>
+    </root>
+  </artifact>
+</component>
