@@ -7,10 +7,10 @@
           <element id="module-output" name="Ilda" />
           <element id="module-output" name="javaosc-core" />
           <element id="module-output" name="LaserOutput" />
-          <element id="library" level="project" name="Maven: org.slf4j:slf4j-simple:1.7.25" />
-          <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.25" />
-          <element id="library" level="project" name="Maven: org.slf4j:slf4j-ext:1.7.25" />
         </element>
+        <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.25" />
+        <element id="library" level="project" name="Maven: org.slf4j:slf4j-simple:1.7.25" />
+        <element id="library" level="project" name="Maven: org.slf4j:slf4j-ext:1.7.25" />
       </element>
       <element id="directory" name="examples">
         <element id="dir-copy" path="$PROJECT_DIR$/../Ilda/examples" />
