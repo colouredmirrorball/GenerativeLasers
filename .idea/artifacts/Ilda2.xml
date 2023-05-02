@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact name="Ilda2">
-    <output-path>$USER_HOME$/Documents/Processing/libraries/ilda</output-path>
+    <output-path>$PROJECT_DIR$/../../Processing 3/libraries/Ilda</output-path>
     <root id="root">
       <element id="directory" name="library">
         <element id="archive" name="ilda.jar">
@@ -18,6 +18,7 @@
       <element id="directory" name="reference">
         <element id="dir-copy" path="$PROJECT_DIR$/../Ilda/docs" />
       </element>
+      <element id="file-copy" path="$PROJECT_DIR$/../../Processing 3/libraries/Ilda/library.properties" />
     </root>
   </artifact>
 </component>

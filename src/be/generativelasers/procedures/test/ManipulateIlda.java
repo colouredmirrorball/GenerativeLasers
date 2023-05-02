@@ -1,30 +1,23 @@
 package be.generativelasers.procedures.test;
 
+import java.util.List;
+
 import be.generativelasers.procedures.Procedure;
 import ilda.IldaFrame;
 import ilda.IldaReader;
 import processing.core.PApplet;
 
-import java.io.FileNotFoundException;
-import java.util.List;
-
 public class ManipulateIlda extends Procedure
 {
 
-    private List<IldaFrame> ildaFrames;
-    private int idx;
-    private int counter;
+    private final List<IldaFrame> ildaFrames;
+    private       int             idx;
+    private       int             counter;
 
     public ManipulateIlda(PApplet applet)
     {
         super(applet);
-        try
-        {
-            ildaFrames = IldaReader.readFile("data/CanGoose.ild");
-        } catch (FileNotFoundException e)
-        {
-            // ignore
-        }
+        ildaFrames = IldaReader.readFile("data/CanGoose.ild");
     }
 
     @Override
