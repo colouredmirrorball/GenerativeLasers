@@ -1,17 +1,17 @@
 package be.generativelasers.procedures;
 
 
-import javax.sound.midi.MidiMessage;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import javax.sound.midi.MidiMessage;
 
+import be.cmbsoft.ilda.IldaFrame;
+import be.cmbsoft.ilda.IldaPoint;
+import be.cmbsoft.ilda.IldaRenderer;
+import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.generativelasers.MidiNote;
-import ilda.IldaFrame;
-import ilda.IldaPoint;
-import ilda.IldaRenderer;
-import ilda.OptimisationSettings;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 

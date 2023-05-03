@@ -1,18 +1,19 @@
 package be.generativelasers.procedures.midi;
 
-import be.generativelasers.MidiNote;
-import be.generativelasers.procedures.MidiEffect;
-import be.generativelasers.util.Smoother;
-import ilda.IldaRenderer;
-import processing.core.PConstants;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import be.cmbsoft.ilda.IldaRenderer;
+import be.generativelasers.MidiNote;
+import be.generativelasers.procedures.MidiEffect;
+import be.generativelasers.util.Smoother;
 import static processing.core.PApplet.map;
-import static processing.core.PConstants.*;
+import processing.core.PConstants;
+import static processing.core.PConstants.EPSILON;
+import static processing.core.PConstants.PI;
+import static processing.core.PConstants.TWO_PI;
 
 public class SineWaveEffect extends MidiEffect
 {

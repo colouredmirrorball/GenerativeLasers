@@ -2,9 +2,9 @@ package be.generativelasers.procedures.test;
 
 import java.util.List;
 
+import be.cmbsoft.ilda.IldaFrame;
+import be.cmbsoft.ilda.IldaReader;
 import be.generativelasers.procedures.Procedure;
-import ilda.IldaFrame;
-import ilda.IldaReader;
 import processing.core.PApplet;
 
 public class ManipulateIlda extends Procedure
