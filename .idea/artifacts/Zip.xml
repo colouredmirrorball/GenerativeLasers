@@ -1,0 +1,28 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Zip">
+    <output-path>$PROJECT_DIR$/../Ilda</output-path>
+    <root id="archive" name="ilda.zip">
+      <element id="directory" name="examples">
+        <element id="dir-copy" path="$PROJECT_DIR$/../Ilda/examples" />
+      </element>
+      <element id="directory" name="reference">
+        <element id="dir-copy" path="$PROJECT_DIR$/../Ilda/docs" />
+      </element>
+      <element id="directory" name="src">
+        <element id="dir-copy" path="$PROJECT_DIR$/../LaserOutput/src/main/java/be" />
+        <element id="dir-copy" path="$PROJECT_DIR$/../Ilda/src/main/java/be" />
+      </element>
+      <element id="file-copy" path="$PROJECT_DIR$/../Ilda/library.properties" />
+      <element id="directory" name="library">
+        <element id="archive" name="ilda.jar">
+          <element id="directory" name="META-INF">
+            <element id="file-copy" path="$PROJECT_DIR$/../Ilda/META-INF/MANIFEST.MF" />
+          </element>
+          <element id="module-output" name="LaserOutput" />
+          <element id="module-output" name="Ilda" />
+          <element id="module-output" name="javaosc-core" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>
