@@ -22,6 +22,8 @@
           <element id="module-output" name="Ilda" />
           <element id="module-output" name="javaosc-core" />
         </element>
+        <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.25" />
+        <element id="library" level="project" name="Maven: org.slf4j:slf4j-simple:1.7.25" />
       </element>
     </root>
   </artifact>
