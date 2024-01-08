@@ -1,13 +1,25 @@
 package be.cmbsoft.lichtfestival;
 
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
+
 import processing.core.PApplet;
-import themidibus.MidiBus;
 
 public class Lichtfestival extends PApplet
 {
 
     private Laser leftLaser;
     private Laser rightLaser;
+
+    public Lichtfestival()
+    {
+
+        MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
+        for (MidiDevice.Info info: midiDeviceInfo) {
+            println(info + ": " + info.getDescription() + " (" + info.getVendor() + " " + info.getVersion() + ")");
+        }
+
+    }
 
 
     public static void main(String[] passedArgs)
@@ -26,16 +38,7 @@ public class Lichtfestival extends PApplet
     @Override
     public void setup()
     {
-        System.out.println("Inputs");
-        for (String s: MidiBus.availableInputs()) {
-            System.out.println(s);
-        }
-        System.out.println("Outputs");
-        for (String s: MidiBus.availableOutputs()) {
-            System.out.println(s);
-        }
-        midi = new MidiBus(this, "Reaper to Leaser", "");
-        leftLaser = new Laser(this, "123");
+        leftLaser = new Laser(this, "12A5FD136AFE");
         rightLaser = new Laser(this, "456");
     }
 
@@ -43,6 +46,14 @@ public class Lichtfestival extends PApplet
     public void draw()
     {
         background(0);
+        fill(255);
+        text("Left laser connected", 50, 40);
+        if (leftLaser.output.isConnected()) {
+            fill(0, 255, 0);
+        } else {
+            fill(255, 0, 0);
+        }
+        rect(20, 20, 20, 20);
         leftLaser.output();
         rightLaser.output();
     }
