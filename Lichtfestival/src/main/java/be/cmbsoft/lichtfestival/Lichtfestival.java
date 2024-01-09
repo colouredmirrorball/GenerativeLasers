@@ -7,6 +7,7 @@ import be.cmbsoft.ilda.IldaRenderer;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PGraphics;
+import processing.event.KeyEvent;
 
 public class Lichtfestival extends PApplet
 {
@@ -15,6 +16,7 @@ public class Lichtfestival extends PApplet
     private Laser     rightLaser;
     private PGraphics leftGraphics;
     private PGraphics rightGraphics;
+    private int       dwellAmount = 6;
 
 
     public Lichtfestival()
@@ -68,13 +70,15 @@ public class Lichtfestival extends PApplet
         rect(20, 20, 20, 20);
 
         IldaRenderer renderer = leftLaser.getRenderer();
+        renderer.setOptimise(true);
+        renderer.getOptimisationSettings().setBlankDwellAmount(dwellAmount);
         renderer.beginDraw();
         renderer.colorMode(PConstants.HSB);
         renderer.stroke(frameCount % 255, 255, 255);
         renderer.ellipse(constrain(mouseX, 0, width / 2), mouseY, 50, 50);
         renderer.endDraw();
 
-        renderer.getCurrentFrame().renderFrame(leftGraphics, true);
+        renderer.getCurrentFrame().renderFrame(leftGraphics, true, width / 2, height);
         image(leftGraphics, 0, 0, width / 2, height);
 
         leftLaser.output();
@@ -87,6 +91,20 @@ public class Lichtfestival extends PApplet
         leftLaser.output.halt();
         rightLaser.output.halt();
         super.exit();
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event)
+    {
+        if (event.getKeyCode() == UP)
+        {
+            dwellAmount++;
+        }
+        if (event.getKeyCode() == DOWN)
+        {
+            dwellAmount = max(dwellAmount - 1, 0);
+        }
+        System.out.println(dwellAmount);
     }
 
 }
