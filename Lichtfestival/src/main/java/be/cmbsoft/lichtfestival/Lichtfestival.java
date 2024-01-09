@@ -80,4 +80,13 @@ public class Lichtfestival extends PApplet
         leftLaser.output();
         rightLaser.output();
     }
+
+    @Override
+    public void exit()
+    {
+        leftLaser.output.halt();
+        rightLaser.output.halt();
+        super.exit();
+    }
+
 }

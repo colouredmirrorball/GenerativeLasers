@@ -13,7 +13,7 @@ public class Laser
     public Laser(PApplet parent, String mac)
     {
         this.output = new EtherdreamOutput().setAlias(mac);
-        renderer = new IldaRenderer(parent);
+        renderer = new IldaRenderer(parent, parent.width / 2, parent.height);
     }
 
     public IldaRenderer getRenderer()
