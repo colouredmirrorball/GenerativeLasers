@@ -9,6 +9,8 @@ import processing.core.PConstants;
 import processing.core.PGraphics;
 import processing.event.KeyEvent;
 
+import static be.cmbsoft.laseroutput.OutputOption.INVERT_Y;
+
 public class Lichtfestival extends PApplet
 {
 
@@ -47,7 +49,7 @@ public class Lichtfestival extends PApplet
     @Override
     public void setup()
     {
-        leftLaser = new Laser(this, "DE6656C57146");
+        leftLaser = new Laser(this, "DE6656C57146").option(INVERT_Y);
         rightLaser = new Laser(this, "12A5FD136AFE");
         leftGraphics = createGraphics(width / 2, height, P3D);
         rightGraphics = createGraphics(width / 2, height, P3D);

@@ -3,6 +3,7 @@ package be.cmbsoft.lichtfestival;
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
+import be.cmbsoft.laseroutput.OutputOption;
 import processing.core.PApplet;
 
 public class Laser
@@ -25,4 +26,11 @@ public class Laser
     {
         output.project(renderer);
     }
+
+    public Laser option(OutputOption option)
+    {
+        output.option(option);
+        return this;
+    }
+
 }
