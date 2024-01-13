@@ -77,7 +77,10 @@ public class Lichtfestival extends PApplet
         renderer.beginDraw();
         renderer.colorMode(PConstants.HSB);
         renderer.stroke(frameCount % 255, 255, 255);
-        renderer.ellipse(constrain(mouseX, 0, width / 2), mouseY, 50, 50);
+        if (mousePressed)
+        {
+            renderer.ellipse(constrain(mouseX, 0, width / 2), mouseY, 50, 50);
+        }
         renderer.endDraw();
 
         renderer.getCurrentFrame().renderFrame(leftGraphics, true, width / 2, height);
