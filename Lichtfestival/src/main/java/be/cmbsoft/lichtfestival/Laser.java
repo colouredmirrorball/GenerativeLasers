@@ -15,6 +15,7 @@ public class Laser
     {
         this.output = new EtherdreamOutput().setAlias(mac);
         renderer = new IldaRenderer(parent, parent.width / 2, parent.height);
+        renderer.setEllipseDetail(7);
     }
 
     public IldaRenderer getRenderer()

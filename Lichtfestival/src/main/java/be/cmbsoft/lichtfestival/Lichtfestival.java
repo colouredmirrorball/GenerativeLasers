@@ -5,7 +5,6 @@ import javax.sound.midi.MidiSystem;
 
 import be.cmbsoft.ilda.IldaRenderer;
 import processing.core.PApplet;
-import processing.core.PConstants;
 import processing.core.PGraphics;
 import processing.core.PVector;
 import processing.event.KeyEvent;
@@ -21,9 +20,7 @@ public class Lichtfestival extends PApplet
     private PGraphics rightGraphics;
     private int       dwellAmount = 6;
 
-    PVector[] positions;
-    PVector[] ends;
-    int[]     colours;
+    private final Effect currentEffect = new MovingCircleEffect();
 
 
     public Lichtfestival()
@@ -40,7 +37,7 @@ public class Lichtfestival extends PApplet
 
     public static void main(String[] passedArgs)
     {
-        String[] appletArgs = new String[]{Lichtfestival.class.getPackageName()};
+        String[]      appletArgs    = new String[]{Lichtfestival.class.getPackageName()};
         Lichtfestival lichtfestival = new Lichtfestival();
         PApplet.runSketch(appletArgs, lichtfestival);
     }
@@ -58,18 +55,9 @@ public class Lichtfestival extends PApplet
         rightLaser = new Laser(this, "12A5FD136AFE");
         leftGraphics = createGraphics(width / 2, height, P3D);
         rightGraphics = createGraphics(width / 2, height, P3D);
+        currentEffect.initialize(this);
 
-        int amt = 10;
-        positions = new PVector[amt];
-        ends = new PVector[amt];
-        colours = new int[amt];
 
-        for (int i = 0; i < amt; i++)
-        {
-            positions[i] = new PVector(random(width), random(height));
-            ends[i] = new PVector(random(width), random(height));
-            colours[i] = color(random(255), random(255), random(255));
-        }
     }
 
     @Override
@@ -83,17 +71,7 @@ public class Lichtfestival extends PApplet
         renderer.setOptimise(true);
         renderer.getOptimisationSettings().setBlankDwellAmount(dwellAmount);
         renderer.beginDraw();
-        renderer.colorMode(PConstants.HSB);
-        renderer.stroke(frameCount % 255, 255, 255);
-        renderer.translate(width / 2, height / 2);
-        renderer.rotate(map(mouseX, 0, width, 0, TWO_PI));
-        renderer.translate(-width / 2, -height / 2);
-        for (int i = 0; i < positions.length; i++)
-        {
-            renderer.stroke(colours[i]);
-            renderer.line(positions[i].x, positions[i].y, ends[i].x, ends[i].y);
-        }
-
+        currentEffect.generate(renderer, this);
         renderer.endDraw();
         int leftPointCount = renderer.getCurrentPointCount();
 
@@ -137,6 +115,16 @@ public class Lichtfestival extends PApplet
             dwellAmount = max(dwellAmount - 1, 0);
         }
         System.out.println(dwellAmount);
+    }
+
+    PVector newRandomPosition()
+    {
+        return new PVector(random(width), random(height));
+    }
+
+    public int newRandomColour()
+    {
+        return color(random(255), random(255), random(255));
     }
 
 }
