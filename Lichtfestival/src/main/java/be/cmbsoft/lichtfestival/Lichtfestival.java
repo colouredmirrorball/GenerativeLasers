@@ -1,5 +1,12 @@
 package be.cmbsoft.lichtfestival;
 
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Transmitter;
+
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.ilda.OptimisationSettings;
 import processing.core.PApplet;
@@ -17,16 +24,95 @@ public class Lichtfestival extends PApplet
     private final Effect    currentEffect  = new MovingCircleEffect();
     private       boolean   boundSetupMode = false;
 
+    // Custom MIDI Receiver to handle MIDI events
+    static class MyMidiReceiver implements Receiver
+    {
+        private final Receiver delegate;
+
+        public MyMidiReceiver(Receiver delegate)
+        {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void send(MidiMessage message, long timeStamp)
+        {
+            if (message instanceof ShortMessage shortMessage) {
+
+                int command = shortMessage.getCommand();
+                int channel = shortMessage.getChannel();
+                int data1   = shortMessage.getData1();
+                int data2   = shortMessage.getData2();
+
+                // Note On event
+                if (command == ShortMessage.NOTE_ON) {
+                    System.out.println("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+                    // Add your action here
+                }
+                // Note Off event
+                else if (command == ShortMessage.NOTE_OFF) {
+                    System.out.println("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+                    // Add your action here
+                }
+                // Control Change event
+                else if (command == ShortMessage.CONTROL_CHANGE) {
+                    System.out.println(
+                        "Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
+                    // Add your action here
+                }
+            }
+
+            // Delegate the MIDI message to the original receiver
+            if (delegate != null) {
+                delegate.send(message, timeStamp);
+            }
+        }
+
+        @Override
+        public void close()
+        {
+            // Cleanup resources if needed
+            if (delegate != null) {
+                delegate.close();
+            }
+        }
+    }
+
 
     public Lichtfestival()
     {
-/*
+        System.out.println("Hello there! This is Generative Lasers.");
         MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
+        String            theMIDIDevice  = "Reaper to Leaser";
+        MidiDevice.Info   selectedDevice = null;
+        System.out.println("Looking for MIDI devices...");
         for (MidiDevice.Info info : midiDeviceInfo)
         {
-            println(info + ": " + info.getDescription() + " (" + info.getVendor() + " " + info.getVersion() + ")");
+            println("[" + info.getName() + "] " + info + ": " + info.getDescription() + " (" + info.getVendor() + " "
+                + info.getVersion() + ")");
+            if (theMIDIDevice.equals(info.getName())) {
+                selectedDevice = info;
+            }
         }
-*/
+        try {
+            if (selectedDevice != null) {
+                MidiDevice midiDevice = MidiSystem.getMidiDevice(selectedDevice);
+                //Receiver   receiver   = midiDevice.getReceiver();
+                // Create a Transmitter to listen for MIDI events
+                Transmitter transmitter = MidiSystem.getTransmitter();
+//                transmitter.setReceiver(new MyMidiReceiver(receiver));
+
+                // Open the transmitter
+                //transmitter.open();
+            } else {
+                System.out.println(theMIDIDevice + " is not available...");
+            }
+
+        } catch (Exception exception) {
+            // Continue without MIDI
+            exception.printStackTrace();
+        }
+
     }
 
 
