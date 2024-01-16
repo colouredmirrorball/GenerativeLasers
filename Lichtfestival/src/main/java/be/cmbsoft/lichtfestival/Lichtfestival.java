@@ -1,15 +1,11 @@
 package be.cmbsoft.lichtfestival;
 
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiSystem;
-
 import be.cmbsoft.ilda.IldaRenderer;
+import static be.cmbsoft.laseroutput.OutputOption.INVERT_Y;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PVector;
 import processing.event.KeyEvent;
-
-import static be.cmbsoft.laseroutput.OutputOption.INVERT_Y;
 
 public class Lichtfestival extends PApplet
 {
@@ -20,18 +16,18 @@ public class Lichtfestival extends PApplet
     private PGraphics rightGraphics;
     private int       dwellAmount = 6;
 
-    private final Effect currentEffect = new MovingCircleEffect();
+    private final Effect currentEffect = new HorizontalLineEffect();
 
 
     public Lichtfestival()
     {
-
+/*
         MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
         for (MidiDevice.Info info : midiDeviceInfo)
         {
             println(info + ": " + info.getDescription() + " (" + info.getVendor() + " " + info.getVersion() + ")");
         }
-
+*/
     }
 
 
@@ -51,8 +47,8 @@ public class Lichtfestival extends PApplet
     @Override
     public void setup()
     {
-        leftLaser = new Laser(this, "DE6656C57146").option(INVERT_Y);
-        rightLaser = new Laser(this, "12A5FD136AFE");
+        leftLaser  = new Laser(this, "12A5FD136AFE").option(INVERT_Y);
+        rightLaser = new Laser(this, "");
         leftGraphics = createGraphics(width / 2, height, P3D);
         rightGraphics = createGraphics(width / 2, height, P3D);
         currentEffect.initialize(this);
@@ -92,7 +88,7 @@ public class Lichtfestival extends PApplet
         rect(20, 20, 20, 20);
 
         leftLaser.output();
-        rightLaser.output();
+        //rightLaser.output();
     }
 
     @Override
