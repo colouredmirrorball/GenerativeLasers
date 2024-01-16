@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact name="natives">
+    <output-path>$PROJECT_DIR$/out/artifacts/natives</output-path>
+    <root id="root">
+      <element id="directory" name="windows-amd64">
+        <element id="dir-copy" path="$USER_HOME$/Documents/processing-4.3/core/library/windows-amd64" />
+      </element>
+    </root>
+  </artifact>
+</component>

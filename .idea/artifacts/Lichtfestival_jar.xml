@@ -1,0 +1,20 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Lichtfestival:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Lichtfestival_jar</output-path>
+    <root id="archive" name="Lichtfestival.jar">
+      <element id="module-output" name="Lichtfestival" />
+      <element id="module-output" name="LaserOutput" />
+      <element id="module-output" name="Ilda" />
+      <element id="module-output" name="javaosc-core" />
+      <element id="extracted-dir" path="$USER_HOME$/Documents/Processing/libraries/themidibus/library/themidibus.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-simple/1.7.25/slf4j-simple-1.7.25.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Documents/processing-4.3/core/library/jogl-all.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Documents/processing-4.3/core/library/gluegen-rt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Documents/processing-4.3/core/library/core.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/processing/core/4.2/core-4.2.jar" path-in-jar="/" />
+      <element id="dir-copy" path="$USER_HOME$/Documents/processing-4.3/core/library" />
+    </root>
+  </artifact>
+</component>
