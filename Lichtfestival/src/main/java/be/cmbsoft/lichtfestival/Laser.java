@@ -11,6 +11,7 @@ public class Laser
     final LaserOutput output;
     private final IldaRenderer renderer;
 
+
     public Laser(PApplet parent, String mac)
     {
         this.output = new EtherdreamOutput().setAlias(mac);

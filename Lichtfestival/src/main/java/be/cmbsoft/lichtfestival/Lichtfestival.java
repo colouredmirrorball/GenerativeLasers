@@ -1,7 +1,7 @@
 package be.cmbsoft.lichtfestival;
 
 import be.cmbsoft.ilda.IldaRenderer;
-import static be.cmbsoft.laseroutput.OutputOption.INVERT_Y;
+import be.cmbsoft.ilda.OptimisationSettings;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PVector;
@@ -10,13 +10,12 @@ import processing.event.KeyEvent;
 public class Lichtfestival extends PApplet
 {
 
-    private Laser     leftLaser;
-    private Laser     rightLaser;
-    private PGraphics leftGraphics;
-    private PGraphics rightGraphics;
-    private int       dwellAmount = 6;
-
-    private final Effect currentEffect = new HorizontalLineEffect();
+    private       Laser     leftLaser;
+    private       Laser     rightLaser;
+    private       PGraphics leftGraphics;
+    private       PGraphics rightGraphics;
+    private final Effect    currentEffect  = new MovingCircleEffect();
+    private       boolean   boundSetupMode = false;
 
 
     public Lichtfestival()
@@ -47,11 +46,21 @@ public class Lichtfestival extends PApplet
     @Override
     public void setup()
     {
-        leftLaser  = new Laser(this, "12A5FD136AFE").option(INVERT_Y);
+//        leftLaser  = new Laser(this, "12A5FD136AFE").option(INVERT_Y);
+        leftLaser = new Laser(this, "DE6656C57146");
         rightLaser = new Laser(this, "");
         leftGraphics = createGraphics(width / 2, height, P3D);
         rightGraphics = createGraphics(width / 2, height, P3D);
         currentEffect.initialize(this);
+
+        leftLaser.output.getBounds().setLowerLeft(new PVector(-1, 1));
+        leftLaser.output.getBounds().setLowerRight(new PVector(1, 1));
+        leftLaser.output.getBounds().setUpperRight(new PVector(1, -1));
+        leftLaser.output.getBounds().setUpperLeft(new PVector(-1, -1));
+
+        leftLaser.output.setIntensity(255);
+        OptimisationSettings leftSettings = leftLaser.getRenderer().getOptimisationSettings();
+        leftSettings.setBlankDwellAmount(16);
 
 
     }
@@ -62,12 +71,37 @@ public class Lichtfestival extends PApplet
         background(0);
         fill(255);
 
+        leftLaser.output.setIntensity(map(mouseY, 0, height, 0, 255));
+
 
         IldaRenderer renderer = leftLaser.getRenderer();
         renderer.setOptimise(true);
-        renderer.getOptimisationSettings().setBlankDwellAmount(dwellAmount);
         renderer.beginDraw();
         currentEffect.generate(renderer, this);
+        if (boundSetupMode)
+        {
+            renderer.stroke(100, 0, 0);
+            renderer.rect(0, 0, renderer.width, renderer.height);
+            if (mousePressed)
+            {
+                if (mouseX < width / 2 && mouseY < height / 2)
+                {
+                    leftLaser.output.getBounds().setUpperLeft(remappedMousePos());
+                }
+                if (mouseX > width / 2 && mouseY < height / 2)
+                {
+                    leftLaser.output.getBounds().setUpperRight(remappedMousePos());
+                }
+                if (mouseX < width / 2 && mouseY > height / 2)
+                {
+                    leftLaser.output.getBounds().setLowerLeft(remappedMousePos());
+                }
+                if (mouseX > width / 2 && mouseY > height / 2)
+                {
+                    leftLaser.output.getBounds().setLowerRight(remappedMousePos());
+                }
+            }
+        }
         renderer.endDraw();
         int leftPointCount = renderer.getCurrentPointCount();
 
@@ -91,6 +125,12 @@ public class Lichtfestival extends PApplet
         //rightLaser.output();
     }
 
+    private PVector remappedMousePos()
+    {
+        return new PVector(map(mouseX, 0, width, -1, 1),
+            map(mouseY, 0, height, -1, 1));
+    }
+
     @Override
     public void exit()
     {
@@ -102,15 +142,12 @@ public class Lichtfestival extends PApplet
     @Override
     public void keyPressed(KeyEvent event)
     {
-        if (event.getKeyCode() == UP)
+
+        if (event.getKey() == 'b')
         {
-            dwellAmount++;
+            boundSetupMode = !boundSetupMode;
         }
-        if (event.getKeyCode() == DOWN)
-        {
-            dwellAmount = max(dwellAmount - 1, 0);
-        }
-        System.out.println(dwellAmount);
+
     }
 
     PVector newRandomPosition()
