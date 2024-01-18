@@ -1,19 +1,20 @@
 package be.cmbsoft.lichtfestival;
 
-import java.io.File;
-import java.io.IOException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
+import java.io.File;
+import java.io.IOException;
+
+import org.jetbrains.annotations.NotNull;
 
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.Bounds;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PVector;
@@ -31,62 +32,8 @@ public class Lichtfestival extends PApplet
     private final ObjectMapper objectMapper;
     private final Effect       currentEffect  = new MovingCircleEffect();
     //private final Effect    currentEffect  = new HorizontalLineEffect();//new MovingCircleEffect();
-    private       boolean      boundSetupMode = false;
-
-    // Custom MIDI Receiver to handle MIDI events
-    static class MyMidiReceiver implements Receiver
-    {
-        private final Receiver delegate;
-
-        public MyMidiReceiver(Receiver delegate)
-        {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void send(MidiMessage message, long timeStamp)
-        {
-            if (message instanceof ShortMessage shortMessage) {
-
-                int command = shortMessage.getCommand();
-                int channel = shortMessage.getChannel();
-                int data1   = shortMessage.getData1();
-                int data2   = shortMessage.getData2();
-
-                // Note On event
-                if (command == ShortMessage.NOTE_ON) {
-                    System.out.println("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
-                    // Add your action here
-                }
-                // Note Off event
-                else if (command == ShortMessage.NOTE_OFF) {
-                    System.out.println("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
-                    // Add your action here
-                }
-                // Control Change event
-                else if (command == ShortMessage.CONTROL_CHANGE) {
-                    System.out.println(
-                        "Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
-                    // Add your action here
-                }
-            }
-
-            // Delegate the MIDI message to the original receiver
-            if (delegate != null) {
-                delegate.send(message, timeStamp);
-            }
-        }
-
-        @Override
-        public void close()
-        {
-            // Cleanup resources if needed
-            if (delegate != null) {
-                delegate.close();
-            }
-        }
-    }
-
+    private       boolean boundSetupMode = false;
+    private final MyMidiReceiver receiver = new MyMidiReceiver();
 
     public Lichtfestival()
     {
@@ -118,22 +65,75 @@ public class Lichtfestival extends PApplet
             }
         }
         try {
-            if (selectedDevice != null) {
+            if (selectedDevice != null)
+            {
                 MidiDevice midiDevice = MidiSystem.getMidiDevice(selectedDevice);
-                //Receiver   receiver   = midiDevice.getReceiver();
-                // Create a Transmitter to listen for MIDI events
-                Transmitter transmitter = MidiSystem.getTransmitter();
-//                transmitter.setReceiver(new MyMidiReceiver(receiver));
-
-                // Open the transmitter
-                //transmitter.open();
+                if (midiDevice.getMaxTransmitters() == 0)
+                {
+                    System.out.println(theMIDIDevice + " is not an input...");
+                }
+                Transmitter transmitter = midiDevice.getTransmitter();
+                transmitter.setReceiver(new MyMidiReceiver());
             } else {
                 System.out.println(theMIDIDevice + " is not available...");
             }
 
-        } catch (Exception exception) {
+        }
+        catch (Exception exception)
+        {
             // Continue without MIDI
             exception.printStackTrace();
+        }
+
+    }
+
+    // Custom MIDI Receiver to handle MIDI events
+    static class MyMidiReceiver implements Receiver
+    {
+
+        public MyMidiReceiver()
+        {
+
+        }
+
+        @Override
+        public void send(MidiMessage message, long timeStamp)
+        {
+            if (message instanceof ShortMessage shortMessage)
+            {
+
+                int command = shortMessage.getCommand();
+                int channel = shortMessage.getChannel();
+                int data1   = shortMessage.getData1();
+                int data2   = shortMessage.getData2();
+
+                // Note On event
+                if (command == ShortMessage.NOTE_ON)
+                {
+                    System.out.println("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+                    // Add your action here
+                }
+                // Note Off event
+                else if (command == ShortMessage.NOTE_OFF)
+                {
+                    System.out.println("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+                    // Add your action here
+                }
+                // Control Change event
+                else if (command == ShortMessage.CONTROL_CHANGE)
+                {
+                    System.out.println(
+                        "Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
+                    // Add your action here
+                }
+            }
+        }
+
+
+        @Override
+        public void close()
+        {
+
         }
 
     }
