@@ -6,15 +6,15 @@
       <element id="module-output" name="LaserOutput" />
       <element id="module-output" name="Ilda" />
       <element id="module-output" name="javaosc-core" />
-      <element id="extracted-dir" path="$USER_HOME$/Documents/Processing/libraries/themidibus/library/themidibus.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-simple/1.7.25/slf4j-simple-1.7.25.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-core/2.15.2/jackson-core-2.15.2.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$USER_HOME$/Documents/processing-4.3/core/library/jogl-all.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$USER_HOME$/Documents/processing-4.3/core/library/gluegen-rt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-simple/1.7.25/slf4j-simple-1.7.25.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-databind/2.15.2/jackson-databind-2.15.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-annotations/2.15.2/jackson-annotations-2.15.2.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$USER_HOME$/Documents/processing-4.3/core/library/core.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/processing/core/4.2/core-4.2.jar" path-in-jar="/" />
-      <element id="dir-copy" path="$USER_HOME$/Documents/processing-4.3/core/library" />
+      <element id="extracted-dir" path="$USER_HOME$/Documents/processing-4.3/core/library/gluegen-rt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Documents/processing-4.3/core/library/jogl-all.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

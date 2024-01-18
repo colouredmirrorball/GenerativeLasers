@@ -16,7 +16,7 @@ public class HorizontalLineEffect extends Effect
     public void generate(IldaRenderer renderer, Lichtfestival parent)
     {
 
-        renderer.stroke(0, 127, 255);
+        renderer.stroke(255, 255, 255);
         renderer.line(0, renderer.height / 2, renderer.width, renderer.height / 2);
 
     }

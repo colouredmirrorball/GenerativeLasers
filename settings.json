@@ -1,0 +1,30 @@
+{
+  "leftBounds": {
+    "upperLeft": {
+      "x": -0.985,
+      "y": -0.13333333,
+      "z": 0.0
+    },
+    "upperRight": {
+      "x": 0.96833336,
+      "y": -0.18,
+      "z": 0.0
+    },
+    "lowerLeft": {
+      "x": -1.0,
+      "y": 1.0,
+      "z": 0.0
+    },
+    "lowerRight": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 0.0
+    }
+  },
+  "rightBounds": {
+    "upperLeft": null,
+    "upperRight": null,
+    "lowerLeft": null,
+    "lowerRight": null
+  }
+}

@@ -1,5 +1,7 @@
 package be.cmbsoft.lichtfestival;
 
+import java.io.File;
+import java.io.IOException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
@@ -9,6 +11,9 @@ import javax.sound.midi.Transmitter;
 
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.ilda.OptimisationSettings;
+import be.cmbsoft.laseroutput.Bounds;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PVector;
@@ -21,8 +26,12 @@ public class Lichtfestival extends PApplet
     private       Laser     rightLaser;
     private       PGraphics leftGraphics;
     private       PGraphics rightGraphics;
-    private final Effect    currentEffect  = new MovingCircleEffect();
-    private       boolean   boundSetupMode = false;
+    private final Settings  settings;
+    private final File      settingsFile   = new File("settings.json");
+    private final ObjectMapper objectMapper;
+    private final Effect       currentEffect  = new MovingCircleEffect();
+    //private final Effect    currentEffect  = new HorizontalLineEffect();//new MovingCircleEffect();
+    private       boolean      boundSetupMode = false;
 
     // Custom MIDI Receiver to handle MIDI events
     static class MyMidiReceiver implements Receiver
@@ -81,7 +90,21 @@ public class Lichtfestival extends PApplet
 
     public Lichtfestival()
     {
+        Settings settings1;
         System.out.println("Hello there! This is Generative Lasers.");
+        objectMapper = new ObjectMapper();
+        try {
+            if (settingsFile.exists()) {
+                settings1 = objectMapper.readValue(settingsFile, Settings.class);
+            } else {
+                settings1 = new Settings();
+            }
+        } catch (IOException e) {
+            settings1 = new Settings();
+            e.printStackTrace();
+            System.out.println("Could not initialise settings...");
+        }
+        settings = settings1;
         MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
         String            theMIDIDevice  = "Reaper to Leaser";
         MidiDevice.Info   selectedDevice = null;
@@ -132,69 +155,39 @@ public class Lichtfestival extends PApplet
     @Override
     public void setup()
     {
-//        leftLaser  = new Laser(this, "12A5FD136AFE").option(INVERT_Y);
-        leftLaser = new Laser(this, "DE6656C57146");
-        rightLaser = new Laser(this, "");
+
+        leftLaser  = new Laser(this, "12A5FD136AFE");//.option(INVERT_Y);
+        rightLaser = new Laser(this, "DE6656C57146");
         leftGraphics = createGraphics(width / 2, height, P3D);
         rightGraphics = createGraphics(width / 2, height, P3D);
         currentEffect.initialize(this);
 
-        leftLaser.output.getBounds().setLowerLeft(new PVector(-1, 1));
-        leftLaser.output.getBounds().setLowerRight(new PVector(1, 1));
-        leftLaser.output.getBounds().setUpperRight(new PVector(1, -1));
-        leftLaser.output.getBounds().setUpperLeft(new PVector(-1, -1));
-
+        Bounds leftBounds = settings.getLeftBounds();
+        setBounds(leftBounds, leftLaser);
+        Bounds rightBounds = settings.getRightBounds();
+        setBounds(rightBounds, rightLaser);
         leftLaser.output.setIntensity(255);
+        rightLaser.output.setIntensity(255);
         OptimisationSettings leftSettings = leftLaser.getRenderer().getOptimisationSettings();
         leftSettings.setBlankDwellAmount(16);
-
-
     }
 
     @Override
     public void draw()
     {
         background(0);
-        fill(255);
-
-        leftLaser.output.setIntensity(map(mouseY, 0, height, 0, 255));
 
 
-        IldaRenderer renderer = leftLaser.getRenderer();
-        renderer.setOptimise(true);
-        renderer.beginDraw();
-        currentEffect.generate(renderer, this);
-        if (boundSetupMode)
-        {
-            renderer.stroke(100, 0, 0);
-            renderer.rect(0, 0, renderer.width, renderer.height);
-            if (mousePressed)
-            {
-                if (mouseX < width / 2 && mouseY < height / 2)
-                {
-                    leftLaser.output.getBounds().setUpperLeft(remappedMousePos());
-                }
-                if (mouseX > width / 2 && mouseY < height / 2)
-                {
-                    leftLaser.output.getBounds().setUpperRight(remappedMousePos());
-                }
-                if (mouseX < width / 2 && mouseY > height / 2)
-                {
-                    leftLaser.output.getBounds().setLowerLeft(remappedMousePos());
-                }
-                if (mouseX > width / 2 && mouseY > height / 2)
-                {
-                    leftLaser.output.getBounds().setLowerRight(remappedMousePos());
-                }
-            }
-        }
-        renderer.endDraw();
-        int leftPointCount = renderer.getCurrentPointCount();
+        IldaRenderer leftRenderer    = renderLeft();
+        IldaRenderer rightRenderer   = renderRight();
+        int          leftPointCount  = leftRenderer.getCurrentPointCount();
+        int          rightPointCount = rightRenderer.getCurrentPointCount();
 
-        renderer.getCurrentFrame().renderFrame(leftGraphics, true, width / 2, height);
+        leftRenderer.getCurrentFrame().renderFrame(leftGraphics, true, width / 2, height);
         image(leftGraphics, 0, 0, width / 2, height);
 
         boolean leftConnected = leftLaser.output.isConnected();
+        fill(255);
         text("Left laser " + (leftConnected ? "" : "dis") + "connected, " + leftPointCount + " points rendered", 50,
             40);
         if (leftConnected)
@@ -207,14 +200,19 @@ public class Lichtfestival extends PApplet
         }
         rect(20, 20, 20, 20);
 
-        leftLaser.output();
-        //rightLaser.output();
-    }
+        boolean rightConnected = rightLaser.output.isConnected();
+        fill(255);
+        text("Right laser " + (rightConnected ? "" : "dis") + "connected, " + rightPointCount + " points rendered", 50,
+            80);
+        if (rightConnected) {
+            fill(0, 255, 0);
+        } else {
+            fill(255, 0, 0);
+        }
+        rect(20, 60, 20, 20);
 
-    private PVector remappedMousePos()
-    {
-        return new PVector(map(mouseX, 0, width, -1, 1),
-            map(mouseY, 0, height, -1, 1));
+        leftLaser.output();
+        rightLaser.output();
     }
 
     @Override
@@ -222,7 +220,84 @@ public class Lichtfestival extends PApplet
     {
         leftLaser.output.halt();
         rightLaser.output.halt();
+        try {
+            if (!settingsFile.exists()) {
+                if (settingsFile.createNewFile()) {
+
+                }
+            }
+            settings.setLeftBounds(leftLaser.output.getBounds());
+            settings.setRightBounds(rightLaser.output.getBounds());
+            objectMapper.writeValue(settingsFile, settings);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not write settings file...");
+        }
         super.exit();
+    }
+
+    private void setBounds(Bounds rightBounds, Laser rightLaser)
+    {
+        Bounds rightLaserBounds = rightLaser.output.getBounds();
+        if (rightBounds != null) {
+            rightLaserBounds.setLowerLeft(rightBounds.getLowerLeft());
+            rightLaserBounds.setLowerRight(rightBounds.getLowerRight());
+            rightLaserBounds.setUpperRight(rightBounds.getUpperRight());
+            rightLaserBounds.setUpperLeft(rightBounds.getUpperLeft());
+        } else {
+            rightLaserBounds.setLowerLeft(new PVector(-1, 1));
+            rightLaserBounds.setLowerRight(new PVector(1, 1));
+            rightLaserBounds.setUpperRight(new PVector(1, -1));
+            rightLaserBounds.setUpperLeft(new PVector(-1, -1));
+        }
+    }
+
+    @NotNull
+    private IldaRenderer renderLeft()
+    {
+        return render(leftLaser);
+    }
+
+    @NotNull
+    private IldaRenderer renderRight()
+    {
+        return render(rightLaser);
+    }
+
+
+    private PVector remappedMousePos()
+    {
+        return new PVector(map(mouseX, 0, width, -1, 1),
+            map(mouseY, 0, height, -1, 1));
+    }
+
+    @NotNull
+    private IldaRenderer render(Laser rightLaser)
+    {
+        IldaRenderer renderer = rightLaser.getRenderer();
+        renderer.setOptimise(true);
+        renderer.beginDraw();
+        currentEffect.generate(renderer, this);
+        if (boundSetupMode) {
+            renderer.stroke(100, 0, 0);
+            renderer.rect(0, 0, renderer.width, renderer.height);
+            if (mousePressed) {
+                if (mouseX < width / 2 && mouseY < height / 2) {
+                    rightLaser.output.getBounds().setUpperLeft(remappedMousePos());
+                }
+                if (mouseX > width / 2 && mouseY < height / 2) {
+                    rightLaser.output.getBounds().setUpperRight(remappedMousePos());
+                }
+                if (mouseX < width / 2 && mouseY > height / 2) {
+                    rightLaser.output.getBounds().setLowerLeft(remappedMousePos());
+                }
+                if (mouseX > width / 2 && mouseY > height / 2) {
+                    rightLaser.output.getBounds().setLowerRight(remappedMousePos());
+                }
+            }
+        }
+        renderer.endDraw();
+        return renderer;
     }
 
     @Override
