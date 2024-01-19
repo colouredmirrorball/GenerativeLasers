@@ -34,64 +34,8 @@ public class Lichtfestival extends PApplet
     private       boolean boundSetupMode = false;
     private       Transmitter transmitter;
     private final MyMidiReceiver receiver = new MyMidiReceiver();
-
-    public Lichtfestival()
-    {
-        Settings settings1;
-        System.out.println("Hello there! This is Generative Lasers.");
-        objectMapper = new ObjectMapper();
-        try {
-            if (settingsFile.exists()) {
-                settings1 = objectMapper.readValue(settingsFile, Settings.class);
-            } else {
-                settings1 = new Settings();
-            }
-        } catch (IOException e) {
-            settings1 = new Settings();
-            e.printStackTrace();
-            System.out.println("Could not initialise settings...");
-        }
-        settings = settings1;
-        MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
-        String            theMIDIDevice  = "Reaper to Leaser";
-        MidiDevice.Info   selectedDevice = null;
-        System.out.println("Looking for MIDI devices...");
-        for (MidiDevice.Info info : midiDeviceInfo)
-        {
-            println("[" + info.getName() + "] " + info + ": " + info.getDescription() + " (" + info.getVendor() + " "
-                + info.getVersion() + ")");
-            if (theMIDIDevice.equals(info.getName())) {
-                selectedDevice = info;
-            }
-        }
-        try {
-            if (selectedDevice != null)
-            {
-                MidiDevice midiDevice = MidiSystem.getMidiDevice(selectedDevice);
-                if (midiDevice.getMaxTransmitters() == 0)
-                {
-                    System.out.println(theMIDIDevice + " is not an input...");
-                }
-
-                transmitter = midiDevice.getTransmitter();
-                transmitter.setReceiver(receiver);
-
-                midiDevice.open();
-            } else {
-                System.out.println(theMIDIDevice + " is not available...");
-            }
-
-        }
-        catch (Exception exception)
-        {
-            // Continue without MIDI
-            exception.printStackTrace();
-        }
-
-    }
-
     // Custom MIDI Receiver to handle MIDI events
-    static class MyMidiReceiver implements Receiver
+    class MyMidiReceiver implements Receiver
     {
 
         @Override
@@ -131,7 +75,63 @@ public class Lichtfestival extends PApplet
         @Override
         public void close()
         {
+            midiDevice.close();
+        }
 
+    }
+    private       MidiDevice     midiDevice;
+
+    public Lichtfestival()
+    {
+        Settings settings1;
+        System.out.println("Hello there! This is Generative Lasers.");
+        objectMapper = new ObjectMapper();
+        try {
+            if (settingsFile.exists()) {
+                settings1 = objectMapper.readValue(settingsFile, Settings.class);
+            } else {
+                settings1 = new Settings();
+            }
+        } catch (IOException e) {
+            settings1 = new Settings();
+            e.printStackTrace();
+            System.out.println("Could not initialise settings...");
+        }
+        settings = settings1;
+        MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
+        String            theMIDIDevice  = "Reaper to Leaser";
+        MidiDevice.Info   selectedDevice = null;
+        System.out.println("Looking for MIDI devices...");
+        for (MidiDevice.Info info : midiDeviceInfo)
+        {
+            println("[" + info.getName() + "] " + info + ": " + info.getDescription() + " (" + info.getVendor() + " "
+                + info.getVersion() + ")");
+            if (theMIDIDevice.equals(info.getName())) {
+                selectedDevice = info;
+            }
+        }
+        try {
+            if (selectedDevice != null)
+            {
+                midiDevice = MidiSystem.getMidiDevice(selectedDevice);
+                if (midiDevice.getMaxTransmitters() == 0)
+                {
+                    System.out.println(theMIDIDevice + " is not an input...");
+                }
+
+                transmitter = midiDevice.getTransmitter();
+                transmitter.setReceiver(receiver);
+
+                midiDevice.open();
+            } else {
+                System.out.println(theMIDIDevice + " is not available...");
+            }
+
+        }
+        catch (Exception exception)
+        {
+            // Continue without MIDI
+            exception.printStackTrace();
         }
 
     }
@@ -230,6 +230,9 @@ public class Lichtfestival extends PApplet
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Could not write settings file...");
+        }
+        if (midiDevice != null) {
+            midiDevice.close();
         }
         super.exit();
     }
