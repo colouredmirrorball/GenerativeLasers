@@ -1,20 +1,19 @@
 package be.cmbsoft.lichtfestival;
 
+import java.io.File;
+import java.io.IOException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
-import java.io.File;
-import java.io.IOException;
-
-import org.jetbrains.annotations.NotNull;
 
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.Bounds;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PVector;
@@ -33,6 +32,7 @@ public class Lichtfestival extends PApplet
     private final Effect       currentEffect  = new MovingCircleEffect();
     //private final Effect    currentEffect  = new HorizontalLineEffect();//new MovingCircleEffect();
     private       boolean boundSetupMode = false;
+    private       Transmitter transmitter;
     private final MyMidiReceiver receiver = new MyMidiReceiver();
 
     public Lichtfestival()
@@ -72,8 +72,11 @@ public class Lichtfestival extends PApplet
                 {
                     System.out.println(theMIDIDevice + " is not an input...");
                 }
-                Transmitter transmitter = midiDevice.getTransmitter();
-                transmitter.setReceiver(new MyMidiReceiver());
+
+                transmitter = midiDevice.getTransmitter();
+                transmitter.setReceiver(receiver);
+
+                midiDevice.open();
             } else {
                 System.out.println(theMIDIDevice + " is not available...");
             }
@@ -90,11 +93,6 @@ public class Lichtfestival extends PApplet
     // Custom MIDI Receiver to handle MIDI events
     static class MyMidiReceiver implements Receiver
     {
-
-        public MyMidiReceiver()
-        {
-
-        }
 
         @Override
         public void send(MidiMessage message, long timeStamp)
