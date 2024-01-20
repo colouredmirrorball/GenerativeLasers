@@ -2,6 +2,15 @@ package be.cmbsoft.lichtfestival;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
@@ -22,18 +31,6 @@ import processing.event.KeyEvent;
 public class Lichtfestival extends PApplet
 {
 
-    private       Laser     leftLaser;
-    private       Laser     rightLaser;
-    private       PGraphics leftGraphics;
-    private       PGraphics rightGraphics;
-    private final Settings  settings;
-    private final File      settingsFile   = new File("settings.json");
-    private final ObjectMapper objectMapper;
-    private final Effect       currentEffect  = new MovingCircleEffect();
-    //private final Effect    currentEffect  = new HorizontalLineEffect();//new MovingCircleEffect();
-    private       boolean boundSetupMode = false;
-    private       Transmitter transmitter;
-    private final MyMidiReceiver receiver = new MyMidiReceiver();
     // Custom MIDI Receiver to handle MIDI events
     class MyMidiReceiver implements Receiver
     {
@@ -43,30 +40,30 @@ public class Lichtfestival extends PApplet
         {
             if (message instanceof ShortMessage shortMessage)
             {
-
                 int command = shortMessage.getCommand();
                 int channel = shortMessage.getChannel();
                 int data1   = shortMessage.getData1();
                 int data2   = shortMessage.getData2();
 
+                Noot noot = new Noot(channel, data1);
+
                 // Note On event
                 if (command == ShortMessage.NOTE_ON)
                 {
-                    System.out.println("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
-                    // Add your action here
+                    logMidi("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+                    activateEffect(noot);
                 }
                 // Note Off event
                 else if (command == ShortMessage.NOTE_OFF)
                 {
-                    System.out.println("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
-                    // Add your action here
+                    logMidi("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+                    deactivateEffect(noot);
                 }
                 // Control Change event
                 else if (command == ShortMessage.CONTROL_CHANGE)
                 {
-                    System.out.println(
-                        "Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
-                    // Add your action here
+                    logMidi("Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
+                    processControl(noot, data2);
                 }
             }
         }
@@ -79,7 +76,35 @@ public class Lichtfestival extends PApplet
         }
 
     }
-    private       MidiDevice     midiDevice;
+    private static final int                         MAX_MIDI_EVENTS = 25;
+    private       Laser     rightLaser;
+    private       PGraphics leftGraphics;
+    private       PGraphics rightGraphics;
+    private final Settings  settings;
+    private final File      settingsFile   = new File("settings.json");
+    private final ObjectMapper objectMapper;
+    //private final Effect       currentEffect  = new CircleAtMouseEffect();//new MovingCircleEffect();
+    private final        Effect                      currentEffect   = new HorizontalLineEffect();
+    //private final Effect    currentEffect  = new HorizontalLineEffect();//new MovingCircleEffect();
+    private       boolean boundSetupMode = false;
+    private final        List<String>                midiEvents      =
+        Collections.synchronizedList(new ArrayList<String>(50));
+    private final        Map<Noot, Supplier<Effect>> effects         = new HashMap<>();
+    private final Map<Noot, Consumer<Integer>> controls = new HashMap<>();
+    private              Laser                       leftLaser;
+
+    {
+        effects.put(new Noot(0, 10), HorizontalLineEffect::new);
+    }
+
+    {
+        controls.put(new Noot(0, 2), intensity -> Optional.ofNullable(leftLaser)
+            .map(laser -> laser.output)
+            .ifPresent(laserOutput -> laserOutput.setIntensity(2 * intensity)));
+        controls.put(new Noot(0, 3), intensity -> Optional.ofNullable(rightLaser)
+            .map(laser -> laser.output)
+            .ifPresent(laserOutput -> laserOutput.setIntensity(2 * intensity)));
+    }
 
     public Lichtfestival()
     {
@@ -119,7 +144,8 @@ public class Lichtfestival extends PApplet
                     System.out.println(theMIDIDevice + " is not an input...");
                 }
 
-                transmitter = midiDevice.getTransmitter();
+                Transmitter    transmitter = midiDevice.getTransmitter();
+                MyMidiReceiver receiver    = new MyMidiReceiver();
                 transmitter.setReceiver(receiver);
 
                 midiDevice.open();
@@ -136,26 +162,14 @@ public class Lichtfestival extends PApplet
 
     }
 
-
-    public static void main(String[] passedArgs)
-    {
-        String[]      appletArgs    = new String[]{Lichtfestival.class.getPackageName()};
-        Lichtfestival lichtfestival = new Lichtfestival();
-        PApplet.runSketch(appletArgs, lichtfestival);
-    }
-
-    @Override
-    public void settings()
-    {
-        size(1200, 600, P3D);
-    }
-
     @Override
     public void setup()
     {
 
-        leftLaser  = new Laser(this, "12A5FD136AFE");//.option(INVERT_Y);
-        rightLaser = new Laser(this, "DE6656C57146");
+        //leftLaser  = new Laser(this, "12A5FD136AFE");//.option(INVERT_Y);
+        leftLaser = new Laser(this, "DE6656C57146");//.option(INVERT_Y);
+        //rightLaser = new Laser(this, "DE6656C57146");
+        rightLaser = new Laser(this, "");
         leftGraphics = createGraphics(width / 2, height, P3D);
         rightGraphics = createGraphics(width / 2, height, P3D);
         currentEffect.initialize(this);
@@ -175,14 +189,12 @@ public class Lichtfestival extends PApplet
     {
         background(0);
 
-
         IldaRenderer leftRenderer    = renderLeft();
         IldaRenderer rightRenderer   = renderRight();
         int          leftPointCount  = leftRenderer.getCurrentPointCount();
         int          rightPointCount = rightRenderer.getCurrentPointCount();
-
-        leftRenderer.getCurrentFrame().renderFrame(leftGraphics, true, width / 2, height);
-        image(leftGraphics, 0, 0, width / 2, height);
+        renderGraphics(leftGraphics, leftRenderer, 0);
+        renderGraphics(rightGraphics, rightRenderer, width / 2);
 
         boolean leftConnected = leftLaser.output.isConnected();
         fill(255);
@@ -208,9 +220,73 @@ public class Lichtfestival extends PApplet
             fill(255, 0, 0);
         }
         rect(20, 60, 20, 20);
+        fill(255);
+        int midiY = 20;
+        synchronized (midiEvents) {
+            for (String midiEvent: midiEvents) {
+                text(midiEvent, 300, midiY += 20);
+            }
+        }
 
         leftLaser.output();
         rightLaser.output();
+    }
+
+    private void processControl(Noot noot, int value)
+    {
+        try {
+            Optional.ofNullable(controls.get(noot)).ifPresent(action -> action.accept(value));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private       MidiDevice     midiDevice;
+
+    private void deactivateEffect(Noot noot)
+    {
+        //activeEffects.put(noot, false);
+    }
+
+
+    public static void main(String[] passedArgs)
+    {
+        String[]      appletArgs    = new String[]{Lichtfestival.class.getPackageName()};
+        Lichtfestival lichtfestival = new Lichtfestival();
+        PApplet.runSketch(appletArgs, lichtfestival);
+    }
+
+    @Override
+    public void settings()
+    {
+        size(1200, 600, P3D);
+    }
+
+    private void activateEffect(Noot noot)
+    {
+        //activeEffects.put(noot, true);
+    }
+
+    private void logMidi(String event)
+    {
+        event = LocalTime.now() + " " + event;
+        if (midiEvents.size() < MAX_MIDI_EVENTS) {
+            midiEvents.add(event);
+        } else {
+            for (int i = 0; i < midiEvents.size() - 1; i++) {
+                midiEvents.set(i, midiEvents.get(i + 1));
+            }
+            midiEvents.set(MAX_MIDI_EVENTS - 1, event);
+        }
+    }
+
+    private void renderGraphics(PGraphics leftGraphics, IldaRenderer leftRenderer, int xPos)
+    {
+        leftGraphics.beginDraw();
+        leftGraphics.background(0);
+        leftRenderer.getCurrentFrame().renderFrame(leftGraphics, true, width / 2, height);
+        leftGraphics.endDraw();
+        image(leftGraphics, xPos, 0, width / 2, height);
     }
 
     @Override
@@ -273,9 +349,9 @@ public class Lichtfestival extends PApplet
     }
 
     @NotNull
-    private IldaRenderer render(Laser rightLaser)
+    private IldaRenderer render(Laser laser)
     {
-        IldaRenderer renderer = rightLaser.getRenderer();
+        IldaRenderer renderer = laser.getRenderer();
         renderer.setOptimise(true);
         renderer.beginDraw();
         currentEffect.generate(renderer, this);
@@ -284,16 +360,16 @@ public class Lichtfestival extends PApplet
             renderer.rect(0, 0, renderer.width, renderer.height);
             if (mousePressed) {
                 if (mouseX < width / 2 && mouseY < height / 2) {
-                    rightLaser.output.getBounds().setUpperLeft(remappedMousePos());
+                    laser.output.getBounds().setUpperLeft(remappedMousePos());
                 }
                 if (mouseX > width / 2 && mouseY < height / 2) {
-                    rightLaser.output.getBounds().setUpperRight(remappedMousePos());
+                    laser.output.getBounds().setUpperRight(remappedMousePos());
                 }
                 if (mouseX < width / 2 && mouseY > height / 2) {
-                    rightLaser.output.getBounds().setLowerLeft(remappedMousePos());
+                    laser.output.getBounds().setLowerLeft(remappedMousePos());
                 }
                 if (mouseX > width / 2 && mouseY > height / 2) {
-                    rightLaser.output.getBounds().setLowerRight(remappedMousePos());
+                    laser.output.getBounds().setLowerRight(remappedMousePos());
                 }
             }
         }
