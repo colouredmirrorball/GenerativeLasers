@@ -5,6 +5,11 @@ import be.cmbsoft.ilda.IldaRenderer;
 public class HorizontalLineEffect extends Effect
 {
 
+    HorizontalLineEffect()
+    {
+        setType(Type.FLASH);
+    }
+
 
     public void initialize(Lichtfestival parent)
     {

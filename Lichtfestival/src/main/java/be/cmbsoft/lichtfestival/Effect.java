@@ -5,10 +5,14 @@ import be.cmbsoft.ilda.IldaRenderer;
 public abstract class Effect
 {
 
-    enum Type
+    public boolean isExpired()
     {
-        FLASH, // Immediately turs off on note off
-        TOGGLE // Next note turns it off or the effect runs out
+        return false;
+    }
+
+    protected void setType(Type type)
+    {
+        this.type = type;
     }
 
     private Type type;
@@ -18,9 +22,10 @@ public abstract class Effect
         return type;
     }
 
-    public void setType(Type type)
+    enum Type
     {
-        this.type = type;
+        FLASH, // Immediately turns off on note off
+        TOGGLE // Next note turns it off or the effect runs out
     }
 
     public abstract void initialize(Lichtfestival parent);
