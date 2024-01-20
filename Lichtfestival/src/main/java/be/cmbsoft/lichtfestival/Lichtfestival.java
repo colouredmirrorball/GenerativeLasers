@@ -1,11 +1,5 @@
 package be.cmbsoft.lichtfestival;
 
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Transmitter;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalTime;
@@ -17,13 +11,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import org.jetbrains.annotations.NotNull;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Transmitter;
 
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.Bounds;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PVector;
@@ -121,11 +120,9 @@ public class Lichtfestival extends PApplet implements Receiver
     @Override
     public void setup()
     {
+        leftLaser  = new Laser(this, "6E851F3F2177");
+        rightLaser = new Laser(this, "DE6656C57146");
 
-        //leftLaser  = new Laser(this, "12A5FD136AFE");//.option(INVERT_Y);
-        leftLaser = new Laser(this, "DE6656C57146");//.option(INVERT_Y);
-        //rightLaser = new Laser(this, "DE6656C57146");
-        rightLaser = new Laser(this, "");
         leftGraphics = createGraphics(width / 2, height, P3D);
         rightGraphics = createGraphics(width / 2, height, P3D);
 
@@ -148,23 +145,27 @@ public class Lichtfestival extends PApplet implements Receiver
     public void draw()
     {
         background(0);
+        try {
+            IldaRenderer leftRenderer  = render(leftLaser);
+            IldaRenderer rightRenderer = render(rightLaser);
 
-        IldaRenderer leftRenderer    = render(leftLaser);
-        IldaRenderer rightRenderer   = render(rightLaser);
-        int          leftPointCount  = leftRenderer.getCurrentPointCount();
-        int          rightPointCount = rightRenderer.getCurrentPointCount();
-        renderGraphics(leftGraphics, leftRenderer, 0);
-        renderGraphics(rightGraphics, rightRenderer, width / 2);
+            int leftPointCount  = leftRenderer.getCurrentPointCount();
+            int rightPointCount = rightRenderer.getCurrentPointCount();
+            renderGraphics(leftGraphics, leftRenderer, 0);
+            renderGraphics(rightGraphics, rightRenderer, width / 2);
 
-        displayConnected(leftLaser, "Left laser ", leftPointCount, 40, 20);
-        displayConnected(rightLaser, "Right laser ", rightPointCount, 80, 60);
+            displayConnected(leftLaser, "Left laser ", leftPointCount, 40, 20);
+            displayConnected(rightLaser, "Right laser ", rightPointCount, 80, 60);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
         fill(255);
         synchronized (midiEvents)
         {
             int midiY = 20;
             for (String midiEvent : midiEvents)
             {
-                text(midiEvent, 300, midiY += 20);
+                text(midiEvent, 370, midiY += 20);
             }
         }
 
@@ -172,13 +173,14 @@ public class Lichtfestival extends PApplet implements Receiver
         rightLaser.output();
     }
 
-    private void displayConnected(Laser leftLaser, String x, int leftPointCount, int y, int b)
+    private void displayConnected(Laser laser, String name, int pointCount, int y, int b)
     {
-        boolean leftConnected = leftLaser.output.isConnected();
+        boolean connected = laser.output.isConnected();
         fill(255);
-        text(x + (leftConnected ? "" : "dis") + "connected, " + leftPointCount + " points rendered", 50,
+        text(name + (connected ? "" : "dis") + "connected, " + pointCount + " points rendered, intensity: "
+                + laser.output.getIntensity(), 50,
             y);
-        if (leftConnected)
+        if (connected)
         {
             fill(0, 255, 0);
         }
@@ -256,6 +258,9 @@ public class Lichtfestival extends PApplet implements Receiver
 
     private void deactivateEffect(Noot noot)
     {
+        if (!booted) {
+            return;
+        }
         Supplier<Effect> effectSupplier = effects.get(noot.pitch());
         if (effectSupplier != null)
         {

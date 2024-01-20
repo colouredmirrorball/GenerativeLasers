@@ -20,7 +20,7 @@ public class Laser
     {
         this.output = new EtherdreamOutput().setAlias(mac);
         renderer = new IldaRenderer(parent, parent.width / 2, parent.height);
-        renderer.setEllipseDetail(7);
+        renderer.setEllipseDetail(2);
     }
 
     public IldaRenderer getRenderer()
@@ -47,29 +47,31 @@ public class Laser
 
     public void processEffects(Lichtfestival parent)
     {
-        activeEffects.removeIf(effect -> effect.isExpired());
-        for (Effect effect : activeEffects)
-        {
-
-            effect.generate(renderer, parent);
+        synchronized (activeEffects) {
+            activeEffects.removeIf(Effect::isExpired);
+            for (Effect effect: activeEffects) {
+                effect.generate(renderer, parent);
+            }
         }
     }
 
     public void deactivate(Effect effect)
     {
-        if (effect != null)
-        {
-            if (effect.getType() == Effect.Type.FLASH)
-            {
-                Class<? extends Effect> effectClass = effect.getClass();
-                activeEffects.removeIf(ef -> ef.getClass().equals(effectClass));
+        synchronized (activeEffects) {
+            if (effect != null) {
+                if (effect.getType() == Effect.Type.FLASH) {
+                    Class<? extends Effect> effectClass = effect.getClass();
+                    activeEffects.removeIf(ef -> ef.getClass().equals(effectClass));
+                }
             }
         }
     }
 
     public void removeActiveEffects()
     {
-        activeEffects.clear();
+        synchronized (activeEffects) {
+            activeEffects.clear();
+        }
     }
 
 }
