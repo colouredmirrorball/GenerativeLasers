@@ -35,31 +35,32 @@ public class Lichtfestival extends PApplet implements Receiver
     private static final int                            MAX_MIDI_EVENTS = 25;
     private final        Settings                       settings;
     private final        File                           settingsFile    = new File("settings.json");
-    private final        ObjectMapper                   objectMapper;
-    private final        List<String>                   midiEvents      =
+    private final ObjectMapper                   objectMapper;
+    private final List<String>                   midiEvents      =
         Collections.synchronizedList(new ArrayList<String>(50));
-    private final        Map<Integer, Supplier<Effect>> effects         = new HashMap<>();
-    private final        Map<Noot, Consumer<Integer>>   controls        = new HashMap<>();
-    private              Laser                          rightLaser;
-    private              PGraphics                      leftGraphics;
-    private              PGraphics                      rightGraphics;
-    private              boolean                        boundSetupMode  = false;
-    private              Laser                          leftLaser;
-    private              MidiDevice                     midiDevice;
+    private final Map<Integer, Supplier<Effect>> effects         = new HashMap<>();
+    private final Map<Noot, Consumer<Integer>>   controls        = new HashMap<>();
+    private       Laser                          rightLaser;
+    private       PGraphics                      leftGraphics;
+    private       PGraphics                      rightGraphics;
+    private       boolean                        boundSetupMode  = false;
+    private       Laser                          leftLaser;
+    private       MidiDevice                     midiDevice;
+    private       boolean                        booted          = false;
 
     {
         effects.put(10, HorizontalLineEffect::new);
     }
 
     {
-        controls.put(new Noot(0, 2), intensity -> Optional.ofNullable(leftLaser)
-                                                          .map(laser -> laser.output)
-                                                          .ifPresent(
-                                                              laserOutput -> laserOutput.setIntensity(2f * intensity)));
-        controls.put(new Noot(1, 2), intensity -> Optional.ofNullable(rightLaser)
-                                                          .map(laser -> laser.output)
-                                                          .ifPresent(
-                                                              laserOutput -> laserOutput.setIntensity(2f * intensity)));
+        controls.put(new Noot(0, 2), intensity ->
+            Optional.ofNullable(leftLaser)
+                    .map(laser -> laser.output)
+                    .ifPresent(laserOutput -> laserOutput.setIntensity(2f * intensity)));
+        controls.put(new Noot(1, 2), intensity ->
+            Optional.ofNullable(rightLaser)
+                    .map(laser -> laser.output)
+                    .ifPresent(laserOutput -> laserOutput.setIntensity(2f * intensity)));
     }
 
     public Lichtfestival()
@@ -132,10 +133,15 @@ public class Lichtfestival extends PApplet implements Receiver
         setBounds(leftBounds, leftLaser);
         Bounds rightBounds = settings.getRightBounds();
         setBounds(rightBounds, rightLaser);
+        if (settings.getEffectLocations() == null)
+        {
+            settings.setEffectLocations(new HashMap<>());
+        }
         leftLaser.output.setIntensity(255);
         rightLaser.output.setIntensity(255);
         OptimisationSettings leftSettings = leftLaser.getRenderer().getOptimisationSettings();
         leftSettings.setBlankDwellAmount(16);
+        booted = true;
     }
 
     @Override
@@ -150,34 +156,14 @@ public class Lichtfestival extends PApplet implements Receiver
         renderGraphics(leftGraphics, leftRenderer, 0);
         renderGraphics(rightGraphics, rightRenderer, width / 2);
 
-        boolean leftConnected = leftLaser.output.isConnected();
+        displayConnected(leftLaser, "Left laser ", leftPointCount, 40, 20);
+        displayConnected(rightLaser, "Right laser ", rightPointCount, 80, 60);
         fill(255);
-        text("Left laser " + (leftConnected ? "" : "dis") + "connected, " + leftPointCount + " points rendered", 50,
-            40);
-        if (leftConnected)
+        synchronized (midiEvents)
         {
-            fill(0, 255, 0);
-        }
-        else
-        {
-            fill(255, 0, 0);
-        }
-        rect(20, 20, 20, 20);
-
-        boolean rightConnected = rightLaser.output.isConnected();
-        fill(255);
-        text("Right laser " + (rightConnected ? "" : "dis") + "connected, " + rightPointCount + " points rendered", 50,
-            80);
-        if (rightConnected) {
-            fill(0, 255, 0);
-        } else {
-            fill(255, 0, 0);
-        }
-        rect(20, 60, 20, 20);
-        fill(255);
-        synchronized (midiEvents) {
             int midiY = 20;
-            for (String midiEvent: midiEvents) {
+            for (String midiEvent : midiEvents)
+            {
                 text(midiEvent, 300, midiY += 20);
             }
         }
@@ -186,11 +172,31 @@ public class Lichtfestival extends PApplet implements Receiver
         rightLaser.output();
     }
 
+    private void displayConnected(Laser leftLaser, String x, int leftPointCount, int y, int b)
+    {
+        boolean leftConnected = leftLaser.output.isConnected();
+        fill(255);
+        text(x + (leftConnected ? "" : "dis") + "connected, " + leftPointCount + " points rendered", 50,
+            y);
+        if (leftConnected)
+        {
+            fill(0, 255, 0);
+        }
+        else
+        {
+            fill(255, 0, 0);
+        }
+        rect(20, b, 20, 20);
+    }
+
     private void processControl(Noot noot, int value)
     {
-        try {
+        try
+        {
             Optional.ofNullable(controls.get(noot)).ifPresent(action -> action.accept(value));
-        } catch (Exception exception) {
+        }
+        catch (Exception exception)
+        {
             exception.printStackTrace();
         }
     }
@@ -213,10 +219,25 @@ public class Lichtfestival extends PApplet implements Receiver
 
     private void activateEffect(Noot noot)
     {
+        if (!booted)
+        {
+            // Received MIDI before boot
+            return;
+        }
         if (noot.pitch() == 0)
         {
             leftLaser.removeActiveEffects();
             rightLaser.removeActiveEffects();
+        }
+        else if (noot.pitch() > 64)
+        {
+            PVector position = settings.getEffectLocations().computeIfAbsent(noot.pitch(), p -> newRandomPosition());
+            switch (noot.channel())
+            {
+                case 0 -> leftLaser.trigger(new HighlightEffect(position), this);
+                case 1 -> rightLaser.trigger(new HighlightEffect(position), this);
+                default -> log("Wrong channel!");
+            }
         }
         else
         {

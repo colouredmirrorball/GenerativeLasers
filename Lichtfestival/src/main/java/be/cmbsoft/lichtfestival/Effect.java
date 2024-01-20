@@ -5,10 +5,8 @@ import be.cmbsoft.ilda.IldaRenderer;
 public abstract class Effect
 {
 
-    public boolean isExpired()
-    {
-        return false;
-    }
+
+    private boolean expired = false;
 
     protected void setType(Type type)
     {
@@ -16,6 +14,11 @@ public abstract class Effect
     }
 
     private Type type;
+
+    public boolean isExpired()
+    {
+        return expired;
+    }
 
     public Type getType()
     {
@@ -31,5 +34,10 @@ public abstract class Effect
     public abstract void initialize(Lichtfestival parent);
 
     public abstract void generate(IldaRenderer renderer, Lichtfestival parent);
+
+    protected void expire()
+    {
+        expired = true;
+    }
 
 }
