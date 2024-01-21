@@ -42,4 +42,27 @@ public class Settings
         this.effectLocations = effectLocations;
     }
 
+    String leftSafetyZoneImageLocation;
+    String rightSafetyZoneImageLocation;
+
+    public String getLeftSafetyZoneImageLocation()
+    {
+        return leftSafetyZoneImageLocation;
+    }
+
+    public void setLeftSafetyZoneImageLocation(String leftSafetyZoneImageLocation)
+    {
+        this.leftSafetyZoneImageLocation = leftSafetyZoneImageLocation;
+    }
+
+    public String getRightSafetyZoneImageLocation()
+    {
+        return rightSafetyZoneImageLocation;
+    }
+
+    public void setRightSafetyZoneImageLocation(String rightSafetyZoneImageLocation)
+    {
+        this.rightSafetyZoneImageLocation = rightSafetyZoneImageLocation;
+    }
+
 }

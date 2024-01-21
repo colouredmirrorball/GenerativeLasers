@@ -60,15 +60,11 @@
             <artifactId>jogl-all-natives-windows-amd64</artifactId>
             <version>2.4.0-rc-20210111</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
         <dependency>
-            <groupId>com.smallbutdigital</groupId>
-            <artifactId>themidibus</artifactId>
-            <version>0.0.8</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-            <version>3.2.2</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
         </dependency>
 
 

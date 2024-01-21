@@ -1,5 +1,11 @@
 package be.cmbsoft.lichtfestival;
 
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Transmitter;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalTime;
@@ -11,20 +17,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Transmitter;
+
+import org.jetbrains.annotations.NotNull;
 
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.Bounds;
+import be.cmbsoft.laseroutput.OutputOption;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PGraphics;
+import processing.core.PImage;
 import processing.core.PVector;
 import processing.event.KeyEvent;
 
@@ -37,18 +40,22 @@ public class Lichtfestival extends PApplet implements Receiver
     private final ObjectMapper                   objectMapper;
     private final List<String>                   midiEvents      =
         Collections.synchronizedList(new ArrayList<String>(50));
-    private final Map<Integer, Supplier<Effect>> effects         = new HashMap<>();
-    private final Map<Noot, Consumer<Integer>>   controls        = new HashMap<>();
-    private       Laser                          rightLaser;
-    private       PGraphics                      leftGraphics;
-    private       PGraphics                      rightGraphics;
-    private       boolean                        boundSetupMode  = false;
-    private       Laser                          leftLaser;
-    private       MidiDevice                     midiDevice;
-    private       boolean                        booted          = false;
+    private final        Map<Integer, Supplier<Effect>> effects         = new HashMap<>();
+    private final        Map<Noot, Consumer<Integer>>   controls        = new HashMap<>();
+    private              Laser                          rightLaser;
+    private              PGraphics                      leftGraphics;
+    private              PGraphics                      rightGraphics;
+    private              boolean                        boundSetupMode  = false;
+    private              Laser                          leftLaser;
+    private              MidiDevice                     midiDevice;
+    private              boolean                        booted          = false;
+    private              boolean                        safetyZoneMode  = false;
+    private              PGraphics                      leftSafetyZone;
+    private              PGraphics                      rightSafetyZone;
 
     {
         effects.put(10, HorizontalLineEffect::new);
+        effects.put(20, TextEffect::new);
     }
 
     {
@@ -120,7 +127,8 @@ public class Lichtfestival extends PApplet implements Receiver
     @Override
     public void setup()
     {
-        leftLaser  = new Laser(this, "6E851F3F2177");
+//        leftLaser  = new Laser(this, "6E851F3F2177");
+        leftLaser = new Laser(this, "12A5FD136AFE").option(OutputOption.INVERT_Y);
         rightLaser = new Laser(this, "DE6656C57146");
 
         leftGraphics = createGraphics(width / 2, height, P3D);
@@ -138,14 +146,41 @@ public class Lichtfestival extends PApplet implements Receiver
         rightLaser.output.setIntensity(255);
         OptimisationSettings leftSettings = leftLaser.getRenderer().getOptimisationSettings();
         leftSettings.setBlankDwellAmount(16);
+
+        leftSafetyZone = createGraphics(width / 2, height);
+        rightSafetyZone = createGraphics(width / 2, height);
+
+        setupSafetyZone(leftSafetyZone, settings.getLeftSafetyZoneImageLocation());
+        setupSafetyZone(rightSafetyZone, settings.getRightSafetyZoneImageLocation());
+
+        leftLaser.output.setSafetyZone(leftSafetyZone);
+        rightLaser.output.setSafetyZone(rightSafetyZone);
+
         booted = true;
+    }
+
+    private void setupSafetyZone(PGraphics safetyZone, String location)
+    {
+        safetyZone.beginDraw();
+        PImage zonePImage = location == null ? null : loadImage(location);
+        if (zonePImage == null)
+        {
+            safetyZone.background(255);
+        }
+        else
+        {
+            safetyZone.image(zonePImage, 0, 0);
+        }
+        safetyZone.endDraw();
     }
 
     @Override
     public void draw()
     {
         background(0);
-        try {
+
+        try
+        {
             IldaRenderer leftRenderer  = render(leftLaser);
             IldaRenderer rightRenderer = render(rightLaser);
 
@@ -153,9 +188,10 @@ public class Lichtfestival extends PApplet implements Receiver
             int rightPointCount = rightRenderer.getCurrentPointCount();
             renderGraphics(leftGraphics, leftRenderer, 0);
             renderGraphics(rightGraphics, rightRenderer, width / 2);
+            textSize(12);
 
-            displayConnected(leftLaser, "Left laser ", leftPointCount, 40, 20);
-            displayConnected(rightLaser, "Right laser ", rightPointCount, 80, 60);
+            displayConnected(leftLaser, "Left laser ", leftPointCount, 40);
+            displayConnected(rightLaser, "Right laser ", rightPointCount, 80);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -171,15 +207,106 @@ public class Lichtfestival extends PApplet implements Receiver
 
         leftLaser.output();
         rightLaser.output();
+
+        if (boundSetupMode)
+        {
+            Bounds leftBounds  = leftLaser.output.getBounds();
+            Bounds rightBounds = rightLaser.output.getBounds();
+            if (mousePressed && !safetyZoneMode)
+            {
+                if (mouseX < width / 2)
+                {
+                    if (mouseX < width / 4 && mouseY < height / 2)
+                    {
+                        leftBounds.setUpperLeft(remappedMousePos(true));
+                    }
+                    if (mouseX > width / 4 && mouseY < height / 2)
+                    {
+                        leftBounds.setUpperRight(remappedMousePos(true));
+                    }
+                    if (mouseX < width / 4 && mouseY > height / 2)
+                    {
+                        leftBounds.setLowerLeft(remappedMousePos(true));
+                    }
+                    if (mouseX > width / 4 && mouseY > height / 2)
+                    {
+                        leftBounds.setLowerRight(remappedMousePos(true));
+                    }
+                }
+                else
+                {
+                    if (mouseX < 3 * width / 4 && mouseY < height / 2)
+                    {
+                        rightBounds.setUpperLeft(remappedMousePos(false));
+                    }
+                    if (mouseX > 3 * width / 4 && mouseY < height / 2)
+                    {
+                        rightBounds.setUpperRight(remappedMousePos(false));
+                    }
+                    if (mouseX < 3 * width / 4 && mouseY > height / 2)
+                    {
+                        rightBounds.setLowerLeft(remappedMousePos(false));
+                    }
+                    if (mouseX > 3 * width / 4 && mouseY > height / 2)
+                    {
+                        rightBounds.setLowerRight(remappedMousePos(false));
+                    }
+                }
+            }
+
+            if (mousePressed && safetyZoneMode)
+            {
+                leftSafetyZone.beginDraw();
+                rightSafetyZone.beginDraw();
+                if (mouseX < width / 2)
+                {
+                    leftSafetyZone.fill(color(mouseButton == LEFT ? 0 : 255));
+                    leftSafetyZone.noStroke();
+                    leftSafetyZone.ellipse(mouseX, mouseY, 15, 15);
+                }
+                else
+                {
+                    rightSafetyZone.fill(color(mouseButton == LEFT ? 0 : 255));
+                    rightSafetyZone.noStroke();
+                    rightSafetyZone.ellipse(mouseX - width / 2, mouseY, 15, 15);
+                }
+                leftSafetyZone.endDraw();
+                rightSafetyZone.endDraw();
+            }
+
+            stroke(255, 0, 0);
+            fill(0, 0);
+            displayBounds(leftBounds, true);
+            displayBounds(rightBounds, false);
+        }
+        if (safetyZoneMode)
+        {
+            image(leftSafetyZone, 0, 0);
+            image(rightSafetyZone, width / 2, 0);
+        }
     }
 
-    private void displayConnected(Laser laser, String name, int pointCount, int y, int b)
+    private void displayBounds(Bounds bounds, boolean left)
+    {
+        beginShape(QUAD);
+        remappedVertex(bounds.getUpperLeft(), left);
+        remappedVertex(bounds.getUpperRight(), left);
+        remappedVertex(bounds.getLowerRight(), left);
+        remappedVertex(bounds.getLowerLeft(), left);
+        endShape();
+    }
+
+    private void remappedVertex(PVector bounds, boolean left)
+    {
+        vertex(map(bounds.x, -1, 1, left ? 0 : width / 2, left ? width / 2 : width), map(bounds.y, -1, 1, 0, height));
+    }
+
+    private void displayConnected(Laser laser, String name, int pointCount, int y)
     {
         boolean connected = laser.output.isConnected();
         fill(255);
         text(name + (connected ? "" : "dis") + "connected, " + pointCount + " points rendered, intensity: "
-                + laser.output.getIntensity(), 50,
-            y);
+            + laser.output.getIntensity(), 50, y);
         if (connected)
         {
             fill(0, 255, 0);
@@ -188,7 +315,7 @@ public class Lichtfestival extends PApplet implements Receiver
         {
             fill(255, 0, 0);
         }
-        rect(20, b, 20, 20);
+        rect(20, y - 15, 20, 20);
     }
 
     private void processControl(Noot noot, int value)
@@ -202,9 +329,6 @@ public class Lichtfestival extends PApplet implements Receiver
             exception.printStackTrace();
         }
     }
-
-
-
 
     public static void main(String[] passedArgs)
     {
@@ -221,11 +345,6 @@ public class Lichtfestival extends PApplet implements Receiver
 
     private void activateEffect(Noot noot)
     {
-        if (!booted)
-        {
-            // Received MIDI before boot
-            return;
-        }
         if (noot.pitch() == 0)
         {
             leftLaser.removeActiveEffects();
@@ -258,9 +377,6 @@ public class Lichtfestival extends PApplet implements Receiver
 
     private void deactivateEffect(Noot noot)
     {
-        if (!booted) {
-            return;
-        }
         Supplier<Effect> effectSupplier = effects.get(noot.pitch());
         if (effectSupplier != null)
         {
@@ -313,6 +429,14 @@ public class Lichtfestival extends PApplet implements Receiver
             }
             settings.setLeftBounds(leftLaser.output.getBounds());
             settings.setRightBounds(rightLaser.output.getBounds());
+            String leftSafetyZoneImageLocation =
+                Optional.ofNullable(settings.getLeftSafetyZoneImageLocation()).orElse("leftSafetyZone.png");
+            String rightSafetyZoneImageLocation =
+                Optional.ofNullable(settings.getRightSafetyZoneImageLocation()).orElse("rightSafetyZone.png");
+            leftSafetyZone.save(leftSafetyZoneImageLocation);
+            settings.setLeftSafetyZoneImageLocation(leftSafetyZoneImageLocation);
+            rightSafetyZone.save(rightSafetyZoneImageLocation);
+            settings.setRightSafetyZoneImageLocation(rightSafetyZoneImageLocation);
             objectMapper.writeValue(settingsFile, settings);
         }
         catch (IOException e)
@@ -322,7 +446,7 @@ public class Lichtfestival extends PApplet implements Receiver
         }
         if (midiDevice != null)
         {
-            midiDevice.close();
+            close();
         }
         super.exit();
     }
@@ -352,9 +476,9 @@ public class Lichtfestival extends PApplet implements Receiver
     }
 
 
-    private PVector remappedMousePos()
+    private PVector remappedMousePos(boolean left)
     {
-        return new PVector(map(mouseX, 0, width, -1, 1),
+        return new PVector(map(mouseX, left ? 0 : width / 2, left ? width / 2 : width, -1, 1),
             map(mouseY, 0, height, -1, 1));
     }
 
@@ -365,25 +489,18 @@ public class Lichtfestival extends PApplet implements Receiver
         renderer.setOptimise(true);
         renderer.beginDraw();
 
-        if (boundSetupMode) {
+        if (boundSetupMode)
+        {
             renderer.stroke(100, 0, 0);
             renderer.rect(0, 0, renderer.width, renderer.height);
-            if (mousePressed) {
-                if (mouseX < width / 2 && mouseY < height / 2) {
-                    laser.output.getBounds().setUpperLeft(remappedMousePos());
-                }
-                if (mouseX > width / 2 && mouseY < height / 2) {
-                    laser.output.getBounds().setUpperRight(remappedMousePos());
-                }
-                if (mouseX < width / 2 && mouseY > height / 2)
-                {
-                    laser.output.getBounds().setLowerLeft(remappedMousePos());
-                }
-                if (mouseX > width / 2 && mouseY > height / 2)
-                {
-                    laser.output.getBounds().setLowerRight(remappedMousePos());
-                }
-            }
+        }
+
+        if (safetyZoneMode)
+        {
+            renderer.stroke(127, 127, 127);
+            renderer.line(0, mouseY, renderer.width, mouseY);
+            renderer.line(mouseX, 0, mouseX, renderer.height);
+
         }
 
         laser.processEffects(this);
@@ -399,6 +516,14 @@ public class Lichtfestival extends PApplet implements Receiver
         if (event.getKey() == 'b')
         {
             boundSetupMode = !boundSetupMode;
+            if (!boundSetupMode)
+            {
+                safetyZoneMode = false;
+            }
+        }
+        if (event.getKey() == 'l' && boundSetupMode)
+        {
+            safetyZoneMode = !safetyZoneMode;
         }
 
     }
@@ -416,6 +541,7 @@ public class Lichtfestival extends PApplet implements Receiver
     @Override
     public void send(MidiMessage message, long timeStamp)
     {
+        if (!booted) return;
         if (message instanceof ShortMessage shortMessage)
         {
             int command = shortMessage.getCommand();
