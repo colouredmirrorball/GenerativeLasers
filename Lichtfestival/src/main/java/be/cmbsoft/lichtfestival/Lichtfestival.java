@@ -352,7 +352,12 @@ public class Lichtfestival extends PApplet implements Receiver
         }
         else if (noot.pitch() > 64)
         {
-            PVector position = settings.getEffectLocations().computeIfAbsent(noot.pitch(), p -> newRandomPosition());
+            PVector position = settings.getEffectLocations().computeIfAbsent(noot.pitch(), p ->
+            {
+                PVector pVector = newRandomPosition();
+                pVector.x = pVector.x / 2;
+                return pVector;
+            });
             switch (noot.channel())
             {
                 case 0 -> leftLaser.trigger(new HighlightEffect(position), this);
@@ -420,30 +425,7 @@ public class Lichtfestival extends PApplet implements Receiver
     {
         leftLaser.output.halt();
         rightLaser.output.halt();
-        try
-        {
-            if (!settingsFile.exists() && !settingsFile.createNewFile())
-            {
-                log("Could not create settings file!");
-
-            }
-            settings.setLeftBounds(leftLaser.output.getBounds());
-            settings.setRightBounds(rightLaser.output.getBounds());
-            String leftSafetyZoneImageLocation =
-                Optional.ofNullable(settings.getLeftSafetyZoneImageLocation()).orElse("leftSafetyZone.png");
-            String rightSafetyZoneImageLocation =
-                Optional.ofNullable(settings.getRightSafetyZoneImageLocation()).orElse("rightSafetyZone.png");
-            leftSafetyZone.save(leftSafetyZoneImageLocation);
-            settings.setLeftSafetyZoneImageLocation(leftSafetyZoneImageLocation);
-            rightSafetyZone.save(rightSafetyZoneImageLocation);
-            settings.setRightSafetyZoneImageLocation(rightSafetyZoneImageLocation);
-            objectMapper.writeValue(settingsFile, settings);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            log("Could not write settings file...");
-        }
+        saveSettings();
         if (midiDevice != null)
         {
             close();
@@ -525,7 +507,39 @@ public class Lichtfestival extends PApplet implements Receiver
         {
             safetyZoneMode = !safetyZoneMode;
         }
+        if (event.getKey() == 's')
+        {
+            saveSettings();
+        }
 
+    }
+
+    private void saveSettings()
+    {
+        try
+        {
+            if (!settingsFile.exists() && !settingsFile.createNewFile())
+            {
+                log("Could not create settings file!");
+
+            }
+            settings.setLeftBounds(leftLaser.output.getBounds());
+            settings.setRightBounds(rightLaser.output.getBounds());
+            String leftSafetyZoneImageLocation =
+                Optional.ofNullable(settings.getLeftSafetyZoneImageLocation()).orElse("leftSafetyZone.png");
+            String rightSafetyZoneImageLocation =
+                Optional.ofNullable(settings.getRightSafetyZoneImageLocation()).orElse("rightSafetyZone.png");
+            leftSafetyZone.save(leftSafetyZoneImageLocation);
+            settings.setLeftSafetyZoneImageLocation(leftSafetyZoneImageLocation);
+            rightSafetyZone.save(rightSafetyZoneImageLocation);
+            settings.setRightSafetyZoneImageLocation(rightSafetyZoneImageLocation);
+            objectMapper.writeValue(settingsFile, settings);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            log("Could not write settings file...");
+        }
     }
 
     PVector newRandomPosition()

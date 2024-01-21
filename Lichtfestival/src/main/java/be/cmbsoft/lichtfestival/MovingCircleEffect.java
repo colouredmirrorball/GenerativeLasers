@@ -15,6 +15,7 @@ public class MovingCircleEffect extends Effect
     {
         position = parent.newRandomPosition();
         target = parent.newRandomPosition();
+        target.x = target.x / 2;
         colour = parent.newRandomColour();
     }
 
@@ -24,6 +25,7 @@ public class MovingCircleEffect extends Effect
         if (parent.frameCount % 120 == 0)
         {
             target = parent.newRandomPosition();
+            target.x = target.x / 2;
             targetColour = parent.newRandomColour();
         }
         PVector direction = PVector.sub(target, position);
