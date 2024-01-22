@@ -5,12 +5,14 @@ import be.cmbsoft.ilda.IldaRenderer;
 public class TextEffect extends Effect
 {
 
-    String text = "Hello test!";
+    String text;
     float  textWidth;
 
-    TextEffect()
+    TextEffect(String text)
     {
         setType(Type.FLASH);
+        this.text = text;
+        setAlias("Display text " + text);
     }
 
 
@@ -26,7 +28,7 @@ public class TextEffect extends Effect
     {
         renderer.textSize(parent.height / 5);
         renderer.stroke(255, 255, 255);
-        renderer.text("Hello test!", renderer.width / 2 - textWidth, renderer.height / 2);
+        renderer.text(text, renderer.width / 2 - textWidth, renderer.height / 2);
 
     }
 

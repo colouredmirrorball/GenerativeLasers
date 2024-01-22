@@ -8,6 +8,7 @@ public class HorizontalLineEffect extends Effect
     HorizontalLineEffect()
     {
         setType(Type.FLASH);
+        setAlias("Static horizontal line");
     }
 
 

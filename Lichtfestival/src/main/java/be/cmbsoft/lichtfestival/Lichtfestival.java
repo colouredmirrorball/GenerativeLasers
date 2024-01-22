@@ -1,11 +1,5 @@
 package be.cmbsoft.lichtfestival;
 
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Transmitter;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalTime;
@@ -17,14 +11,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import org.jetbrains.annotations.NotNull;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Transmitter;
 
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.Bounds;
-import be.cmbsoft.laseroutput.OutputOption;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import processing.core.PImage;
@@ -45,17 +43,21 @@ public class Lichtfestival extends PApplet implements Receiver
     private              Laser                          rightLaser;
     private              PGraphics                      leftGraphics;
     private              PGraphics                      rightGraphics;
-    private              boolean                        boundSetupMode  = false;
     private              Laser                          leftLaser;
     private              MidiDevice                     midiDevice;
     private              boolean                        booted          = false;
-    private              boolean                        safetyZoneMode  = false;
     private              PGraphics                      leftSafetyZone;
     private              PGraphics                      rightSafetyZone;
+    private              boolean                        boundSetupMode                = false;
+    private              boolean                        safetyZoneMode                = false;
+    private              boolean                        effectSetupMode               = false;
+    private              boolean                        effectEditMode                = false;
+    private              int                            manuallySelectedEffectNote    = 60;
+    private              int                            manuallySelectedEffectChannel = 0;
 
     {
         effects.put(10, HorizontalLineEffect::new);
-        effects.put(20, TextEffect::new);
+        effects.put(20, () -> new TextEffect("Hello, test!"));
     }
 
     {
@@ -127,8 +129,8 @@ public class Lichtfestival extends PApplet implements Receiver
     @Override
     public void setup()
     {
-//        leftLaser  = new Laser(this, "6E851F3F2177");
-        leftLaser = new Laser(this, "12A5FD136AFE").option(OutputOption.INVERT_Y);
+        leftLaser = new Laser(this, "6E851F3F2177");
+//        leftLaser = new Laser(this, "12A5FD136AFE").option(OutputOption.INVERT_Y);
         rightLaser = new Laser(this, "DE6656C57146");
 
         leftGraphics = createGraphics(width / 2, height, P3D);
@@ -190,8 +192,8 @@ public class Lichtfestival extends PApplet implements Receiver
             renderGraphics(rightGraphics, rightRenderer, width / 2);
             textSize(12);
 
-            displayConnected(leftLaser, "Left laser ", leftPointCount, 40);
-            displayConnected(rightLaser, "Right laser ", rightPointCount, 80);
+            displayStatus(leftLaser, "Left laser ", leftPointCount, 50);
+            displayStatus(rightLaser, "Right laser ", rightPointCount, height / 2 + 40);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -284,6 +286,12 @@ public class Lichtfestival extends PApplet implements Receiver
             image(leftSafetyZone, 0, 0);
             image(rightSafetyZone, width / 2, 0);
         }
+        if (effectEditMode) {
+            fill(255);
+            noStroke();
+            text("Manually " + (effectSetupMode ? "editing" : "selecting") + " effect: " + manuallySelectedEffectChannel
+                + " " + manuallySelectedEffectNote, 10, 30);
+        }
     }
 
     private void displayBounds(Bounds bounds, boolean left)
@@ -301,21 +309,49 @@ public class Lichtfestival extends PApplet implements Receiver
         vertex(map(bounds.x, -1, 1, left ? 0 : width / 2, left ? width / 2 : width), map(bounds.y, -1, 1, 0, height));
     }
 
-    private void displayConnected(Laser laser, String name, int pointCount, int y)
+    @Override
+    public void keyPressed(KeyEvent event)
     {
-        boolean connected = laser.output.isConnected();
-        fill(255);
-        text(name + (connected ? "" : "dis") + "connected, " + pointCount + " points rendered, intensity: "
-            + laser.output.getIntensity(), 50, y);
-        if (connected)
+
+        if (event.getKey() == 'b')
         {
-            fill(0, 255, 0);
+            boundSetupMode = !boundSetupMode;
+            if (!boundSetupMode)
+            {
+                safetyZoneMode = false;
+            }
+            effectEditMode = false;
         }
-        else
+        if (event.getKey() == 'l' && boundSetupMode)
         {
-            fill(255, 0, 0);
+            safetyZoneMode = !safetyZoneMode;
         }
-        rect(20, y - 15, 20, 20);
+        if (event.getKey() == 's')
+        {
+            saveSettings();
+        }
+        if (event.getKey() == 'e') {
+            effectEditMode = !effectEditMode;
+            if (!effectEditMode) {
+                effectSetupMode = false;
+            }
+        }
+        if (event.getKey() == 'm' && effectEditMode) {
+            effectSetupMode = !effectSetupMode;
+        }
+        if (effectEditMode && !effectSetupMode && event.getKey() == CODED) {
+            activateEffect(switch (event.getKeyCode()) {
+                case UP -> new Noot(manuallySelectedEffectChannel, ++manuallySelectedEffectNote);
+                case DOWN -> new Noot(manuallySelectedEffectChannel, --manuallySelectedEffectNote);
+                case LEFT -> new Noot(--manuallySelectedEffectChannel, manuallySelectedEffectNote);
+                case RIGHT -> new Noot(++manuallySelectedEffectChannel, manuallySelectedEffectNote);
+                default -> null;
+            });
+        }
+        if (effectSetupMode && event.getKey() == CODED) {
+            modifyActiveEffect(event.getKeyCode());
+        }
+
     }
 
     private void processControl(Noot noot, int value)
@@ -343,41 +379,9 @@ public class Lichtfestival extends PApplet implements Receiver
         size(1200, 600, P3D);
     }
 
-    private void activateEffect(Noot noot)
+    public boolean isEffectSetupMode()
     {
-        if (noot.pitch() == 0)
-        {
-            leftLaser.removeActiveEffects();
-            rightLaser.removeActiveEffects();
-        }
-        else if (noot.pitch() > 64)
-        {
-            PVector position = settings.getEffectLocations().computeIfAbsent(noot.pitch(), p ->
-            {
-                PVector pVector = newRandomPosition();
-                pVector.x = pVector.x / 2;
-                return pVector;
-            });
-            switch (noot.channel())
-            {
-                case 0 -> leftLaser.trigger(new HighlightEffect(position), this);
-                case 1 -> rightLaser.trigger(new HighlightEffect(position), this);
-                default -> log("Wrong channel!");
-            }
-        }
-        else
-        {
-            Supplier<Effect> effectSupplier = effects.get(noot.pitch());
-            if (effectSupplier != null)
-            {
-                switch (noot.channel())
-                {
-                    case 0 -> leftLaser.trigger(effectSupplier.get(), this);
-                    case 1 -> rightLaser.trigger(effectSupplier.get(), this);
-                    default -> log("Wrong channel!");
-                }
-            }
-        }
+        return effectSetupMode;
     }
 
     private void deactivateEffect(Noot noot)
@@ -438,22 +442,24 @@ public class Lichtfestival extends PApplet implements Receiver
         System.out.println(what);
     }
 
-    private void setBounds(Bounds rightBounds, Laser rightLaser)
+    private void displayStatus(Laser laser, String name, int pointCount, int y)
     {
-        Bounds rightLaserBounds = rightLaser.output.getBounds();
-        if (rightBounds != null)
+        boolean connected = laser.output.isConnected();
+        fill(255);
+        text(name + (connected ? "" : "dis") + "connected, " + pointCount + " points rendered, intensity: "
+            + laser.output.getIntensity(), 50, y);
+        if (connected)
         {
-            rightLaserBounds.setLowerLeft(rightBounds.getLowerLeft());
-            rightLaserBounds.setLowerRight(rightBounds.getLowerRight());
-            rightLaserBounds.setUpperRight(rightBounds.getUpperRight());
-            rightLaserBounds.setUpperLeft(rightBounds.getUpperLeft());
+            fill(0, 255, 0);
         }
         else
         {
-            rightLaserBounds.setLowerLeft(new PVector(-1, 1));
-            rightLaserBounds.setLowerRight(new PVector(1, 1));
-            rightLaserBounds.setUpperRight(new PVector(1, -1));
-            rightLaserBounds.setUpperLeft(new PVector(-1, -1));
+            fill(255, 0, 0);
+        }
+        rect(20, y - 15, 20, 20);
+        fill(255);
+        for (String activeEffectsName: laser.getActiveEffectsNames()) {
+            text(activeEffectsName, 50, y += 20);
         }
     }
 
@@ -482,7 +488,6 @@ public class Lichtfestival extends PApplet implements Receiver
             renderer.stroke(127, 127, 127);
             renderer.line(0, mouseY, renderer.width, mouseY);
             renderer.line(mouseX, 0, mouseX, renderer.height);
-
         }
 
         laser.processEffects(this);
@@ -491,27 +496,61 @@ public class Lichtfestival extends PApplet implements Receiver
         return renderer;
     }
 
-    @Override
-    public void keyPressed(KeyEvent event)
+    private void activateEffect(Noot noot)
     {
-
-        if (event.getKey() == 'b')
+        if (noot == null) return;
+        if (noot.pitch() == 0)
         {
-            boundSetupMode = !boundSetupMode;
-            if (!boundSetupMode)
+            leftLaser.removeActiveEffects();
+            rightLaser.removeActiveEffects();
+        }
+        else if (noot.pitch() > 64)
+        {
+            var info = settings.getEffectLocations().computeIfAbsent(noot.pitch(), p ->
             {
-                safetyZoneMode = false;
+                HighlightEffect.HighlightEffectInfo info1 = new HighlightEffect.HighlightEffectInfo();
+                info1.setAlias("Noot " + p);
+                return info1;
+            });
+            switch (noot.channel())
+            {
+                case 0 -> leftLaser.trigger(new HighlightEffect(info, noot), this);
+                case 1 -> rightLaser.trigger(new HighlightEffect(info, noot), this);
+                default -> log("Wrong channel!");
             }
         }
-        if (event.getKey() == 'l' && boundSetupMode)
+        else
         {
-            safetyZoneMode = !safetyZoneMode;
+            Supplier<Effect> effectSupplier = effects.get(noot.pitch());
+            if (effectSupplier != null)
+            {
+                switch (noot.channel())
+                {
+                    case 0 -> leftLaser.trigger(effectSupplier.get(), this);
+                    case 1 -> rightLaser.trigger(effectSupplier.get(), this);
+                    default -> log("Wrong channel!");
+                }
+            }
         }
-        if (event.getKey() == 's')
-        {
-            saveSettings();
-        }
+    }
 
+    private void setBounds(Bounds bounds, Laser laser)
+    {
+        Bounds existingBounds = laser.output.getBounds();
+        if (bounds != null)
+        {
+            existingBounds.setLowerLeft(bounds.getLowerLeft());
+            existingBounds.setLowerRight(bounds.getLowerRight());
+            existingBounds.setUpperRight(bounds.getUpperRight());
+            existingBounds.setUpperLeft(bounds.getUpperLeft());
+        }
+        else
+        {
+            existingBounds.setLowerLeft(new PVector(-1, 1));
+            existingBounds.setLowerRight(new PVector(1, 1));
+            existingBounds.setUpperRight(new PVector(1, -1));
+            existingBounds.setUpperLeft(new PVector(-1, -1));
+        }
     }
 
     private void saveSettings()
@@ -521,7 +560,6 @@ public class Lichtfestival extends PApplet implements Receiver
             if (!settingsFile.exists() && !settingsFile.createNewFile())
             {
                 log("Could not create settings file!");
-
             }
             settings.setLeftBounds(leftLaser.output.getBounds());
             settings.setRightBounds(rightLaser.output.getBounds());
@@ -542,9 +580,13 @@ public class Lichtfestival extends PApplet implements Receiver
         }
     }
 
-    PVector newRandomPosition()
+    private void modifyActiveEffect(int keyCode)
     {
-        return new PVector(random(width), random(height));
+        if (manuallySelectedEffectChannel == 0) {
+            leftLaser.modifyEffect(new Noot(manuallySelectedEffectChannel, manuallySelectedEffectNote), keyCode);
+        } else if (manuallySelectedEffectChannel == 1) {
+            rightLaser.modifyEffect(new Noot(manuallySelectedEffectChannel, manuallySelectedEffectNote), keyCode);
+        }
     }
 
     public int newRandomColour()
@@ -586,6 +628,10 @@ public class Lichtfestival extends PApplet implements Receiver
         }
     }
 
+    PVector newRandomPosition()
+    {
+        return new PVector(random(width / 2), random(height));
+    }
 
     @Override
     public void close()

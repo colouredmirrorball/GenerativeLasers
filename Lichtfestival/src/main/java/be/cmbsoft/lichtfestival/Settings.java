@@ -3,7 +3,6 @@ package be.cmbsoft.lichtfestival;
 import java.util.Map;
 
 import be.cmbsoft.laseroutput.Bounds;
-import processing.core.PVector;
 
 public class Settings
 {
@@ -30,14 +29,14 @@ public class Settings
         this.rightBounds = rightBounds;
     }
 
-    Map<Integer, PVector> effectLocations;
+    Map<Integer, HighlightEffect.HighlightEffectInfo> effectLocations;
 
-    public Map<Integer, PVector> getEffectLocations()
+    public Map<Integer, HighlightEffect.HighlightEffectInfo> getEffectLocations()
     {
         return effectLocations;
     }
 
-    public void setEffectLocations(Map<Integer, PVector> effectLocations)
+    public void setEffectLocations(Map<Integer, HighlightEffect.HighlightEffectInfo> effectLocations)
     {
         this.effectLocations = effectLocations;
     }

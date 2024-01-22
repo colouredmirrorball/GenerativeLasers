@@ -8,6 +8,11 @@ import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.OutputOption;
 import processing.core.PApplet;
+import static processing.core.PConstants.DOWN;
+import static processing.core.PConstants.LEFT;
+import static processing.core.PConstants.RIGHT;
+import static processing.core.PConstants.UP;
+import processing.core.PVector;
 
 public class Laser
 {
@@ -74,4 +79,30 @@ public class Laser
         }
     }
 
+    public List<String> getActiveEffectsNames()
+    {
+        return activeEffects.stream().map(Effect::getAlias).toList();
+    }
+
+    public void modifyEffect(Noot noot, int keyCode)
+    {
+        activeEffects.stream()
+            .filter(effect -> effect instanceof HighlightEffect)
+            .map(effect -> (HighlightEffect) effect)
+            .filter(effect -> noot.equals(effect.getNoot()))
+            .findFirst()
+            .ifPresent(effect -> {
+                HighlightEffect.HighlightEffectInfo info     = effect.getInfo();
+                PVector                             position = info.getPosition();
+                switch (keyCode) {
+                    case UP -> position.y--;
+                    case DOWN -> position.y++;
+                    case LEFT -> position.x--;
+                    case RIGHT -> position.x++;
+                    case 16 -> info.setRadius(info.getRadius() + 1); // page up
+                    case 11 -> info.setRadius(info.getRadius() - 1); // page down
+                }
+            });
+
+    }
 }

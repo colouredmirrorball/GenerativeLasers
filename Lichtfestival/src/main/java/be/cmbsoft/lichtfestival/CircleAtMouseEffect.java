@@ -10,7 +10,7 @@ public class CircleAtMouseEffect extends Effect
     @Override
     public void initialize(Lichtfestival parent)
     {
-
+        setAlias("Circle following mouse");
         targetColour = parent.newRandomColour();
     }
 

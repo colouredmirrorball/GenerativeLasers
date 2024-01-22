@@ -15,6 +15,7 @@ public class RandomLinesEffect extends Effect
     public void initialize(Lichtfestival parent)
     {
         int amt = 10;
+        setAlias(amt + " random lines");
         positions = new PVector[amt];
         ends = new PVector[amt];
         colours = new int[amt];
