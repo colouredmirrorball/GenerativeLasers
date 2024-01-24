@@ -192,8 +192,8 @@ public class Lichtfestival extends PApplet implements Receiver
             renderGraphics(rightGraphics, rightRenderer, width / 2);
             textSize(12);
 
-            displayStatus(leftLaser, "Left laser ", leftPointCount, 50);
-            displayStatus(rightLaser, "Right laser ", rightPointCount, height / 2 + 40);
+            displayStatus(leftLaser, "Elfriede ", leftPointCount, 50);
+            displayStatus(rightLaser, "Hildegard ", rightPointCount, height / 2 + 40);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
