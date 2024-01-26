@@ -31,7 +31,7 @@ public abstract class Effect
 
     public abstract void initialize(Lichtfestival parent);
 
-    public abstract void generate(IldaRenderer renderer, Lichtfestival parent);
+    public abstract void generate(IldaRenderer renderer, Lichtfestival parent, float offset);
 
     protected void expire()
     {

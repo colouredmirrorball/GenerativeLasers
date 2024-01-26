@@ -8,7 +8,8 @@ public class HighlightEffect extends Effect
     public static class HighlightEffectInfo
     {
         private PVector position;
-        private int     radius;
+        private int     width;
+        private int     height;
         private int     color;
         private int     duration;
         private String  alias;
@@ -23,14 +24,24 @@ public class HighlightEffect extends Effect
             this.position = position;
         }
 
-        public int getRadius()
+        public int getWidth()
         {
-            return radius;
+            return width;
         }
 
-        public void setRadius(int radius)
+        public void setWidth(int width)
         {
-            this.radius = radius;
+            this.width = width;
+        }
+
+        public int getHeight()
+        {
+            return height;
+        }
+
+        public void setHeight(int height)
+        {
+            this.height = height;
         }
 
         public int getColor()
@@ -96,16 +107,17 @@ public class HighlightEffect extends Effect
         if (info.alias == null) {
             info.alias = "Generated";
         }
-        if (info.radius == 0) {
-            info.radius = (int) parent.random(30, 70);
+        if (info.width == 0 || info.height == 0) {
+            info.width  = (int) parent.random(30, 70);
+            info.height = info.width;
         }
     }
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
     {
         renderer.stroke(info.color);
-        renderer.ellipse(info.position.x, info.position.y, info.radius, info.radius);
+        renderer.ellipse(info.position.x, info.position.y, info.width, info.height);
         time++;
         if (!parent.isEffectSetupMode() && time > info.duration)
         {

@@ -20,7 +20,7 @@ public class MovingCircleEffect extends Effect
     }
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
     {
         if (parent.frameCount % 120 == 0)
         {

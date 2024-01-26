@@ -18,6 +18,7 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
 
+import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.Bounds;
@@ -35,8 +36,8 @@ public class Lichtfestival extends PApplet implements Receiver
     private static final int                            MAX_MIDI_EVENTS = 25;
     private final        Settings                       settings;
     private final        File                           settingsFile    = new File("settings.json");
-    private final ObjectMapper                   objectMapper;
-    private final List<String>                   midiEvents      =
+    private final        ObjectMapper                   objectMapper;
+    private final        List<String>                   midiEvents      =
         Collections.synchronizedList(new ArrayList<String>(50));
     private final        Map<Integer, Supplier<Effect>> effects         = new HashMap<>();
     private final        Map<Noot, Consumer<Integer>>   controls        = new HashMap<>();
@@ -57,18 +58,31 @@ public class Lichtfestival extends PApplet implements Receiver
 
     {
         effects.put(10, HorizontalLineEffect::new);
+        effects.put(11, DottedHorizontalLineEffect::new);
         effects.put(20, () -> new TextEffect("Hello, test!"));
     }
 
     {
-        controls.put(new Noot(0, 2), intensity ->
-            Optional.ofNullable(leftLaser)
-                    .map(laser -> laser.output)
-                    .ifPresent(laserOutput -> laserOutput.setIntensity(2f * intensity)));
-        controls.put(new Noot(1, 2), intensity ->
-            Optional.ofNullable(rightLaser)
-                    .map(laser -> laser.output)
-                    .ifPresent(laserOutput -> laserOutput.setIntensity(2f * intensity)));
+        controls.put(new Noot(0, 2), intensity -> Optional.ofNullable(leftLaser)
+            .map(laser -> laser.output)
+            .ifPresent(laserOutput -> laserOutput.setIntensity(2f * intensity)));
+        controls.put(new Noot(1, 2), intensity -> Optional.ofNullable(rightLaser)
+            .map(laser -> laser.output)
+            .ifPresent(laserOutput -> laserOutput.setIntensity(2f * intensity)));
+        controls.put(new Noot(0, 3),
+            value -> Optional.ofNullable(leftLaser).ifPresent(laser -> laser.setWriteoutEffect(value)));
+        controls.put(new Noot(1, 3),
+            value -> Optional.ofNullable(rightLaser).ifPresent(laser -> laser.setWriteoutEffect(value)));
+        controls.put(new Noot(0, 4),
+            value -> Optional.ofNullable(leftLaser).ifPresent(laser -> laser.setOffset(map(value, 0, 127, 0, height))));
+        controls.put(new Noot(1, 4), value -> Optional.ofNullable(rightLaser)
+            .ifPresent(laser -> laser.setOffset(map(value, 0, 127, 0, height))));
+        controls.put(new Noot(0, 10),
+            value -> Optional.ofNullable(rightLaser).ifPresent(laser -> laser.setEditRed(map(value, 0, 127, 0, 255))));
+        controls.put(new Noot(0, 11), value -> Optional.ofNullable(rightLaser)
+            .ifPresent(laser -> laser.setEditGreen(map(value, 0, 127, 0, 255))));
+        controls.put(new Noot(0, 12),
+            value -> Optional.ofNullable(rightLaser).ifPresent(laser -> laser.setEditBlue(map(value, 0, 127, 0, 255))));
     }
 
     public Lichtfestival()
@@ -92,8 +106,7 @@ public class Lichtfestival extends PApplet implements Receiver
         String            theMIDIDevice  = "Reaper to Leaser";
         MidiDevice.Info   selectedDevice = null;
         log("Looking for MIDI devices...");
-        for (MidiDevice.Info info : midiDeviceInfo)
-        {
+        for (MidiDevice.Info info: midiDeviceInfo) {
             println("[" + info.getName() + "] " + info + ": " + info.getDescription() + " (" + info.getVendor() + " "
                 + info.getVersion() + ")");
             if (theMIDIDevice.equals(info.getName())) {
@@ -101,15 +114,13 @@ public class Lichtfestival extends PApplet implements Receiver
             }
         }
         try {
-            if (selectedDevice != null)
-            {
+            if (selectedDevice != null) {
                 midiDevice = MidiSystem.getMidiDevice(selectedDevice);
-                if (midiDevice.getMaxTransmitters() == 0)
-                {
+                if (midiDevice.getMaxTransmitters() == 0) {
                     log(theMIDIDevice + " is not an input...");
                 }
 
-                Transmitter    transmitter = midiDevice.getTransmitter();
+                Transmitter transmitter = midiDevice.getTransmitter();
                 transmitter.setReceiver(this);
 
                 midiDevice.open();
@@ -117,13 +128,18 @@ public class Lichtfestival extends PApplet implements Receiver
                 log(theMIDIDevice + " is not available...");
             }
 
-        }
-        catch (Exception exception)
-        {
+        } catch (Exception exception) {
             // Continue without MIDI
             exception.printStackTrace();
         }
 
+    }
+
+    public static void main(String[] passedArgs)
+    {
+        String[]      appletArgs    = new String[]{Lichtfestival.class.getPackageName()};
+        Lichtfestival lichtfestival = new Lichtfestival();
+        PApplet.runSketch(appletArgs, lichtfestival);
     }
 
     @Override
@@ -140,8 +156,7 @@ public class Lichtfestival extends PApplet implements Receiver
         setBounds(leftBounds, leftLaser);
         Bounds rightBounds = settings.getRightBounds();
         setBounds(rightBounds, rightLaser);
-        if (settings.getEffectLocations() == null)
-        {
+        if (settings.getEffectLocations() == null) {
             settings.setEffectLocations(new HashMap<>());
         }
         leftLaser.output.setIntensity(255);
@@ -161,28 +176,12 @@ public class Lichtfestival extends PApplet implements Receiver
         booted = true;
     }
 
-    private void setupSafetyZone(PGraphics safetyZone, String location)
-    {
-        safetyZone.beginDraw();
-        PImage zonePImage = location == null ? null : loadImage(location);
-        if (zonePImage == null)
-        {
-            safetyZone.background(255);
-        }
-        else
-        {
-            safetyZone.image(zonePImage, 0, 0);
-        }
-        safetyZone.endDraw();
-    }
-
     @Override
     public void draw()
     {
         background(0);
 
-        try
-        {
+        try {
             IldaRenderer leftRenderer  = render(leftLaser);
             IldaRenderer rightRenderer = render(rightLaser);
 
@@ -198,11 +197,9 @@ public class Lichtfestival extends PApplet implements Receiver
             exception.printStackTrace();
         }
         fill(255);
-        synchronized (midiEvents)
-        {
+        synchronized (midiEvents) {
             int midiY = 20;
-            for (String midiEvent : midiEvents)
-            {
+            for (String midiEvent: midiEvents) {
                 text(midiEvent, 370, midiY += 20);
             }
         }
@@ -210,64 +207,47 @@ public class Lichtfestival extends PApplet implements Receiver
         leftLaser.output();
         rightLaser.output();
 
-        if (boundSetupMode)
-        {
+        if (boundSetupMode) {
             Bounds leftBounds  = leftLaser.output.getBounds();
             Bounds rightBounds = rightLaser.output.getBounds();
-            if (mousePressed && !safetyZoneMode)
-            {
-                if (mouseX < width / 2)
-                {
-                    if (mouseX < width / 4 && mouseY < height / 2)
-                    {
+            if (mousePressed && !safetyZoneMode) {
+                if (mouseX < width / 2) {
+                    if (mouseX < width / 4 && mouseY < height / 2) {
                         leftBounds.setUpperLeft(remappedMousePos(true));
                     }
-                    if (mouseX > width / 4 && mouseY < height / 2)
-                    {
+                    if (mouseX > width / 4 && mouseY < height / 2) {
                         leftBounds.setUpperRight(remappedMousePos(true));
                     }
-                    if (mouseX < width / 4 && mouseY > height / 2)
-                    {
+                    if (mouseX < width / 4 && mouseY > height / 2) {
                         leftBounds.setLowerLeft(remappedMousePos(true));
                     }
-                    if (mouseX > width / 4 && mouseY > height / 2)
-                    {
+                    if (mouseX > width / 4 && mouseY > height / 2) {
                         leftBounds.setLowerRight(remappedMousePos(true));
                     }
-                }
-                else
-                {
-                    if (mouseX < 3 * width / 4 && mouseY < height / 2)
-                    {
+                } else {
+                    if (mouseX < 3 * width / 4 && mouseY < height / 2) {
                         rightBounds.setUpperLeft(remappedMousePos(false));
                     }
-                    if (mouseX > 3 * width / 4 && mouseY < height / 2)
-                    {
+                    if (mouseX > 3 * width / 4 && mouseY < height / 2) {
                         rightBounds.setUpperRight(remappedMousePos(false));
                     }
-                    if (mouseX < 3 * width / 4 && mouseY > height / 2)
-                    {
+                    if (mouseX < 3 * width / 4 && mouseY > height / 2) {
                         rightBounds.setLowerLeft(remappedMousePos(false));
                     }
-                    if (mouseX > 3 * width / 4 && mouseY > height / 2)
-                    {
+                    if (mouseX > 3 * width / 4 && mouseY > height / 2) {
                         rightBounds.setLowerRight(remappedMousePos(false));
                     }
                 }
             }
 
-            if (mousePressed && safetyZoneMode)
-            {
+            if (mousePressed && safetyZoneMode) {
                 leftSafetyZone.beginDraw();
                 rightSafetyZone.beginDraw();
-                if (mouseX < width / 2)
-                {
+                if (mouseX < width / 2) {
                     leftSafetyZone.fill(color(mouseButton == LEFT ? 0 : 255));
                     leftSafetyZone.noStroke();
                     leftSafetyZone.ellipse(mouseX, mouseY, 15, 15);
-                }
-                else
-                {
+                } else {
                     rightSafetyZone.fill(color(mouseButton == LEFT ? 0 : 255));
                     rightSafetyZone.noStroke();
                     rightSafetyZone.ellipse(mouseX - width / 2, mouseY, 15, 15);
@@ -281,8 +261,7 @@ public class Lichtfestival extends PApplet implements Receiver
             displayBounds(leftBounds, true);
             displayBounds(rightBounds, false);
         }
-        if (safetyZoneMode)
-        {
+        if (safetyZoneMode) {
             image(leftSafetyZone, 0, 0);
             image(rightSafetyZone, width / 2, 0);
         }
@@ -294,40 +273,21 @@ public class Lichtfestival extends PApplet implements Receiver
         }
     }
 
-    private void displayBounds(Bounds bounds, boolean left)
-    {
-        beginShape(QUAD);
-        remappedVertex(bounds.getUpperLeft(), left);
-        remappedVertex(bounds.getUpperRight(), left);
-        remappedVertex(bounds.getLowerRight(), left);
-        remappedVertex(bounds.getLowerLeft(), left);
-        endShape();
-    }
-
-    private void remappedVertex(PVector bounds, boolean left)
-    {
-        vertex(map(bounds.x, -1, 1, left ? 0 : width / 2, left ? width / 2 : width), map(bounds.y, -1, 1, 0, height));
-    }
-
     @Override
     public void keyPressed(KeyEvent event)
     {
 
-        if (event.getKey() == 'b')
-        {
+        if (event.getKey() == 'b') {
             boundSetupMode = !boundSetupMode;
-            if (!boundSetupMode)
-            {
+            if (!boundSetupMode) {
                 safetyZoneMode = false;
             }
             effectEditMode = false;
         }
-        if (event.getKey() == 'l' && boundSetupMode)
-        {
+        if (event.getKey() == 'l' && boundSetupMode) {
             safetyZoneMode = !safetyZoneMode;
         }
-        if (event.getKey() == 's')
-        {
+        if (event.getKey() == 's') {
             saveSettings();
         }
         if (event.getKey() == 'e') {
@@ -349,28 +309,9 @@ public class Lichtfestival extends PApplet implements Receiver
             });
         }
         if (effectSetupMode && event.getKey() == CODED) {
-            modifyActiveEffect(event.getKeyCode());
+            modifyActiveEffect(event);
         }
 
-    }
-
-    private void processControl(Noot noot, int value)
-    {
-        try
-        {
-            Optional.ofNullable(controls.get(noot)).ifPresent(action -> action.accept(value));
-        }
-        catch (Exception exception)
-        {
-            exception.printStackTrace();
-        }
-    }
-
-    public static void main(String[] passedArgs)
-    {
-        String[]      appletArgs    = new String[]{Lichtfestival.class.getPackageName()};
-        Lichtfestival lichtfestival = new Lichtfestival();
-        PApplet.runSketch(appletArgs, lichtfestival);
     }
 
     @Override
@@ -384,13 +325,100 @@ public class Lichtfestival extends PApplet implements Receiver
         return effectSetupMode;
     }
 
+    @Override
+    public void exit()
+    {
+        leftLaser.output.halt();
+        rightLaser.output.halt();
+        saveSettings();
+        if (midiDevice != null) {
+            close();
+        }
+        super.exit();
+    }
+
+    public int newRandomColour()
+    {
+        return color(random(255), random(255), random(255));
+    }
+
+    @Override
+    public void send(MidiMessage message, long timeStamp)
+    {
+        if (!booted) return;
+        if (message instanceof ShortMessage shortMessage) {
+            int command = shortMessage.getCommand();
+            int channel = shortMessage.getChannel();
+            int data1   = shortMessage.getData1();
+            int data2   = shortMessage.getData2();
+
+            Noot noot = new Noot(channel, data1);
+
+            // Note On event
+            if (command == ShortMessage.NOTE_ON) {
+                logMidi("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+                activateEffect(noot);
+            }
+            // Note Off event
+            else if (command == ShortMessage.NOTE_OFF) {
+                logMidi("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+                deactivateEffect(noot);
+            }
+            // Control Change event
+            else if (command == ShortMessage.CONTROL_CHANGE) {
+                logMidi("Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
+                processControl(noot, data2);
+            }
+        }
+    }
+
+    @Override
+    public void close()
+    {
+        midiDevice.close();
+    }
+
+    private void setupSafetyZone(PGraphics safetyZone, String location)
+    {
+        safetyZone.beginDraw();
+        PImage zonePImage = location == null ? null : loadImage(location);
+        if (zonePImage == null) {
+            safetyZone.background(255);
+        } else {
+            safetyZone.image(zonePImage, 0, 0);
+        }
+        safetyZone.endDraw();
+    }
+
+    private void displayBounds(Bounds bounds, boolean left)
+    {
+        beginShape(QUAD);
+        remappedVertex(bounds.getUpperLeft(), left);
+        remappedVertex(bounds.getUpperRight(), left);
+        remappedVertex(bounds.getLowerRight(), left);
+        remappedVertex(bounds.getLowerLeft(), left);
+        endShape();
+    }
+
+    private void remappedVertex(PVector bounds, boolean left)
+    {
+        vertex(map(bounds.x, -1, 1, left ? 0 : width / 2, left ? width / 2 : width), map(bounds.y, -1, 1, 0, height));
+    }
+
+    private void processControl(Noot noot, int value)
+    {
+        try {
+            Optional.ofNullable(controls.get(noot)).ifPresent(action -> action.accept(value));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
     private void deactivateEffect(Noot noot)
     {
         Supplier<Effect> effectSupplier = effects.get(noot.pitch());
-        if (effectSupplier != null)
-        {
-            switch (noot.channel())
-            {
+        if (effectSupplier != null) {
+            switch (noot.channel()) {
                 case 0 -> leftLaser.deactivate(effectSupplier.get());
                 case 1 -> rightLaser.deactivate(effectSupplier.get());
                 default -> log("Wrong channel!");
@@ -401,14 +429,10 @@ public class Lichtfestival extends PApplet implements Receiver
     private void logMidi(String event)
     {
         event = LocalTime.now() + " " + event;
-        if (midiEvents.size() < MAX_MIDI_EVENTS)
-        {
+        if (midiEvents.size() < MAX_MIDI_EVENTS) {
             midiEvents.add(event);
-        }
-        else
-        {
-            for (int i = 0; i < midiEvents.size() - 1; i++)
-            {
+        } else {
+            for (int i = 0; i < midiEvents.size() - 1; i++) {
                 midiEvents.set(i, midiEvents.get(i + 1));
             }
             midiEvents.set(MAX_MIDI_EVENTS - 1, event);
@@ -424,19 +448,6 @@ public class Lichtfestival extends PApplet implements Receiver
         image(leftGraphics, xPos, 0, width / 2, height);
     }
 
-    @Override
-    public void exit()
-    {
-        leftLaser.output.halt();
-        rightLaser.output.halt();
-        saveSettings();
-        if (midiDevice != null)
-        {
-            close();
-        }
-        super.exit();
-    }
-
     private void log(String what)
     {
         System.out.println(what);
@@ -448,12 +459,9 @@ public class Lichtfestival extends PApplet implements Receiver
         fill(255);
         text(name + (connected ? "" : "dis") + "connected, " + pointCount + " points rendered, intensity: "
             + laser.output.getIntensity(), 50, y);
-        if (connected)
-        {
+        if (connected) {
             fill(0, 255, 0);
-        }
-        else
-        {
+        } else {
             fill(255, 0, 0);
         }
         rect(20, y - 15, 20, 20);
@@ -462,7 +470,6 @@ public class Lichtfestival extends PApplet implements Receiver
             text(activeEffectsName, 50, y += 20);
         }
     }
-
 
     private PVector remappedMousePos(boolean left)
     {
@@ -477,14 +484,12 @@ public class Lichtfestival extends PApplet implements Receiver
         renderer.setOptimise(true);
         renderer.beginDraw();
 
-        if (boundSetupMode)
-        {
+        if (boundSetupMode) {
             renderer.stroke(100, 0, 0);
             renderer.rect(0, 0, renderer.width, renderer.height);
         }
 
-        if (safetyZoneMode)
-        {
+        if (safetyZoneMode) {
             renderer.stroke(127, 127, 127);
             renderer.line(0, mouseY, renderer.width, mouseY);
             renderer.line(mouseX, 0, mouseX, renderer.height);
@@ -493,39 +498,32 @@ public class Lichtfestival extends PApplet implements Receiver
         laser.processEffects(this);
 
         renderer.endDraw();
+        List<IldaPoint> points = renderer.getCurrentFrame().getPoints();
+        laser.postProcess(points);
         return renderer;
     }
 
     private void activateEffect(Noot noot)
     {
         if (noot == null) return;
-        if (noot.pitch() == 0)
-        {
+        if (noot.pitch() == 0) {
             leftLaser.removeActiveEffects();
             rightLaser.removeActiveEffects();
-        }
-        else if (noot.pitch() > 64)
-        {
-            var info = settings.getEffectLocations().computeIfAbsent(noot.pitch(), p ->
-            {
+        } else if (noot.pitch() > 64) {
+            var info = settings.getEffectLocations().computeIfAbsent(noot.pitch(), p -> {
                 HighlightEffect.HighlightEffectInfo info1 = new HighlightEffect.HighlightEffectInfo();
                 info1.setAlias("Noot " + p);
                 return info1;
             });
-            switch (noot.channel())
-            {
+            switch (noot.channel()) {
                 case 0 -> leftLaser.trigger(new HighlightEffect(info, noot), this);
                 case 1 -> rightLaser.trigger(new HighlightEffect(info, noot), this);
                 default -> log("Wrong channel!");
             }
-        }
-        else
-        {
+        } else {
             Supplier<Effect> effectSupplier = effects.get(noot.pitch());
-            if (effectSupplier != null)
-            {
-                switch (noot.channel())
-                {
+            if (effectSupplier != null) {
+                switch (noot.channel()) {
                     case 0 -> leftLaser.trigger(effectSupplier.get(), this);
                     case 1 -> rightLaser.trigger(effectSupplier.get(), this);
                     default -> log("Wrong channel!");
@@ -537,15 +535,12 @@ public class Lichtfestival extends PApplet implements Receiver
     private void setBounds(Bounds bounds, Laser laser)
     {
         Bounds existingBounds = laser.output.getBounds();
-        if (bounds != null)
-        {
+        if (bounds != null) {
             existingBounds.setLowerLeft(bounds.getLowerLeft());
             existingBounds.setLowerRight(bounds.getLowerRight());
             existingBounds.setUpperRight(bounds.getUpperRight());
             existingBounds.setUpperLeft(bounds.getUpperLeft());
-        }
-        else
-        {
+        } else {
             existingBounds.setLowerLeft(new PVector(-1, 1));
             existingBounds.setLowerRight(new PVector(1, 1));
             existingBounds.setUpperRight(new PVector(1, -1));
@@ -555,10 +550,8 @@ public class Lichtfestival extends PApplet implements Receiver
 
     private void saveSettings()
     {
-        try
-        {
-            if (!settingsFile.exists() && !settingsFile.createNewFile())
-            {
+        try {
+            if (!settingsFile.exists() && !settingsFile.createNewFile()) {
                 log("Could not create settings file!");
             }
             settings.setLeftBounds(leftLaser.output.getBounds());
@@ -572,71 +565,24 @@ public class Lichtfestival extends PApplet implements Receiver
             rightSafetyZone.save(rightSafetyZoneImageLocation);
             settings.setRightSafetyZoneImageLocation(rightSafetyZoneImageLocation);
             objectMapper.writeValue(settingsFile, settings);
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
             log("Could not write settings file...");
         }
     }
 
-    private void modifyActiveEffect(int keyCode)
+    private void modifyActiveEffect(KeyEvent event)
     {
         if (manuallySelectedEffectChannel == 0) {
-            leftLaser.modifyEffect(new Noot(manuallySelectedEffectChannel, manuallySelectedEffectNote), keyCode);
+            leftLaser.modifyEffect(new Noot(manuallySelectedEffectChannel, manuallySelectedEffectNote), event, this);
         } else if (manuallySelectedEffectChannel == 1) {
-            rightLaser.modifyEffect(new Noot(manuallySelectedEffectChannel, manuallySelectedEffectNote), keyCode);
-        }
-    }
-
-    public int newRandomColour()
-    {
-        return color(random(255), random(255), random(255));
-    }
-
-    @Override
-    public void send(MidiMessage message, long timeStamp)
-    {
-        if (!booted) return;
-        if (message instanceof ShortMessage shortMessage)
-        {
-            int command = shortMessage.getCommand();
-            int channel = shortMessage.getChannel();
-            int data1   = shortMessage.getData1();
-            int data2   = shortMessage.getData2();
-
-            Noot noot = new Noot(channel, data1);
-
-            // Note On event
-            if (command == ShortMessage.NOTE_ON)
-            {
-                logMidi("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
-                activateEffect(noot);
-            }
-            // Note Off event
-            else if (command == ShortMessage.NOTE_OFF)
-            {
-                logMidi("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
-                deactivateEffect(noot);
-            }
-            // Control Change event
-            else if (command == ShortMessage.CONTROL_CHANGE)
-            {
-                logMidi("Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
-                processControl(noot, data2);
-            }
+            rightLaser.modifyEffect(new Noot(manuallySelectedEffectChannel, manuallySelectedEffectNote), event, this);
         }
     }
 
     PVector newRandomPosition()
     {
         return new PVector(random(width / 2), random(height));
-    }
-
-    @Override
-    public void close()
-    {
-        midiDevice.close();
     }
 
 }

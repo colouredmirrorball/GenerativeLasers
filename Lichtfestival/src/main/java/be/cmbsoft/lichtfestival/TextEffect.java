@@ -1,6 +1,7 @@
 package be.cmbsoft.lichtfestival;
 
 import be.cmbsoft.ilda.IldaRenderer;
+import static be.cmbsoft.laseroutput.LsxOscOutput.map;
 
 public class TextEffect extends Effect
 {
@@ -24,11 +25,11 @@ public class TextEffect extends Effect
 
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
     {
         renderer.textSize(parent.height / 5);
         renderer.stroke(255, 255, 255);
-        renderer.text(text, renderer.width / 2 - textWidth, renderer.height / 2);
+        renderer.text(text, renderer.width / 2 - textWidth, map(offset, 0, 1, 0, parent.height));
 
     }
 

@@ -1,6 +1,7 @@
 package be.cmbsoft.lichtfestival;
 
 import be.cmbsoft.ilda.IldaRenderer;
+import static processing.core.PApplet.map;
 
 public class HorizontalLineEffect extends Effect
 {
@@ -19,11 +20,12 @@ public class HorizontalLineEffect extends Effect
 
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
     {
 
         renderer.stroke(255, 255, 255);
-        renderer.line(0, renderer.height / 2, renderer.width, renderer.height / 2);
+        offset = map(offset, 0, 1, 0, parent.height);
+        renderer.line(0, offset, renderer.width, offset);
 
     }
 
