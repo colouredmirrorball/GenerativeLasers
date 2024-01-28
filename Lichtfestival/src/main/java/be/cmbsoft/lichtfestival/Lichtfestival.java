@@ -59,6 +59,7 @@ public class Lichtfestival extends PApplet implements Receiver
     {
         effects.put(10, HorizontalLineEffect::new);
         effects.put(11, DottedHorizontalLineEffect::new);
+        effects.put(12, ResonanceEffect::new);
         effects.put(20, () -> new TextEffect("Hello, test!"));
     }
 
@@ -77,11 +78,23 @@ public class Lichtfestival extends PApplet implements Receiver
             value -> Optional.ofNullable(leftLaser).ifPresent(laser -> laser.setOffset(map(value, 0, 127, 0, height))));
         controls.put(new Noot(1, 4), value -> Optional.ofNullable(rightLaser)
             .ifPresent(laser -> laser.setOffset(map(value, 0, 127, 0, height))));
+        controls.put(new Noot(0, 20), value -> leftLaser.setCenterX(this, value));
+        controls.put(new Noot(0, 21), value -> leftLaser.setCenterY(this, value));
+        controls.put(new Noot(1, 20), value -> rightLaser.setCenterX(this, value));
+        controls.put(new Noot(1, 21), value -> rightLaser.setCenterY(this, value));
+
+
         controls.put(new Noot(0, 10),
-            value -> Optional.ofNullable(rightLaser).ifPresent(laser -> laser.setEditRed(map(value, 0, 127, 0, 255))));
-        controls.put(new Noot(0, 11), value -> Optional.ofNullable(rightLaser)
-            .ifPresent(laser -> laser.setEditGreen(map(value, 0, 127, 0, 255))));
+            value -> Optional.ofNullable(leftLaser).ifPresent(laser -> laser.setEditRed(map(value, 0, 127, 0, 255))));
+        controls.put(new Noot(0, 11),
+            value -> Optional.ofNullable(leftLaser).ifPresent(laser -> laser.setEditGreen(map(value, 0, 127, 0, 255))));
         controls.put(new Noot(0, 12),
+            value -> Optional.ofNullable(leftLaser).ifPresent(laser -> laser.setEditBlue(map(value, 0, 127, 0, 255))));
+        controls.put(new Noot(1, 10),
+            value -> Optional.ofNullable(rightLaser).ifPresent(laser -> laser.setEditRed(map(value, 0, 127, 0, 255))));
+        controls.put(new Noot(1, 11), value -> Optional.ofNullable(rightLaser)
+            .ifPresent(laser -> laser.setEditGreen(map(value, 0, 127, 0, 255))));
+        controls.put(new Noot(1, 12),
             value -> Optional.ofNullable(rightLaser).ifPresent(laser -> laser.setEditBlue(map(value, 0, 127, 0, 255))));
     }
 
@@ -145,6 +158,7 @@ public class Lichtfestival extends PApplet implements Receiver
     @Override
     public void setup()
     {
+        //leftLaser = new Laser(this, "D88039AAE23F");
         leftLaser = new Laser(this, "6E851F3F2177");
 //        leftLaser = new Laser(this, "12A5FD136AFE").option(OutputOption.INVERT_Y);
         rightLaser = new Laser(this, "DE6656C57146");
@@ -467,7 +481,8 @@ public class Lichtfestival extends PApplet implements Receiver
         rect(20, y - 15, 20, 20);
         fill(255);
         for (String activeEffectsName: laser.getActiveEffectsNames()) {
-            text(activeEffectsName, 50, y += 20);
+            text(Optional.ofNullable(activeEffectsName).orElse("You forgot tos et the name for the effect!"), 50,
+                y += 20);
         }
     }
 
@@ -565,6 +580,7 @@ public class Lichtfestival extends PApplet implements Receiver
             rightSafetyZone.save(rightSafetyZoneImageLocation);
             settings.setRightSafetyZoneImageLocation(rightSafetyZoneImageLocation);
             objectMapper.writeValue(settingsFile, settings);
+            log("Persisted the settings");
         } catch (IOException e) {
             e.printStackTrace();
             log("Could not write settings file...");

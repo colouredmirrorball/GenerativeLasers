@@ -23,7 +23,7 @@ public class DottedHorizontalLineEffect extends Effect
 
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset, Laser laser)
     {
         renderer.stroke(255, 255, 255);
         renderer.beginShape(POINTS);

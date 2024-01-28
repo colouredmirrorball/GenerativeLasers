@@ -25,7 +25,7 @@ public class TextEffect extends Effect
 
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset, Laser laser)
     {
         renderer.textSize(parent.height / 5);
         renderer.stroke(255, 255, 255);

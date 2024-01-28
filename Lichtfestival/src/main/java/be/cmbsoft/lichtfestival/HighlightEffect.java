@@ -114,7 +114,7 @@ public class HighlightEffect extends Effect
     }
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset, Laser laser)
     {
         renderer.stroke(info.color);
         renderer.ellipse(info.position.x, info.position.y, info.width, info.height);

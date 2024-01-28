@@ -15,7 +15,7 @@ public class CircleAtMouseEffect extends Effect
     }
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset, Laser laser)
     {
         if (parent.frameCount % 120 == 0) {
 

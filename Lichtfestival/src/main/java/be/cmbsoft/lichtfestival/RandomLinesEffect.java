@@ -30,7 +30,7 @@ public class RandomLinesEffect extends Effect
 
 
     @Override
-    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset)
+    public void generate(IldaRenderer renderer, Lichtfestival parent, float offset, Laser laser)
     {
         renderer.translate(parent.width / 2, parent.height / 2);
         renderer.rotate(PApplet.map(parent.mouseX, 0, parent.width, 0, PConstants.TWO_PI));

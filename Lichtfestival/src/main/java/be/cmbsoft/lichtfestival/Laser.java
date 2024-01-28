@@ -9,6 +9,7 @@ import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.OutputOption;
 import processing.core.PApplet;
+import static processing.core.PApplet.map;
 import static processing.core.PConstants.CODED;
 import static processing.core.PConstants.DOWN;
 import static processing.core.PConstants.LEFT;
@@ -29,13 +30,15 @@ public class Laser
     private       float        editBlue;
     private       float        editGreen;
     private       float        editRed;
+    private       float        centerY;
+    private       float        centerX;
 
 
     public Laser(PApplet parent, String mac)
     {
         this.output = new EtherdreamOutput().setAlias(mac);
         renderer = new IldaRenderer(parent, parent.width / 2, parent.height);
-        renderer.setEllipseDetail(2);
+        renderer.setEllipseDetail(1);
     }
 
     public IldaRenderer getRenderer()
@@ -65,7 +68,7 @@ public class Laser
         synchronized (activeEffects) {
             activeEffects.removeIf(Effect::isExpired);
             for (Effect effect: activeEffects) {
-                effect.generate(renderer, parent, offset);
+                effect.generate(renderer, parent, offset, this);
             }
         }
     }
@@ -153,7 +156,7 @@ public class Laser
                     point.setBlanked(true);
                 }
             }
-            writeOutPosition += writeOutSpeed;
+            writeOutPosition += writeOutSpeed / 25F;
             if (writeOutPosition > 1) {
                 writeOutPosition = 0;
             }
@@ -178,5 +181,40 @@ public class Laser
     public void setEditBlue(float blue)
     {
         this.editBlue = blue;
+    }
+
+    public float getEditBlue()
+    {
+        return editBlue;
+    }
+
+    public float getEditGreen()
+    {
+        return editGreen;
+    }
+
+    public float getEditRed()
+    {
+        return editRed;
+    }
+
+    public void setCenterY(Lichtfestival lichtfestival, Integer value)
+    {
+        this.centerY = map(value, 0, 127, 0, lichtfestival.height);
+    }
+
+    public void setCenterX(Lichtfestival lichtfestival, Integer value)
+    {
+        this.centerX = map(value, 0, 127, 0, lichtfestival.width / 2);
+    }
+
+    public float getCenterY()
+    {
+        return centerY;
+    }
+
+    public float getCenterX()
+    {
+        return centerX;
     }
 }
