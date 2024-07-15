@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import be.cmbsoft.livecontrol.LiveControl;
 
-public class AddOutput extends LiveAction
+public class AddOutput extends UndoableAction
 {
     UUID uuid = UUID.randomUUID();
 

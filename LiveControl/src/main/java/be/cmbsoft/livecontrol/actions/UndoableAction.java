@@ -1,14 +1,13 @@
 package be.cmbsoft.livecontrol.actions;
 
 import be.cmbsoft.livecontrol.LiveControl;
-import cmbsoft.cgui.control.CAction;
 
-public abstract class LiveAction implements CAction
+public abstract class UndoableAction
 {
 
     private final LiveControl liveControl;
 
-    public LiveAction(LiveControl liveControl)
+    protected UndoableAction(LiveControl liveControl)
     {
         this.liveControl = liveControl;
     }
@@ -17,4 +16,8 @@ public abstract class LiveAction implements CAction
     {
         return liveControl;
     }
+
+    public abstract void execute();
+
+    public abstract void undo();
 }
