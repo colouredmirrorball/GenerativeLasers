@@ -12,7 +12,7 @@ public class UIConfig
 
     public UIConfig(LiveControl liveControl)
     {
-        backgroundColor = liveControl.color(20, 20, 20);
+        backgroundColor = liveControl.color(40, 40, 40);
         foregroundColor = liveControl.color(50, 70, 128);
         activeColor = liveControl.color(80, 128, 208);
         fontColor = liveControl.color(200, 200, 255);

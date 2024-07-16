@@ -26,10 +26,10 @@ public class GUI
     {
         try
         {
-            for (GuiElement element : elements)
+            for (GuiElement<?> element : elements)
             {
                 boolean invisible = false;
-                for (Visibility v : element.visibilities)
+                for (Visibility v : element.getVisibilities())
                 {
                     invisible = invisible || !v.isVisible(parent);
                 }
@@ -40,7 +40,6 @@ public class GUI
                     if (over && parent.isMouseClicked())
                     {
                         element.mouseClicked();
-
                     }
                     if (element.clicked)
                     {

@@ -18,7 +18,7 @@ public abstract class GuiElement<T extends GuiElement<T>>
     public int x = 0, y = 0;
     public int width = 20, height = 20;
     public String title = "";
-    public List<Visibility> visibilities = new ArrayList<>();
+    private final List<Visibility> visibilities = new ArrayList<>();
     protected int strokecolour;
     protected int mouseovercolour;
     protected GUIContainer parent;
@@ -290,6 +290,11 @@ public abstract class GuiElement<T extends GuiElement<T>>
     {
         this.fontSize = fontSize;
         return me;
+    }
+
+    public List<Visibility> getVisibilities()
+    {
+        return visibilities;
     }
 
 }

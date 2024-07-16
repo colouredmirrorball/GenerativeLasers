@@ -9,6 +9,7 @@ import be.cmbsoft.livecontrol.gui.GUI;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
 
+import static be.cmbsoft.livecontrol.LiveControl.log;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.ABOUT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.DEFAULT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.OUTPUTS;
@@ -23,7 +24,7 @@ public class UIBuilder
 
 
         int tabHeight = 64;
-
+        controlP5.setTabEventsActive(true);
         controlP5.setColorBackground(parent.getUiConfig().getBackgroundColor());
         controlP5.setColorForeground(parent.getUiConfig().getForegroundColor());
         controlP5.setColorActive(parent.getUiConfig().getActiveColor());
@@ -33,13 +34,16 @@ public class UIBuilder
         controlP5.Tab global = controlP5.getTab("global");
 
         controlP5.Tab play = controlP5.getTab("default");
-        play.setTitle("Play").setHeight(tabHeight).addListener(listener -> activateTab(gui,
-            DEFAULT, parent));
+        play.setTitle("Play").setHeight(tabHeight)
+            .addListener(listener -> activateTab(gui, DEFAULT, parent))
+            .activateEvent(true)
+            .setId(DEFAULT.ordinal());
 
         controlP5.Tab output = controlP5.addTab("Outputs").setHeight(tabHeight)
 
-                                        .addListener(listener -> activateTab(gui,
-            OUTPUTS, parent));
+                                        .addListener(listener -> activateTab(gui, OUTPUTS, parent))
+                                        .activateEvent(true)
+                                        .setId(OUTPUTS.ordinal());
 
         gui.addButton("Add output")
            .setPosition(10, 100)
@@ -57,18 +61,22 @@ public class UIBuilder
 //                        .addCallback(listener -> parent.doAction(new AddOutput(parent))),
 //            upperLeft(10, 128));
 
-        controlP5.Tab settings = controlP5.addTab("Settings").setHeight(tabHeight).addListener(
-            listener -> activateTab(gui,
-                SETTINGS, parent));
+        controlP5.Tab settings = controlP5.addTab("Settings").setHeight(tabHeight)
+                                          .addListener(listener -> activateTab(gui, SETTINGS, parent))
+                                          .activateEvent(true)
+                                          .setId(SETTINGS.ordinal());
 
-        controlP5.Tab about = controlP5.addTab("About").setHeight(tabHeight).addListener(listener -> activateTab(gui,
-            ABOUT, parent));
+        controlP5.Tab about = controlP5.addTab("About").setHeight(tabHeight)
+                                       .addListener(listener -> activateTab(gui, ABOUT, parent))
+                                       .activateEvent(true)
+                                       .setId(ABOUT.ordinal());
 
         positions.put(controlP5.addButton("Undo")
                                .addCallback(listener -> parent.doAction(parent::undo))
                                .setImages(parent.getIcons("undo", 64, 64, parent.getUiConfig().getBackgroundColor(),
                                    parent.getUiConfig().getForegroundColor(), parent.getUiConfig().getActiveColor()))
                                .moveTo(global)
+
                                .setWidth(64)
                                .setHeight(64), upperRight(84, 10));
         positions.put(controlP5.addButton("Redo")
@@ -84,8 +92,9 @@ public class UIBuilder
 
     }
 
-    private static void activateTab(GUI gui, Tab tab, LiveControl parent)
+    public static void activateTab(GUI gui, Tab tab, LiveControl parent)
     {
+        log("Activated tab: " + tab.name());
         gui.elements.forEach(element ->
         {
             int groupIndex = element.getGroupIndex();

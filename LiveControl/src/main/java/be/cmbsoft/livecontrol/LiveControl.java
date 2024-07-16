@@ -3,7 +3,6 @@ package be.cmbsoft.livecontrol;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,11 +10,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.jetbrains.annotations.NotNull;
 
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.LsxOscOutput;
 import be.cmbsoft.laseroutput.etherdream.Etherdream;
+import be.cmbsoft.laseroutput.etherdream.EtherdreamLightEngineState;
+import be.cmbsoft.laseroutput.etherdream.EtherdreamSource;
+import be.cmbsoft.laseroutput.etherdream.EtherdreamStatus;
 import be.cmbsoft.livecontrol.actions.IAction;
 import be.cmbsoft.livecontrol.actions.ISimpleAction;
 import be.cmbsoft.livecontrol.actions.UndoableAction;
@@ -25,12 +28,14 @@ import be.cmbsoft.livecontrol.gui.GuiElement;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
+import processing.core.PShape;
 
 import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
@@ -56,6 +61,7 @@ public class LiveControl extends PApplet implements GUIContainer
     private boolean       mouseDragged;
     private UIConfig      uiConfig;
     private UIBuilder.Tab activeTab     = UIBuilder.Tab.DEFAULT;
+    private PImage network;
 
     public LiveControl()
     {
@@ -134,9 +140,12 @@ public class LiveControl extends PApplet implements GUIContainer
         gui = new GUI(this);
         controlP5 = new ControlP5(this, getFont(36));
         uiConfig = new UIConfig(this);
+        network = shapeToPGraphic(44, 44, uiConfig.getBackgroundColor(), uiConfig.getForegroundColor(),
+            loadIconShape("network").orElse(new PShape()));
         buildUI(controlP5, gui, this);
         prevWidth = width;
         prevHeight = height;
+        activateTab(UIBuilder.Tab.DEFAULT);
     }
 
     @Override
@@ -149,6 +158,7 @@ public class LiveControl extends PApplet implements GUIContainer
             prevHeight = height;
             updateUIPositions();
         }
+
         switch (activeTab)
         {
             case DEFAULT -> drawDefault();
@@ -174,7 +184,43 @@ public class LiveControl extends PApplet implements GUIContainer
 
     private void drawOutputs()
     {
-        Collection<Etherdream> detectedDevices = discoverDevice.getDetectedDevices();
+        int x = 10;
+        int y = 200;
+        int w = 400;
+        int h = 64;
+        textAlign(RIGHT);
+        for (Etherdream detectedDevice : discoverDevice.getDetectedDevices())
+        {
+            stroke(uiConfig.getForegroundColor());
+            strokeWeight(2);
+            fill(uiConfig.getBackgroundColor());
+            rect(x, y, w, h, 10);
+            fill(uiConfig.getFontColor());
+            text(detectedDevice.getMac(), x + 60, y + 20, w - 70, h);
+            EtherdreamStatus           status           = detectedDevice.getBroadcast().getStatus();
+            EtherdreamLightEngineState lightEngineState = status.getLightEngineState();
+            if (lightEngineState != null)
+            {
+                if (lightEngineState == EtherdreamLightEngineState.READY)
+                {
+                    fill(0, 255, 0);
+                }
+                else if (lightEngineState == EtherdreamLightEngineState.WARMUP ||
+                    lightEngineState == EtherdreamLightEngineState.COOLDOWN)
+                {
+                    fill(255, 255, 0);
+                }
+                else
+                {
+                    fill(255, 0, 0);
+                }
+                rect(x + 10, y + 10, h - 20, h - 20);
+            }
+            if (status.getSource() == EtherdreamSource.NETWORK_STREAMING)
+            {
+                image(network, x + h, y + 10);
+            }
+        }
     }
 
     private void drawDefault()
@@ -274,17 +320,9 @@ public class LiveControl extends PApplet implements GUIContainer
     public PImage[] getIcons(String key, int width, int height, int backgroundColor, int foregroundColor,
         int activeColor)
     {
-        return Optional.ofNullable(loadShape("icons/" + key + ".svg")).map(shape ->
+        return loadIconShape(key).map(shape ->
         {
-            PGraphics def = createGraphics(width, height);
-            def.beginDraw();
-            def.background(backgroundColor);
-            def.fill(foregroundColor);
-            def.stroke(foregroundColor);
-            shape.setStroke(foregroundColor);
-            shape.setFill(foregroundColor);
-            def.shape(shape, 0, 0, width, height);
-            def.endDraw();
+            PGraphics def = shapeToPGraphic(width, height, backgroundColor, foregroundColor, shape);
             PGraphics active = createGraphics(width, height);
             active.beginDraw();
             active.background(activeColor);
@@ -293,6 +331,26 @@ public class LiveControl extends PApplet implements GUIContainer
             active.endDraw();
             return new PImage[]{def, active, active, active};
         }).orElse(new PImage[]{getDefaultIcon()});
+    }
+
+    private @NotNull Optional<PShape> loadIconShape(String key)
+    {
+        return Optional.ofNullable(loadShape("icons/" + key + ".svg"));
+    }
+
+    private @NotNull PGraphics shapeToPGraphic(int width, int height, int backgroundColor, int foregroundColor,
+        PShape shape)
+    {
+        PGraphics def = createGraphics(width, height);
+        def.beginDraw();
+        def.background(backgroundColor);
+        def.fill(foregroundColor);
+        def.stroke(foregroundColor);
+        shape.setStroke(foregroundColor);
+        shape.setFill(foregroundColor);
+        def.shape(shape, 0, 0, width, height);
+        def.endDraw();
+        return def;
     }
 
     private PGraphics getDefaultIcon()
@@ -490,6 +548,15 @@ public class LiveControl extends PApplet implements GUIContainer
     public void activateTab(UIBuilder.Tab tab)
     {
         this.activeTab = tab;
+    }
+
+    // Reflexive usage by ControlP5
+    public void controlEvent(ControlEvent theControlEvent)
+    {
+        if (theControlEvent.isTab())
+        {
+            UIBuilder.activateTab(gui, UIBuilder.Tab.values()[theControlEvent.getTab().getId()], this);
+        }
     }
 
 }
