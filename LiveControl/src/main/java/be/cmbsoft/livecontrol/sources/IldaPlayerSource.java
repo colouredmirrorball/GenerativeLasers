@@ -1,4 +1,4 @@
-package be.cmbsoft.livecontrol.fx;
+package be.cmbsoft.livecontrol.sources;
 
 import java.io.File;
 import java.util.List;

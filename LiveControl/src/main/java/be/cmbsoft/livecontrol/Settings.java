@@ -9,6 +9,18 @@ public class Settings
 {
     public List<LsxOutputSettings>        lsxOutputs        = new ArrayList<>();
     public List<EtherdreamOutputSettings> etherdreamOutputs = new ArrayList<>();
+    private List<SourceSettings> sources;
+
+    public List<SourceSettings> getSources()
+    {
+        return sources;
+    }
+
+    public void setSources(List<SourceSettings> sources)
+    {
+        this.sources = sources;
+    }
+
 
     public static class LsxOutputSettings extends OutputSettings
     {

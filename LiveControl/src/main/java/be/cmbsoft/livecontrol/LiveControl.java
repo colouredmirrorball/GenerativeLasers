@@ -8,10 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.jetbrains.annotations.NotNull;
 
+import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.LsxOscOutput;
@@ -21,10 +23,11 @@ import be.cmbsoft.laseroutput.etherdream.EtherdreamStatus;
 import be.cmbsoft.livecontrol.actions.IAction;
 import be.cmbsoft.livecontrol.actions.ISimpleAction;
 import be.cmbsoft.livecontrol.actions.UndoableAction;
-import be.cmbsoft.livecontrol.fx.Source;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import be.cmbsoft.livecontrol.gui.GuiElement;
+import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
+import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,17 +45,32 @@ import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 public class LiveControl extends PApplet implements GUIContainer
 {
 
-    private final Settings                          settings;
-    private final File                              settingsFile = new File("settings.json");
-    private final ObjectMapper                      objectMapper;
-    private final Map<Integer, PFont>               fonts        = new HashMap<>();
-    private final CircularFifoQueue<UndoableAction> actions      = new CircularFifoQueue<>(128);
-    private final List<UndoableAction>              redoList     = new ArrayList<>();
+    private static final LaserOutput                       DUMMY_OUTPUT = new LaserOutput()
+    {
+        @Override
+        public void project(List<IldaPoint> points)
+        {
 
-    private final EtherdreamOutput       discoverDevice       = new EtherdreamOutput();
-    private final Map<UUID, LaserOutput> outputs              = new HashMap<>();
-    private final List<Source>           activeSources        = new ArrayList<>();
-    private final PGraphics[]            effectVisualisations = new PGraphics[8];
+        }
+
+        @Override
+        public boolean isConnected()
+        {
+            return false;
+        }
+    };
+    private final        Settings                          settings;
+    private final        File                              settingsFile = new File("settings.json");
+    private final        ObjectMapper                      objectMapper;
+    private final        Map<Integer, PFont>               fonts        = new HashMap<>();
+    private final        CircularFifoQueue<UndoableAction> actions      = new CircularFifoQueue<>(128);
+    private final        List<UndoableAction>              redoList     = new ArrayList<>();
+
+    private final EtherdreamOutput       discoverDevice = new EtherdreamOutput();
+    private final Map<UUID, LaserOutput> outputs        = new HashMap<>();
+    private final Matrix                 matrix;
+//    private final List<Source>           activeSources        = new ArrayList<>();
+
 
     private ControlP5                                              controlP5;
     private GUI                                                    gui;
@@ -90,6 +108,33 @@ public class LiveControl extends PApplet implements GUIContainer
             log("Could not initialise settings...");
         }
         settings = settings1;
+        matrix = new Matrix(getSourceProvider(), getOutputProvider());
+    }
+
+    private Function<Integer, LaserOutput> getOutputProvider()
+    {
+        return i -> i >= outputs.size() ? DUMMY_OUTPUT :
+            outputs.values().stream().distinct().skip(i).iterator().next();
+    }
+
+    private Function<Integer, SourceWrapper> getSourceProvider()
+    {
+        return this::getSourceWrapperFromSettings;
+    }
+
+    private SourceWrapper getSourceWrapperFromSettings(Integer i)
+    {
+        List<SourceSettings> sources = settings.getSources();
+        if (sources == null || sources.size() <= i)
+        {
+            return new EmptySourceWrapper();
+        }
+        SourceSettings sourceSettings = sources.get(i);
+        return switch (sourceSettings.getType())
+        {
+            case ILDA_FOLDER -> new IldaFolderPlayerSourceWrapper(new File(sourceSettings.getIldaFolder()));
+            default -> new EmptySourceWrapper();
+        };
     }
 
     public static void main(String[] passedArgs)
@@ -142,6 +187,19 @@ public class LiveControl extends PApplet implements GUIContainer
         etherdreamOutputSettings.alias = "6E851F3F2177";
         settings.etherdreamOutputs.add(etherdreamOutputSettings);
 
+        SourceSettings sourceSettings = new SourceSettings();
+        sourceSettings.setIldaFolder("D:\\Laser\\ILDA");
+        sourceSettings.setType(SourceType.ILDA_FOLDER);
+        settings.setSources(List.of(sourceSettings));
+
+//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0101.ild")));
+//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0102.ild")));
+//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0103.ild")));
+//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0104.ild")));
+//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0105.ild")));
+//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0106.ild")));
+//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0107.ild")));
+//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0108.ild")));
 
         gui = new GUI(this);
         controlP5 = new ControlP5(this, getFont(36));
@@ -182,14 +240,7 @@ public class LiveControl extends PApplet implements GUIContainer
 
     private void processLasers()
     {
-        for (Source source : activeSources)
-        {
-            source.update();
-        }
-        for (LaserOutput value : outputs.values())
-        {
-
-        }
+        matrix.update();
     }
 
     private void drawAbout()
@@ -238,36 +289,7 @@ public class LiveControl extends PApplet implements GUIContainer
 
     private void drawDefault()
     {
-//        drawLanes();
-        drawSources();
-    }
-
-    private void drawSources()
-    {
-        int x = 10;
-        int y = 160;
-        int w = 100;
-        int h = 100;
-        int i = 0;
-        for (Source source : activeSources)
-        {
-            if (effectVisualisations[i] == null)
-            {
-                effectVisualisations[i] = createGraphics(w, h, P3D);
-            }
-            PGraphics visualisation = effectVisualisations[i];
-            visualisation.beginDraw();
-            visualisation.background(0);
-            Optional.ofNullable(source.getFrame())
-                    .ifPresent(frame -> frame.renderFrame(visualisation, true));
-            visualisation.endDraw();
-            fill(uiConfig.getForegroundColor());
-            noStroke();
-            rect(x - 3, y - 3, w + 6, h + 6, 2);
-            image(visualisation, x, y);
-            y += h + 15;
-            i++;
-        }
+        matrix.display(this);
     }
 
     @Override
