@@ -18,6 +18,7 @@ public class AddOutput extends UndoableAction
     @Override
     public void execute()
     {
+        System.out.println("new output");
         parent.addOutput(uuid);
     }
 

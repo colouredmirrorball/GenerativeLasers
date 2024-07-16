@@ -36,10 +36,17 @@ public class UIBuilder
         play.setTitle("Play").setHeight(tabHeight).addListener(listener -> activateTab(gui,
             DEFAULT, parent));
 
-        controlP5.Tab output = controlP5.addTab("Outputs").setHeight(tabHeight).addListener(listener -> activateTab(gui,
+        controlP5.Tab output = controlP5.addTab("Outputs").setHeight(tabHeight)
+
+                                        .addListener(listener -> activateTab(gui,
             OUTPUTS, parent));
 
         gui.addButton("Add output")
+           .setPosition(10, 100)
+           .setSize(256, 64)
+           .setInfoText("Add a new, unassigned output")
+           .setFontSize(32)
+           .setGroupIndex(OUTPUTS.ordinal())
            .setPressAction(() -> parent.doAction(new AddOutput(parent)));
 
 

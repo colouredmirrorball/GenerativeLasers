@@ -12,7 +12,7 @@ import static processing.core.PApplet.map;
  * Slip 'n' slide
  * Created by Florian on 11/11/2017.
  */
-public class GuiSlider extends GuiElement
+public class GuiSlider extends GuiElement<GuiSlider>
 {
     float pos = 0;
     float min = 0;

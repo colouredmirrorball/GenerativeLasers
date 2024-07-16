@@ -13,7 +13,7 @@ import processing.core.PVector;
  * A parent class for all cmb.soft.text2laser.gui.GUI elements
  * Created by Florian on 10/11/2017.
  */
-public class GuiElement
+public abstract class GuiElement<T extends GuiElement<T>>
 {
     public int x = 0, y = 0;
     public int width = 20, height = 20;
@@ -36,8 +36,10 @@ public class GuiElement
     private IAction releaseAction;
     private IAction holdAction;
     private   int     groupIndex;
+    private final T   me;
+    private       int fontSize = 16;
 
-    public GuiElement(GUIContainer parent)
+    protected GuiElement(GUIContainer parent)
     {
         this.parent = parent;
         fillcolour = parent.getGuiFillColor();
@@ -53,14 +55,13 @@ public class GuiElement
             }
         });
         setPosition(x, y);
+        me = (T) this;
     }
 
     public void display(PGraphics graphics)
     {
-
-
         graphics.strokeWeight(strokeWeight);
-        graphics.textFont(parent.getFont(16));
+        graphics.textFont(parent.getFont(fontSize));
         if (mouseOver)
         {
             graphics.stroke(graphics.red(mouseovercolour), graphics.green(mouseovercolour),
@@ -76,7 +77,7 @@ public class GuiElement
         graphics.rect(x, y, width, height);
         if (clicked) {graphics.fill(0);}
         else {graphics.fill(graphics.red(strokecolour), graphics.green(strokecolour), graphics.blue(strokecolour));}
-        graphics.textAlign(PConstants.CENTER, PConstants.TOP);
+        graphics.textAlign(PConstants.CENTER, PConstants.CENTER);
         graphics.text(title, x + 3, y + 3, width, height);
         if (clicked && !parent.isMousePressed()) clicked = false;
 
@@ -96,25 +97,25 @@ public class GuiElement
 
     }
 
-    public GuiElement setReleaseAction(IAction a)
+    public T setReleaseAction(IAction a)
     {
         this.releaseAction = a;
-        return this;
+        return me;
     }
 
-    public GuiElement setPressAction(IAction a)
+    public T setPressAction(IAction a)
     {
         this.pressAction = a;
-        return this;
+        return me;
     }
 
-    public GuiElement setHoldAction(IAction action)
+    public T setHoldAction(IAction action)
     {
         this.holdAction = action;
-        return this;
+        return me;
     }
 
-    public GuiElement setPosition(int x, int y)
+    public T setPosition(int x, int y)
     {
         this.x = x;
         this.y = y;
@@ -128,22 +129,22 @@ public class GuiElement
                 return position;
             }
         };
-        return this;
+        return me;
     }
 
-    public GuiElement setPosition(PositionCalculator position)
+    public T setPosition(PositionCalculator position)
     {
         posCalc = position;
-        return this;
+        return me;
     }
 
-    public GuiElement setSize(PositionCalculator size)
+    public T setSize(PositionCalculator size)
     {
         sizeCalc = size;
-        return this;
+        return me;
     }
 
-    public GuiElement setSize(int sx, int sy)
+    public T setSize(int sx, int sy)
     {
         sizeCalc = new PositionCalculator()
         {
@@ -154,7 +155,7 @@ public class GuiElement
                 return position;
             }
         };
-        return this;
+        return me;
     }
 
     public void executePressAction()
@@ -163,16 +164,16 @@ public class GuiElement
     }
 
 
-    public GuiElement addVisibility(Visibility visibility)
+    public T addVisibility(Visibility visibility)
     {
         visibilities.add(visibility);
-        return this;
+        return me;
     }
 
-    public GuiElement addToLinearLayout(GuiLinearLayout linearLayout)
+    public T addToLinearLayout(GuiLinearLayout linearLayout)
     {
         linearLayout.addElement(this);
-        return this;
+        return me;
     }
 
     public boolean checkMouseOver(int mouseX, int mouseY)
@@ -230,16 +231,16 @@ public class GuiElement
         return infoText;
     }
 
-    public GuiElement setInfoText(String infoText)
+    public T setInfoText(String infoText)
     {
         this.infoText = infoText;
-        return this;
+        return me;
     }
 
-    public GuiElement setStrokeColour(int colour)
+    public T setStrokeColour(int colour)
     {
         this.strokecolour = colour;
-        return this;
+        return me;
     }
 
     public String getTitle()
@@ -247,16 +248,16 @@ public class GuiElement
         return title;
     }
 
-    public GuiElement setTitle(String title)
+    public T setTitle(String title)
     {
         this.title = title;
-        return this;
+        return me;
     }
 
-    public GuiElement setFillcolour(int fillcolour)
+    public T setFillcolour(int fillcolour)
     {
         this.fillcolour = fillcolour;
-        return this;
+        return me;
     }
 
     public void setMouseovercolour(int mouseovercolour)
@@ -274,15 +275,21 @@ public class GuiElement
         return groupIndex;
     }
 
-    public GuiElement setGroupIndex(int groupIndex)
+    public T setGroupIndex(int groupIndex)
     {
         this.groupIndex = groupIndex;
-        return this;
+        return me;
     }
 
     public void setVisible(boolean visible)
     {
         this.visible = visible;
+    }
+
+    public T setFontSize(int fontSize)
+    {
+        this.fontSize = fontSize;
+        return me;
     }
 
 }

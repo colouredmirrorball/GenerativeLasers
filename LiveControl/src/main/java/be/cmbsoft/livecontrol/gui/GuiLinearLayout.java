@@ -15,7 +15,7 @@ import static processing.core.PApplet.map;
  * Sort cmb.soft.text2laser.gui.GUI elements in a nice list
  * Created by Florian on 12/11/2017.
  */
-public class GuiLinearLayout extends GuiElement
+public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
 {
     public static final int HORIZONTAL = 10;
     public static final int VERTICAL   = 11;
