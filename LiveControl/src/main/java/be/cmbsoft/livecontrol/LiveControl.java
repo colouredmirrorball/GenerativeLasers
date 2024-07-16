@@ -16,12 +16,12 @@ import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.LsxOscOutput;
 import be.cmbsoft.laseroutput.etherdream.Etherdream;
-import be.cmbsoft.laseroutput.etherdream.EtherdreamLightEngineState;
 import be.cmbsoft.laseroutput.etherdream.EtherdreamSource;
 import be.cmbsoft.laseroutput.etherdream.EtherdreamStatus;
 import be.cmbsoft.livecontrol.actions.IAction;
 import be.cmbsoft.livecontrol.actions.ISimpleAction;
 import be.cmbsoft.livecontrol.actions.UndoableAction;
+import be.cmbsoft.livecontrol.fx.Source;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import be.cmbsoft.livecontrol.gui.GuiElement;
@@ -43,13 +43,16 @@ public class LiveControl extends PApplet implements GUIContainer
 {
 
     private final Settings                          settings;
-    private final File                              settingsFile   = new File("settings.json");
+    private final File                              settingsFile = new File("settings.json");
     private final ObjectMapper                      objectMapper;
-    private final Map<UUID, LaserOutput>            outputs        = new HashMap<>();
-    private final Map<Integer, PFont>               fonts          = new HashMap<>();
-    private final CircularFifoQueue<UndoableAction> actions        = new CircularFifoQueue<>(128);
-    private final List<UndoableAction>              redoList       = new ArrayList<>();
-    private final EtherdreamOutput                  discoverDevice = new EtherdreamOutput();
+    private final Map<Integer, PFont>               fonts        = new HashMap<>();
+    private final CircularFifoQueue<UndoableAction> actions      = new CircularFifoQueue<>(128);
+    private final List<UndoableAction>              redoList     = new ArrayList<>();
+
+    private final EtherdreamOutput       discoverDevice       = new EtherdreamOutput();
+    private final Map<UUID, LaserOutput> outputs              = new HashMap<>();
+    private final List<Source>           activeSources        = new ArrayList<>();
+    private final PGraphics[]            effectVisualisations = new PGraphics[8];
 
     private ControlP5                                              controlP5;
     private GUI                                                    gui;
@@ -61,6 +64,7 @@ public class LiveControl extends PApplet implements GUIContainer
     private boolean       mouseDragged;
     private UIConfig      uiConfig;
     private UIBuilder.Tab activeTab     = UIBuilder.Tab.DEFAULT;
+
     private PImage network;
 
     public LiveControl()
@@ -104,7 +108,7 @@ public class LiveControl extends PApplet implements GUIContainer
     @Override
     public void settings()
     {
-        size(1920, 1080);
+        size(1920, 1080, P3D);
     }
 
     public static void error(Exception exception)
@@ -137,6 +141,8 @@ public class LiveControl extends PApplet implements GUIContainer
         Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
         etherdreamOutputSettings.alias = "6E851F3F2177";
         settings.etherdreamOutputs.add(etherdreamOutputSettings);
+
+
         gui = new GUI(this);
         controlP5 = new ControlP5(this, getFont(36));
         uiConfig = new UIConfig(this);
@@ -159,6 +165,8 @@ public class LiveControl extends PApplet implements GUIContainer
             updateUIPositions();
         }
 
+        processLasers();
+
         switch (activeTab)
         {
             case DEFAULT -> drawDefault();
@@ -170,6 +178,18 @@ public class LiveControl extends PApplet implements GUIContainer
         mouseClicked = false;
         mouseReleased = false;
         mouseDragged = false;
+    }
+
+    private void processLasers()
+    {
+        for (Source source : activeSources)
+        {
+            source.update();
+        }
+        for (LaserOutput value : outputs.values())
+        {
+
+        }
     }
 
     private void drawAbout()
@@ -197,25 +217,18 @@ public class LiveControl extends PApplet implements GUIContainer
             rect(x, y, w, h, 10);
             fill(uiConfig.getFontColor());
             text(detectedDevice.getMac(), x + 60, y + 20, w - 70, h);
-            EtherdreamStatus           status           = detectedDevice.getBroadcast().getStatus();
-            EtherdreamLightEngineState lightEngineState = status.getLightEngineState();
-            if (lightEngineState != null)
+
+            EtherdreamStatus status = detectedDevice.getBroadcast().getStatus();
+
+            if (detectedDevice.stale())
             {
-                if (lightEngineState == EtherdreamLightEngineState.READY)
-                {
-                    fill(0, 255, 0);
-                }
-                else if (lightEngineState == EtherdreamLightEngineState.WARMUP ||
-                    lightEngineState == EtherdreamLightEngineState.COOLDOWN)
-                {
-                    fill(255, 255, 0);
-                }
-                else
-                {
-                    fill(255, 0, 0);
-                }
-                rect(x + 10, y + 10, h - 20, h - 20);
+                fill(255, 0, 0);
             }
+            else
+            {
+                fill(0, 255, 0);
+            }
+            rect(x + 10, y + 10, h - 20, h - 20);
             if (status.getSource() == EtherdreamSource.NETWORK_STREAMING)
             {
                 image(network, x + h, y + 10);
@@ -225,7 +238,36 @@ public class LiveControl extends PApplet implements GUIContainer
 
     private void drawDefault()
     {
+//        drawLanes();
+        drawSources();
+    }
 
+    private void drawSources()
+    {
+        int x = 10;
+        int y = 160;
+        int w = 100;
+        int h = 100;
+        int i = 0;
+        for (Source source : activeSources)
+        {
+            if (effectVisualisations[i] == null)
+            {
+                effectVisualisations[i] = createGraphics(w, h, P3D);
+            }
+            PGraphics visualisation = effectVisualisations[i];
+            visualisation.beginDraw();
+            visualisation.background(0);
+            Optional.ofNullable(source.getFrame())
+                    .ifPresent(frame -> frame.renderFrame(visualisation, true));
+            visualisation.endDraw();
+            fill(uiConfig.getForegroundColor());
+            noStroke();
+            rect(x - 3, y - 3, w + 6, h + 6, 2);
+            image(visualisation, x, y);
+            y += h + 15;
+            i++;
+        }
     }
 
     @Override
