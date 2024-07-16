@@ -6,22 +6,24 @@ import be.cmbsoft.livecontrol.LiveControl;
 
 public class AddOutput extends UndoableAction
 {
-    UUID uuid = UUID.randomUUID();
+    private final LiveControl parent;
+    private final UUID        uuid = UUID.randomUUID();
 
-    public AddOutput(LiveControl liveControl)
+    public AddOutput(LiveControl parent)
     {
-        super(liveControl);
+        super();
+        this.parent = parent;
     }
 
     @Override
     public void execute()
     {
-        parent().addOutput(uuid);
+        parent.addOutput(uuid);
     }
 
     @Override
     public void undo()
     {
-        parent().removeOutput(uuid);
+        parent.removeOutput(uuid);
     }
 }

@@ -3,6 +3,7 @@ package be.cmbsoft.livecontrol;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,13 +15,17 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.LsxOscOutput;
-import be.cmbsoft.livecontrol.actions.SimpleAction;
+import be.cmbsoft.laseroutput.etherdream.Etherdream;
+import be.cmbsoft.livecontrol.actions.IAction;
+import be.cmbsoft.livecontrol.actions.ISimpleAction;
 import be.cmbsoft.livecontrol.actions.UndoableAction;
+import be.cmbsoft.livecontrol.gui.GUI;
+import be.cmbsoft.livecontrol.gui.GUIContainer;
+import be.cmbsoft.livecontrol.gui.GuiElement;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
+import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import controlP5.CallbackEvent;
 import controlP5.ControlP5;
-import controlP5.Controller;
 import controlP5.ControllerInterface;
 import processing.core.PApplet;
 import processing.core.PFont;
@@ -28,22 +33,29 @@ import processing.core.PGraphics;
 import processing.core.PImage;
 
 import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
-import static controlP5.ControlP5Constants.ACTION_PRESS;
 
-public class LiveControl extends PApplet
+public class LiveControl extends PApplet implements GUIContainer
 {
 
-    private final Settings               settings;
-    private final File                   settingsFile = new File("settings.json");
-    private final ObjectMapper           objectMapper;
-    private final Map<UUID, LaserOutput> outputs      = new HashMap<>();
+    private final Settings                          settings;
+    private final File                              settingsFile   = new File("settings.json");
+    private final ObjectMapper                      objectMapper;
+    private final Map<UUID, LaserOutput>            outputs        = new HashMap<>();
+    private final Map<Integer, PFont>               fonts          = new HashMap<>();
+    private final CircularFifoQueue<UndoableAction> actions        = new CircularFifoQueue<>(128);
+    private final List<UndoableAction>              redoList       = new ArrayList<>();
+    private final EtherdreamOutput                  discoverDevice = new EtherdreamOutput();
 
-    private final CircularFifoQueue<UndoableAction>                      actions  = new CircularFifoQueue<>(128);
-    private final List<UndoableAction>                                   redoList = new ArrayList<>();
-    private       ControlP5                                              gui;
-    private       PGraphics                                              defaultIcon;
-    private       Map<ControllerInterface, UIBuilder.PositionCalculator> uiPositions;
-    private       int                                                    prevWidth, prevHeight;
+    private ControlP5                                              controlP5;
+    private GUI                                                    gui;
+    private PGraphics                                              defaultIcon;
+    private Map<ControllerInterface, UIBuilder.PositionCalculator> uiPositions;
+    private int                                                    prevWidth, prevHeight;
+    private boolean       mouseClicked  = false;
+    private boolean       mouseReleased = false;
+    private boolean       mouseDragged;
+    private UIConfig      uiConfig;
+    private UIBuilder.Tab activeTab     = UIBuilder.Tab.DEFAULT;
 
     public LiveControl()
     {
@@ -80,7 +92,7 @@ public class LiveControl extends PApplet
     public static void log(String what)
     {
 //        LogManager.getLogger(LiveControl.class).info(what);
-        System.out.println(what);
+        println(what);
     }
 
     @Override
@@ -95,16 +107,10 @@ public class LiveControl extends PApplet
 //        LogManager.getLogger(LiveControl.class).error(exception, exception);
     }
 
-    @Override
-    public void draw()
+    public static void error(String s, Exception e)
     {
-        background(0);
-        if (prevWidth != width || prevHeight != height)
-        {
-            prevWidth = width;
-            prevHeight = height;
-            updateUIPositions();
-        }
+        println(s);
+        error(e);
     }
 
     @Override
@@ -125,12 +131,73 @@ public class LiveControl extends PApplet
         Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
         etherdreamOutputSettings.alias = "6E851F3F2177";
         settings.etherdreamOutputs.add(etherdreamOutputSettings);
-
-        PFont font = createFont("Roboto", 36);
-        gui = new ControlP5(this, font);
-        buildUI(gui, this);
+        gui = new GUI(this);
+        controlP5 = new ControlP5(this, getFont(36));
+        uiConfig = new UIConfig(this);
+        buildUI(controlP5, gui, this);
         prevWidth = width;
         prevHeight = height;
+    }
+
+    @Override
+    public void draw()
+    {
+        background(0);
+        if (prevWidth != width || prevHeight != height)
+        {
+            prevWidth = width;
+            prevHeight = height;
+            updateUIPositions();
+        }
+        switch (activeTab)
+        {
+            case DEFAULT -> drawDefault();
+            case OUTPUTS -> drawOutputs();
+            case SETTINGS -> drawSettings();
+            case ABOUT -> drawAbout();
+        }
+        gui.update();
+        mouseClicked = false;
+        mouseReleased = false;
+        mouseDragged = false;
+    }
+
+    private void drawAbout()
+    {
+
+    }
+
+    private void drawSettings()
+    {
+
+    }
+
+    private void drawOutputs()
+    {
+        Collection<Etherdream> detectedDevices = discoverDevice.getDetectedDevices();
+    }
+
+    private void drawDefault()
+    {
+
+    }
+
+    @Override
+    public void mouseClicked()
+    {
+        this.mouseClicked = true;
+    }
+
+    @Override
+    public void mouseReleased()
+    {
+        this.mouseReleased = true;
+    }
+
+    @Override
+    public void mouseDragged()
+    {
+        this.mouseDragged = true;
     }
 
     private LaserOutput createOutput(Settings.OutputSettings output)
@@ -159,33 +226,25 @@ public class LiveControl extends PApplet
 
     public void addOutput(UUID uuid)
     {
-        outputs.put(uuid, new EtherdreamOutput());
+        outputs.put(uuid, null);
     }
 
     public void removeOutput(UUID uuid)
     {
-        outputs.get(uuid).halt();
+        Optional.ofNullable(outputs.get(uuid)).ifPresent(LaserOutput::halt);
         outputs.remove(uuid);
     }
 
-    public void doAction(CallbackEvent listener, UndoableAction action)
+    public void doAction(UndoableAction action)
     {
-        if (ACTION_PRESS == listener.getAction())
-        {
-            action.execute();
-            actions.add(action);
-            redoList.clear();
-        }
+        action.execute();
+        actions.add(action);
+        redoList.clear();
     }
 
-    public void doAction(CallbackEvent listener, SimpleAction action)
+    public void doAction(ISimpleAction action)
     {
-        if (ACTION_PRESS == listener.getAction())
-        {
-            action.action();
-            Controller<?> controller = listener.getController();
-            controller.changeValue(0);
-        }
+        action.execute();
     }
 
     public void undo()
@@ -306,6 +365,131 @@ public class LiveControl extends PApplet
             case LOWER_LEFT_ANCHOR -> {}
         }
         return new float[]{x, y};
+    }
+
+    @Override
+    public int getMouseX()
+    {
+        return mouseX;
+    }
+
+    @Override
+    public int getMouseY()
+    {
+        return mouseY;
+    }
+
+    @Override
+    public int getPMouseX()
+    {
+        return pmouseX;
+    }
+
+    @Override
+    public int getPMouseY()
+    {
+        return pmouseY;
+    }
+
+    @Override
+    public boolean isMouseClicked()
+    {
+        return mouseClicked;
+    }
+
+    @Override
+    public boolean isMouseReleased()
+    {
+        return mouseReleased;
+    }
+
+    @Override
+    public boolean isMousePressed()
+    {
+        return mousePressed;
+    }
+
+    @Override
+    public boolean isMouseDragged()
+    {
+        return mouseDragged;
+    }
+
+    @Override
+    public void releaseMouse()
+    {
+        this.mouseReleased = true;
+    }
+
+    @Override
+    public int getGuiStrokeColor()
+    {
+        return uiConfig.getForegroundColor();
+    }
+
+    @Override
+    public int getGuiFillColor()
+    {
+        return uiConfig.getBackgroundColor();
+    }
+
+    @Override
+    public int getGuiMouseOverColor()
+    {
+        return uiConfig.getMouseOverColor();
+    }
+
+    @Override
+    public int getGuiActiveColor()
+    {
+        return uiConfig.getActiveColor();
+    }
+
+    @Override
+    public PFont getFont(int size)
+    {
+        return fonts.computeIfAbsent(size, s -> createFont("Roboto", s));
+    }
+
+    @Override
+    public void doAction(IAction action)
+    {
+        if (action instanceof ISimpleAction simpleAction)
+        {
+            doAction(simpleAction);
+        }
+        else if (action instanceof UndoableAction undoableAction)
+        {
+            doAction(undoableAction);
+        }
+    }
+
+    @Override
+    public void setMouseOverInfoText(String infoText)
+    {
+        //TODO
+    }
+
+    @Override
+    public void addGuiElement(GuiElement element)
+    {
+        gui.addGuiElement(element);
+    }
+
+    @Override
+    public float getSliderDampFactor()
+    {
+        return 0.25f;
+    }
+
+    public UIConfig getUiConfig()
+    {
+        return uiConfig;
+    }
+
+    public void activateTab(UIBuilder.Tab tab)
+    {
+        this.activeTab = tab;
     }
 
 }

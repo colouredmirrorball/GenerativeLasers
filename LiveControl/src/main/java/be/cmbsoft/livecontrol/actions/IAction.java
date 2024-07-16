@@ -1,8 +1,8 @@
 package be.cmbsoft.livecontrol.actions;
 
 @FunctionalInterface
-public interface SimpleAction
+public interface IAction
 {
-    void action();
+    void execute();
 
 }

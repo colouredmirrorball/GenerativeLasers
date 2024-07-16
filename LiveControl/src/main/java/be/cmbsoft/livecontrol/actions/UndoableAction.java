@@ -1,20 +1,11 @@
 package be.cmbsoft.livecontrol.actions;
 
-import be.cmbsoft.livecontrol.LiveControl;
-
-public abstract class UndoableAction
+public abstract class UndoableAction implements IAction
 {
 
-    private final LiveControl liveControl;
-
-    protected UndoableAction(LiveControl liveControl)
+    protected UndoableAction()
     {
-        this.liveControl = liveControl;
-    }
 
-    public LiveControl parent()
-    {
-        return liveControl;
     }
 
     public abstract void execute();
