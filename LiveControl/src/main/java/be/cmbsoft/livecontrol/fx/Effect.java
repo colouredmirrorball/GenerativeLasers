@@ -6,4 +6,6 @@ public abstract class Effect
 {
     public abstract IldaFrame apply(IldaFrame ildaFrame);
 
+    public abstract void update(ProgramState state);
+
 }

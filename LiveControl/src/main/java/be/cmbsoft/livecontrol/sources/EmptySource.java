@@ -5,7 +5,7 @@ import be.cmbsoft.ilda.IldaFrame;
 public class EmptySource extends Source
 {
     public static final  EmptySource INSTANCE    = new EmptySource();
-    private static final IldaFrame   EMPTY_FRAME = new IldaFrame();
+    public static final IldaFrame EMPTY_FRAME = new IldaFrame();
 
     @Override
     public IldaFrame getFrame()

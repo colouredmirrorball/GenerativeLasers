@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.SourceWrapper;
 
 public class IldaFolderPlayerSourceWrapper extends SourceWrapper
@@ -28,11 +29,13 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
          */
         if (folder == null)
         {
+            log("No folder for ILDA folder player");
             return EmptySource.INSTANCE;
         }
         File[] files = folder.listFiles();
         if (files == null)
         {
+            log("No files in folder " + folder);
             return EmptySource.INSTANCE;
         }
         index++;
@@ -49,6 +52,7 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
         File[] files = folder.listFiles();
         if (files == null)
         {
+            log("No files in folder " + folder);
             return EmptySource.INSTANCE;
         }
         index--;

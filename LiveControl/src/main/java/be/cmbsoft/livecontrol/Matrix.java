@@ -8,11 +8,11 @@ import java.util.function.Function;
 import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.livecontrol.fx.Effect;
+import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
-import processing.core.PGraphics;
-
 import static processing.core.PConstants.P3D;
+import processing.core.PGraphics;
 
 public class Matrix
 {
@@ -50,7 +50,6 @@ public class Matrix
                 if (matrix[sourceIndex][outputIndex])
                 {
                     IldaFrame ildaFrame = Optional.ofNullable(sources[sourceIndex])
-//                                                  .map(source -> source.source)
                                                   .map(SourceWrapper::getFrame)
                                                   .orElse(new IldaFrame());
                     for (int modifierIndex = 0; modifierIndex < MODIFIERS; modifierIndex++)

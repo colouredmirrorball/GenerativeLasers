@@ -1,7 +1,6 @@
-package be.cmbsoft.livecontrol;
+package be.cmbsoft.livecontrol.fx;
 
 import be.cmbsoft.ilda.IldaFrame;
-import be.cmbsoft.livecontrol.fx.Effect;
 
 public class TrivialEffect extends Effect
 {
@@ -9,6 +8,12 @@ public class TrivialEffect extends Effect
     public IldaFrame apply(IldaFrame ildaFrame)
     {
         return ildaFrame;
+    }
+
+    @Override
+    public void update(ProgramState state)
+    {
+
     }
 
 }

@@ -10,9 +10,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.jetbrains.annotations.NotNull;
-
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
@@ -23,26 +20,30 @@ import be.cmbsoft.laseroutput.etherdream.EtherdreamStatus;
 import be.cmbsoft.livecontrol.actions.IAction;
 import be.cmbsoft.livecontrol.actions.ISimpleAction;
 import be.cmbsoft.livecontrol.actions.UndoableAction;
+import be.cmbsoft.livecontrol.fx.EffectConfigurator;
+import be.cmbsoft.livecontrol.fx.EffectConfiguratorContainer;
+import be.cmbsoft.livecontrol.fx.Parameter;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import be.cmbsoft.livecontrol.gui.GuiElement;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
+import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
 
-import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
-
-public class LiveControl extends PApplet implements GUIContainer
+public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
 
     private static final LaserOutput                       DUMMY_OUTPUT = new LaserOutput()
@@ -69,6 +70,8 @@ public class LiveControl extends PApplet implements GUIContainer
     private final EtherdreamOutput       discoverDevice = new EtherdreamOutput();
     private final Map<UUID, LaserOutput> outputs        = new HashMap<>();
     private final Matrix                 matrix;
+    private final EffectConfigurator        effectConfigurator;
+    private final Map<String, Parameter<?>> parameterMap = new HashMap<>();
 //    private final List<Source>           activeSources        = new ArrayList<>();
 
 
@@ -109,6 +112,13 @@ public class LiveControl extends PApplet implements GUIContainer
         }
         settings = settings1;
         matrix = new Matrix(getSourceProvider(), getOutputProvider());
+        effectConfigurator = new EffectConfigurator(this);
+    }
+
+    @Override
+    public void newParameter(String name, Parameter<?> parameter)
+    {
+        parameterMap.put(name, parameter);
     }
 
     private Function<Integer, LaserOutput> getOutputProvider()
@@ -191,15 +201,6 @@ public class LiveControl extends PApplet implements GUIContainer
         sourceSettings.setIldaFolder("D:\\Laser\\ILDA");
         sourceSettings.setType(SourceType.ILDA_FOLDER);
         settings.setSources(List.of(sourceSettings));
-
-//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0101.ild")));
-//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0102.ild")));
-//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0103.ild")));
-//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0104.ild")));
-//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0105.ild")));
-//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0106.ild")));
-//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0107.ild")));
-//        activeSources.add(new IldaPlayerSource(new File("D:\\Laser\\ILDA\\0108.ild")));
 
         gui = new GUI(this);
         controlP5 = new ControlP5(this, getFont(36));
@@ -399,7 +400,14 @@ public class LiveControl extends PApplet implements GUIContainer
 
     private @NotNull Optional<PShape> loadIconShape(String key)
     {
-        return Optional.ofNullable(loadShape("icons/" + key + ".svg"));
+        String fileName = "data/icons/" + key + ".svg";
+        File   file     = sketchFile(fileName);
+        if (file.exists()) {
+            return Optional.ofNullable(loadShape(fileName));
+        } else {
+            log("Could not find icon file " + fileName);
+            return Optional.empty();
+        }
     }
 
     private @NotNull PGraphics shapeToPGraphic(int width, int height, int backgroundColor, int foregroundColor,
