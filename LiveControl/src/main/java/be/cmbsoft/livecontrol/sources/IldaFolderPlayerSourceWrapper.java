@@ -4,8 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.SourceWrapper;
+
+import static be.cmbsoft.livecontrol.LiveControl.log;
 
 public class IldaFolderPlayerSourceWrapper extends SourceWrapper
 {
@@ -22,7 +23,7 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
 
 
     @Override
-    protected Source nextSupplier()
+    protected Source provideNextSource()
     {
         /*
          * I chose not to cache the folder, so hot swapping is possible. Might impact performance?
@@ -47,7 +48,7 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
     }
 
     @Override
-    protected Source previousSupplier()
+    protected Source providePreviousSource()
     {
         File[] files = folder.listFiles();
         if (files == null)

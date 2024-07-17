@@ -11,8 +11,9 @@ import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
-import static processing.core.PConstants.P3D;
 import processing.core.PGraphics;
+
+import static processing.core.PConstants.P3D;
 
 public class Matrix
 {
@@ -81,7 +82,7 @@ public class Matrix
 
     private void drawSources(LiveControl parent)
     {
-        int x = 10;
+        int x = 50;
         int y = 160;
         int w = 100;
         int h = 100;

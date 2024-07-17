@@ -11,7 +11,7 @@ public abstract class SourceWrapper
 
     protected SourceWrapper()
     {
-        next();
+//        next();
 //        this.nextSupplier = nextSupplier;
 //        this.previousSupplier = previousSupplier;
 //        this.source = nextSupplier.get();
@@ -24,18 +24,18 @@ public abstract class SourceWrapper
 
     public void next()
     {
-        source = nextSupplier();
+        source = provideNextSource();
 //        source = nextSupplier.get();
     }
 
-    protected abstract Source nextSupplier();
+    protected abstract Source provideNextSource();
 
     public void previous()
     {
-        source = previousSupplier();
+        source = providePreviousSource();
 //        source = previousSupplier.get();
     }
 
-    protected abstract Source previousSupplier();
+    protected abstract Source providePreviousSource();
 
 }

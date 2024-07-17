@@ -8,13 +8,13 @@ public class EmptySourceWrapper extends SourceWrapper
     private static final Source emptySource = EmptySource.INSTANCE;
 
     @Override
-    protected Source nextSupplier()
+    protected Source provideNextSource()
     {
         return emptySource;
     }
 
     @Override
-    protected Source previousSupplier()
+    protected Source providePreviousSource()
     {
         return emptySource;
     }

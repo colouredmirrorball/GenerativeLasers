@@ -10,6 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.jetbrains.annotations.NotNull;
+
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
@@ -26,22 +29,23 @@ import be.cmbsoft.livecontrol.fx.Parameter;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import be.cmbsoft.livecontrol.gui.GuiElement;
+import be.cmbsoft.livecontrol.sources.AudioEffectsSourceWrapper;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
+import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
-import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
+
+import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
@@ -67,11 +71,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private final        CircularFifoQueue<UndoableAction> actions      = new CircularFifoQueue<>(128);
     private final        List<UndoableAction>              redoList     = new ArrayList<>();
 
-    private final EtherdreamOutput       discoverDevice = new EtherdreamOutput();
-    private final Map<UUID, LaserOutput> outputs        = new HashMap<>();
-    private final Matrix                 matrix;
+    private final EtherdreamOutput          discoverDevice = new EtherdreamOutput();
+    private final Map<UUID, LaserOutput>    outputs        = new HashMap<>();
+    private final Matrix                    matrix;
     private final EffectConfigurator        effectConfigurator;
-    private final Map<String, Parameter<?>> parameterMap = new HashMap<>();
+    private final Map<String, Parameter<?>> parameterMap   = new HashMap<>();
 //    private final List<Source>           activeSources        = new ArrayList<>();
 
 
@@ -85,6 +89,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private boolean       mouseDragged;
     private UIConfig      uiConfig;
     private UIBuilder.Tab activeTab     = UIBuilder.Tab.DEFAULT;
+
+    private AudioProcessor audioProcessor;
+
 
     private PImage network;
 
@@ -143,6 +150,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         return switch (sourceSettings.getType())
         {
             case ILDA_FOLDER -> new IldaFolderPlayerSourceWrapper(new File(sourceSettings.getIldaFolder()));
+            case AUDIO -> new AudioEffectsSourceWrapper(this);
             default -> new EmptySourceWrapper();
         };
     }
@@ -193,14 +201,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         }
 
         outputs.put(UUID.randomUUID(), new EtherdreamOutput());
-        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
-        etherdreamOutputSettings.alias = "6E851F3F2177";
-        settings.etherdreamOutputs.add(etherdreamOutputSettings);
+        buildDefaultSettings();
 
-        SourceSettings sourceSettings = new SourceSettings();
-        sourceSettings.setIldaFolder("D:\\Laser\\ILDA");
-        sourceSettings.setType(SourceType.ILDA_FOLDER);
-        settings.setSources(List.of(sourceSettings));
+        audioProcessor = new AudioProcessor(this);
 
         gui = new GUI(this);
         controlP5 = new ControlP5(this, getFont(36));
@@ -211,6 +214,21 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         prevWidth = width;
         prevHeight = height;
         activateTab(UIBuilder.Tab.DEFAULT);
+    }
+
+    private void buildDefaultSettings()
+    {
+        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
+        etherdreamOutputSettings.alias = "6E851F3F2177";
+        settings.etherdreamOutputs.add(etherdreamOutputSettings);
+
+        SourceSettings ildaSource = new SourceSettings();
+        ildaSource.setIldaFolder("D:\\Laser\\ILDA");
+        ildaSource.setType(SourceType.ILDA_FOLDER);
+        SourceSettings audioSource = new SourceSettings();
+//        ildaSource.setIldaFolder("D:\\Laser\\ILDA");
+        audioSource.setType(SourceType.AUDIO);
+        settings.setSources(List.of(ildaSource, audioSource));
     }
 
     @Override
@@ -402,9 +420,12 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     {
         String fileName = "data/icons/" + key + ".svg";
         File   file     = sketchFile(fileName);
-        if (file.exists()) {
+        if (file.exists())
+        {
             return Optional.ofNullable(loadShape(fileName));
-        } else {
+        }
+        else
+        {
             log("Could not find icon file " + fileName);
             return Optional.empty();
         }
@@ -629,6 +650,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         {
             UIBuilder.activateTab(gui, UIBuilder.Tab.values()[theControlEvent.getTab().getId()], this);
         }
+    }
+
+    public AudioProcessor getAudioProcessor()
+    {
+        return audioProcessor;
     }
 
 }
