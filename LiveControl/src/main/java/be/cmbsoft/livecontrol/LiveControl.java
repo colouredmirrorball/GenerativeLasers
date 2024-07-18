@@ -1,11 +1,5 @@
 package be.cmbsoft.livecontrol;
 
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Transmitter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,11 +48,10 @@ import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
-import themidibus.MidiBus;
 
 import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
-public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer, Receiver
+public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
 
     private static final LaserOutputWrapper DUMMY_OUTPUT = new LaserOutputWrapper(
@@ -106,11 +99,8 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private ControlP5                                              controlP5;
     // I/O
     private AudioProcessor audioProcessor;
-    private MidiBus        midiBus;
-    private MidiDevice     matrixInputDevice;
-    private MidiDevice     matrixOutputDevice;
-    private MidiDevice     controlDevice;
-    private PImage         network;
+    private final MidiDeviceContainer midiContainer;
+    private       PImage              network;
 
     public LiveControl()
     {
@@ -141,54 +131,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         //        optimisationSettings.fromJSON(settings.getOptimisationSettings());
         matrix = new Matrix(getSourceProvider(), getOutputProvider(), optimisationSettings);
         effectConfigurator = new EffectConfigurator(this);
-        setupMidi();
+        midiContainer = new MidiDeviceContainer();
+        midiContainer.setupMidi(settings);
     }
 
-    private void setupMidi()
-    {
-        MidiDevice.Info[] midiDeviceInfo               = MidiSystem.getMidiDeviceInfo();
-        String            matrixInputDeviceIdentifier  = settings.getMidiMatrixInputDevice();
-        String            matrixOutputDeviceIdentifier = settings.getMidiMatrixOutputDevice();
-        String            controlDeviceIdentifier      = settings.getMidiControlDevice();
-        String            theMIDIDevice                = "MIDIIN2 (Launchpad Pro)";
-        MidiDevice.Info   selectedDevice               = null;
-        log("Looking for MIDI devices...");
-        for (MidiDevice.Info info : midiDeviceInfo)
-        {
-            println("[" + info.getName() + "] " + info + ": " + info.getDescription() + " (" + info.getVendor() + " "
-                + info.getVersion() + ")");
-            if (theMIDIDevice.equals(info.getName()))
-            {
-                selectedDevice = info;
-            }
-        }
-        try
-        {
-            if (selectedDevice != null)
-            {
-                matrixInputDevice = MidiSystem.getMidiDevice(selectedDevice);
-                if (matrixInputDevice.getMaxTransmitters() == 0)
-                {
-                    log(theMIDIDevice + " is not an input...");
-                }
 
-                Transmitter transmitter = matrixInputDevice.getTransmitter();
-                transmitter.setReceiver(this);
-
-                matrixInputDevice.open();
-            }
-            else
-            {
-                log(theMIDIDevice + " is not available...");
-            }
-
-        }
-        catch (Exception exception)
-        {
-            // Continue without MIDI
-            exception.printStackTrace();
-        }
-    }
 
     @Override
     public void newParameter(String name, Parameter<?> parameter)
@@ -306,6 +253,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 //        ildaSource.setIldaFolder("D:\\Laser\\ILDA");
         audioSource.setType(SourceType.AUDIO);
         settings.setSources(List.of(ildaSource, audioSource));
+
+        settings.setMidiMatrixInputDevice("MIDIIN2 (Launchpad Pro)");
+        settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
+        settings.setMidiControlDevice("nanoKONTROL2");
     }
 
     @Override
@@ -495,10 +446,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     {
         outputs.values().forEach(LaserOutput::halt);
         saveSettings();
-        if (matrixInputDevice != null)
-        {
-            close();
-        }
+        midiContainer.close();
         super.exit();
     }
 
@@ -834,51 +782,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     public AudioProcessor getAudioProcessor()
     {
         return audioProcessor;
-    }
-
-    @Override
-    public void send(MidiMessage message, long timeStamp)
-    {
-        if (!booted) return;
-        if (message instanceof ShortMessage shortMessage)
-        {
-            int command = shortMessage.getCommand();
-            int channel = shortMessage.getChannel();
-            int data1   = shortMessage.getData1();
-            int data2   = shortMessage.getData2();
-
-//            Noot noot = new Noot(channel, data1);
-
-            // Note On event
-            if (command == ShortMessage.NOTE_ON)
-            {
-                logMidi("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
-//                activateEffect(noot);
-            }
-            // Note Off event
-            else if (command == ShortMessage.NOTE_OFF)
-            {
-                logMidi("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
-//                deactivateEffect(noot);
-            }
-            // Control Change event
-            else if (command == ShortMessage.CONTROL_CHANGE)
-            {
-                logMidi("Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
-//                processControl(noot, data2);
-            }
-        }
-    }
-
-    private void logMidi(String message)
-    {
-        log(message);
-    }
-
-    @Override
-    public void close()
-    {
-        matrixInputDevice.close();
     }
 
     public boolean isMouseOver(int x, int y, int x2, int y2)
