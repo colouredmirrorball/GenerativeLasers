@@ -7,7 +7,7 @@ import be.cmbsoft.livecontrol.LiveControl;
 public class AddOutput extends UndoableAction
 {
     private final LiveControl parent;
-    private final UUID        uuid = UUID.randomUUID();
+    private final String id = UUID.randomUUID().toString();
 
     public AddOutput(LiveControl parent)
     {
@@ -19,12 +19,12 @@ public class AddOutput extends UndoableAction
     public void execute()
     {
         System.out.println("new output");
-        parent.addOutput(uuid);
+        parent.addOutput(id);
     }
 
     @Override
     public void undo()
     {
-        parent.removeOutput(uuid);
+        parent.removeOutput(id);
     }
 }

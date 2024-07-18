@@ -3,6 +3,7 @@ package be.cmbsoft.livecontrol;
 import java.util.ArrayList;
 import java.util.List;
 
+import be.cmbsoft.laseroutput.Bounds;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 
 public class Settings
@@ -97,6 +98,7 @@ public class Settings
     public static class EtherdreamOutputSettings extends OutputSettings
     {
         String alias;
+        private Bounds bounds;
 
         public String getAlias()
         {
@@ -106,6 +108,16 @@ public class Settings
         public void setAlias(String alias)
         {
             this.alias = alias;
+        }
+
+        public Bounds getBounds()
+        {
+            return bounds;
+        }
+
+        public void setBounds(Bounds bounds)
+        {
+            this.bounds = bounds;
         }
 
     }

@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
+import be.cmbsoft.laseroutput.Bounds;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.LsxOscOutput;
@@ -51,6 +52,7 @@ import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
+import processing.core.PVector;
 import themidibus.MidiBus;
 
 import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
@@ -82,7 +84,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private final List<UndoableAction>              redoList     = new ArrayList<>();
 
     private final EtherdreamOutput          discoverDevice = new EtherdreamOutput();
-    private final Map<UUID, LaserOutput>    outputs        = new HashMap<>();
+    private final Map<String, LaserOutput> outputs = new HashMap<>();
     private final Matrix                    matrix;
     private final EffectConfigurator        effectConfigurator;
     private final Map<String, Parameter<?>> parameterMap   = new HashMap<>();
@@ -99,15 +101,14 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private UIBuilder.Tab activeTab     = UIBuilder.Tab.DEFAULT;
 
     private AudioProcessor audioProcessor;
-
     private MidiBus    midiBus;
-    public  PGraphics previousIcon;
-    public  PGraphics nextIcon;
+    public  PGraphics  previousIcon;
+    public  PGraphics  nextIcon;
     private MidiDevice matrixInputDevice;
     private boolean    booted = false;
     private MidiDevice matrixOutputDevice;
     private MidiDevice controlDevice;
-    private PImage    network;
+    private PImage     network;
 
     public LiveControl()
     {
@@ -256,13 +257,15 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     {
         surface.setResizable(true);
 
-        for (Settings.OutputSettings output : settings.etherdreamOutputs)
+        for (Settings.EtherdreamOutputSettings output : settings.etherdreamOutputs)
         {
-            outputs.put(UUID.randomUUID(), createOutput(output));
+            LaserOutput laser = createOutput(output);
+            setBounds(output.getBounds(), laser);
+            outputs.put(output.getAlias(), laser);
         }
         for (Settings.OutputSettings output : settings.lsxOutputs)
         {
-            outputs.put(UUID.randomUUID(), createOutput(output));
+            outputs.put(UUID.randomUUID().toString(), createOutput(output));
         }
 
 //        outputs.put(UUID.randomUUID(), new EtherdreamOutput());
@@ -376,6 +379,54 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
                 image(network, x + h, y + 10);
             }
         }
+
+        x = 500;
+        w = 400;
+        h = 400;
+        for (LaserOutput output : outputs.values())
+        {
+            Bounds bounds = output.getBounds();
+            if (mousePressed && isMouseOver(x, y, x + w, y + h))
+            {
+                if (isMouseOver(x, y + h / 2, x + w / 2, y + h))
+                {
+                    bounds.setLowerLeft(
+                        new PVector(map(mouseX, x, x + w / 2, -1, 1), map(mouseY, y + h / 2, y + h, -1, 1)));
+                }
+                if (isMouseOver(x, y, x + w / 2, y + h / 2))
+                {
+                    bounds.setUpperLeft(
+                        new PVector(map(mouseX, x, x + w / 2, -1, 1), map(mouseY, y, y + h / 2, -1, 1)));
+                }
+                if (isMouseOver(x + w / 2, y, x + w, y + h / 2))
+                {
+                    bounds.setUpperRight(new PVector(map(mouseX, x + w / 2, x + w, -1, 1), map(mouseY, y, y + h / 2, -1,
+                        1)));
+                }
+                if (isMouseOver(x + w / 2, y + h / 2, x + w, y + h))
+                {
+                    bounds.setLowerRight(new PVector(map(mouseX, x + w / 2, x + w, -1, 1), map(mouseY, y + h / 2, y + h,
+                        -1, 1)));
+                }
+                persistBounds(output, bounds);
+            }
+            stroke(255, 0, 0);
+            strokeWeight(3);
+            fill(150, 50, 50);
+            beginShape(QUADS);
+            vertex(map(bounds.getLowerLeft().x, -1, 1, x, x + w), map(bounds.getLowerLeft().y, -1, 1, y, y + h));
+            vertex(map(bounds.getUpperLeft().x, -1, 1, x, x + w), map(bounds.getUpperLeft().y, -1, 1, y, y + h));
+            vertex(map(bounds.getUpperRight().x, -1, 1, x, x + w), map(bounds.getUpperRight().y, -1, 1, y, y + h));
+            vertex(map(bounds.getLowerRight().x, -1, 1, x, x + w), map(bounds.getLowerRight().y, -1, 1, y, y + h));
+            endShape();
+            noFill();
+            stroke(uiConfig.getForegroundColor());
+            strokeWeight(1);
+            rect(x, y, w, h);
+            x += w + 20;
+        }
+
+
     }
 
     private void drawDefault()
@@ -437,15 +488,45 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         super.exit();
     }
 
-    public void addOutput(UUID uuid)
+    public void addOutput(String id)
     {
-        outputs.put(uuid, null);
+//        outputs.put(uuid, null);
     }
 
-    public void removeOutput(UUID uuid)
+    public void removeOutput(String id)
     {
-        Optional.ofNullable(outputs.get(uuid)).ifPresent(LaserOutput::halt);
-        outputs.remove(uuid);
+        Optional.ofNullable(outputs.get(id)).ifPresent(LaserOutput::halt);
+        outputs.remove(id);
+    }
+
+    public void setBounds(Bounds bounds, LaserOutput laser)
+    {
+        Bounds existingBounds = laser.getBounds();
+        if (bounds != null)
+        {
+            existingBounds.setLowerLeft(bounds.getLowerLeft());
+            existingBounds.setLowerRight(bounds.getLowerRight());
+            existingBounds.setUpperRight(bounds.getUpperRight());
+            existingBounds.setUpperLeft(bounds.getUpperLeft());
+        }
+        else
+        {
+            existingBounds.setLowerLeft(new PVector(-1, 1));
+            existingBounds.setLowerRight(new PVector(1, 1));
+            existingBounds.setUpperRight(new PVector(1, -1));
+            existingBounds.setUpperLeft(new PVector(-1, -1));
+        }
+        persistBounds(laser, existingBounds);
+    }
+
+    private void persistBounds(LaserOutput laser, Bounds existingBounds)
+    {
+        if (laser instanceof EtherdreamOutput etherdream)
+        {
+            settings.etherdreamOutputs.stream()
+                                      .filter(output -> output.alias.equals(etherdream.getAlias()))
+                                      .forEach(output -> output.setBounds(existingBounds));
+        }
     }
 
     public void doAction(UndoableAction action)
