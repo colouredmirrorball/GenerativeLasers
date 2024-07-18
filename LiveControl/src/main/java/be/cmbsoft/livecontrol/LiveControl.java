@@ -391,21 +391,21 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
                 if (isMouseOver(x, y + h / 2, x + w / 2, y + h))
                 {
                     bounds.setLowerLeft(
-                        new PVector(map(mouseX, x, x + w / 2, -1, 1), map(mouseY, y + h / 2, y + h, -1, 1)));
+                        new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h, -1, 1)));
                 }
                 if (isMouseOver(x, y, x + w / 2, y + h / 2))
                 {
                     bounds.setUpperLeft(
-                        new PVector(map(mouseX, x, x + w / 2, -1, 1), map(mouseY, y, y + h / 2, -1, 1)));
+                        new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h, -1, 1)));
                 }
                 if (isMouseOver(x + w / 2, y, x + w, y + h / 2))
                 {
-                    bounds.setUpperRight(new PVector(map(mouseX, x + w / 2, x + w, -1, 1), map(mouseY, y, y + h / 2, -1,
+                    bounds.setUpperRight(new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h, -1,
                         1)));
                 }
                 if (isMouseOver(x + w / 2, y + h / 2, x + w, y + h))
                 {
-                    bounds.setLowerRight(new PVector(map(mouseX, x + w / 2, x + w, -1, 1), map(mouseY, y + h / 2, y + h,
+                    bounds.setLowerRight(new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h,
                         -1, 1)));
                 }
                 persistBounds(output, bounds);
