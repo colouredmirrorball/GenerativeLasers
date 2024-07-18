@@ -92,6 +92,11 @@
             <artifactId>jsyn</artifactId>
             <version>17.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>MidiBus</groupId>
+            <artifactId>MidiBus</artifactId>
+            <version>8</version>
+        </dependency>
     </dependencies>
 
 </project>

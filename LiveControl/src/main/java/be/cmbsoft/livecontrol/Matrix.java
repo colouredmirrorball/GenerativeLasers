@@ -6,13 +6,13 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import be.cmbsoft.ilda.IldaFrame;
-import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
 import processing.core.PGraphics;
 
+import static be.cmbsoft.livecontrol.LiveControl.log;
 import static processing.core.PConstants.P3D;
 
 public class Matrix
@@ -22,12 +22,12 @@ public class Matrix
     public static final int OUTPUTS   = 4;
 
     private final SourceWrapper[]                sources              = new SourceWrapper[ROWS];
-    private final Function<Integer, LaserOutput> outputProvider;
+    private final Function<Integer, LaserOutputWrapper> outputProvider;
     private final boolean[][]                    matrix               = new boolean[ROWS][MODIFIERS + OUTPUTS];
     private final List<Effect>                   modifiers            = new ArrayList<>();
     private final PGraphics[]                    effectVisualisations = new PGraphics[8];
 
-    public Matrix(Function<Integer, SourceWrapper> sourceProvider, Function<Integer, LaserOutput> outputProvider)
+    public Matrix(Function<Integer, SourceWrapper> sourceProvider, Function<Integer, LaserOutputWrapper> outputProvider)
     {
         for (int i = 0; i < ROWS; i++)
         {
@@ -78,14 +78,75 @@ public class Matrix
     public void display(LiveControl parent)
     {
         drawSources(parent);
+        int x = 200;
+        int y = 80;
+        int w = 80;
+        int h = 80;
+        for (int i = 0; i < MODIFIERS; i++)
+        {
+            if (i < modifiers.size())
+            {
+                Effect modifier = modifiers.get(i);
+                drawModifier(parent, modifier, x, y, w, h);
+            }
+            x += w + 15;
+        }
+        for (int i = 0; i < OUTPUTS; i++)
+        {
+            LaserOutputWrapper output = outputProvider.apply(i);
+            output.display(parent, x, y, w, h);
+            x += w + 15;
+        }
+        x = 200;
+        y = 200;
+        parent.stroke(parent.getUiConfig().getForegroundColor());
+        for (int i = 0; i < matrix.length; i++)
+        {
+            for (int j = 0; j < matrix[i].length; j++)
+            {
+                if (parent.isMouseClicked() && parent.isMouseOver(x, y, x + w, y + h))
+                {
+                    toggleAndPublish(i, j);
+                    parent.releaseMouse();
+                }
+                if (matrix[i][j])
+                {
+                    parent.fill(255);
+                }
+                else
+                {
+                    parent.fill(0);
+                }
+                parent.rect(x, y, w, h);
+                x += w + 15;
+            }
+            x = 200;
+            y += h + 15;
+        }
+    }
+
+    private void toggleAndPublish(int i, int j)
+    {
+        matrix[i][j] = !matrix[i][j];
+        publish(i, j, matrix[i][j]);
+    }
+
+    private void publish(int i, int j, boolean matrix)
+    {
+        log("Toggling " + i + " " + j + " " + matrix);
+    }
+
+    private void drawModifier(LiveControl parent, Effect modifier, int x, int y, int w, int h)
+    {
+        modifier.display(parent, x, y, w, h);
     }
 
     private void drawSources(LiveControl parent)
     {
         int x = 50;
-        int y = 160;
-        int w = 100;
-        int h = 100;
+        int y = 200;
+        int w = 80;
+        int h = 80;
         int i = 0;
         for (SourceWrapper wrapper : sources)
         {

@@ -1,5 +1,11 @@
 package be.cmbsoft.livecontrol;
 
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Transmitter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,26 +50,29 @@ import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
+import themidibus.MidiBus;
 
 import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
-public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
+public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer, Receiver
 {
 
-    private static final LaserOutput                       DUMMY_OUTPUT = new LaserOutput()
-    {
-        @Override
-        public void project(List<IldaPoint> points)
+    private static final LaserOutputWrapper DUMMY_OUTPUT = new LaserOutputWrapper(
+        new LaserOutput()
         {
+            @Override
+            public void project(List<IldaPoint> points)
+            {
 
-        }
+            }
 
-        @Override
-        public boolean isConnected()
-        {
-            return false;
-        }
-    };
+            @Override
+            public boolean isConnected()
+            {
+                return false;
+            }
+        });
+
     private final        Settings                          settings;
     private final        File                              settingsFile = new File("settings.json");
     private final        ObjectMapper                      objectMapper;
@@ -92,6 +101,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     private AudioProcessor audioProcessor;
 
+    private MidiBus    midiBus;
+    private MidiDevice midiDevice;
+    private boolean    booted = false;
 
     private PImage network;
 
@@ -120,6 +132,50 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         settings = settings1;
         matrix = new Matrix(getSourceProvider(), getOutputProvider());
         effectConfigurator = new EffectConfigurator(this);
+        setupMidi();
+    }
+
+    private void setupMidi()
+    {
+        MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
+        String            theMIDIDevice  = "MIDIIN2 (Launchpad Pro)";
+        MidiDevice.Info   selectedDevice = null;
+        log("Looking for MIDI devices...");
+        for (MidiDevice.Info info : midiDeviceInfo)
+        {
+            println("[" + info.getName() + "] " + info + ": " + info.getDescription() + " (" + info.getVendor() + " "
+                + info.getVersion() + ")");
+            if (theMIDIDevice.equals(info.getName()))
+            {
+                selectedDevice = info;
+            }
+        }
+        try
+        {
+            if (selectedDevice != null)
+            {
+                midiDevice = MidiSystem.getMidiDevice(selectedDevice);
+                if (midiDevice.getMaxTransmitters() == 0)
+                {
+                    log(theMIDIDevice + " is not an input...");
+                }
+
+                Transmitter transmitter = midiDevice.getTransmitter();
+                transmitter.setReceiver(this);
+
+                midiDevice.open();
+            }
+            else
+            {
+                log(theMIDIDevice + " is not available...");
+            }
+
+        }
+        catch (Exception exception)
+        {
+            // Continue without MIDI
+            exception.printStackTrace();
+        }
     }
 
     @Override
@@ -128,10 +184,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         parameterMap.put(name, parameter);
     }
 
-    private Function<Integer, LaserOutput> getOutputProvider()
+    private Function<Integer, LaserOutputWrapper> getOutputProvider()
     {
         return i -> i >= outputs.size() ? DUMMY_OUTPUT :
-            outputs.values().stream().distinct().skip(i).iterator().next();
+            outputs.values().stream().distinct().skip(i).map(LaserOutputWrapper::new).iterator().next();
     }
 
     private Function<Integer, SourceWrapper> getSourceProvider()
@@ -214,6 +270,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         prevWidth = width;
         prevHeight = height;
         activateTab(UIBuilder.Tab.DEFAULT);
+        matrix.enable(0, 4);
+
+        booted = true;
     }
 
     private void buildDefaultSettings()
@@ -347,9 +406,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     {
         outputs.values().forEach(LaserOutput::halt);
         saveSettings();
-//        if (midiDevice != null) {
-//            close();
-//        }
+        if (midiDevice != null)
+        {
+            close();
+        }
         super.exit();
     }
 
@@ -655,6 +715,56 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     public AudioProcessor getAudioProcessor()
     {
         return audioProcessor;
+    }
+
+    @Override
+    public void send(MidiMessage message, long timeStamp)
+    {
+        if (!booted) return;
+        if (message instanceof ShortMessage shortMessage)
+        {
+            int command = shortMessage.getCommand();
+            int channel = shortMessage.getChannel();
+            int data1   = shortMessage.getData1();
+            int data2   = shortMessage.getData2();
+
+//            Noot noot = new Noot(channel, data1);
+
+            // Note On event
+            if (command == ShortMessage.NOTE_ON)
+            {
+                logMidi("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+//                activateEffect(noot);
+            }
+            // Note Off event
+            else if (command == ShortMessage.NOTE_OFF)
+            {
+                logMidi("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
+//                deactivateEffect(noot);
+            }
+            // Control Change event
+            else if (command == ShortMessage.CONTROL_CHANGE)
+            {
+                logMidi("Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
+//                processControl(noot, data2);
+            }
+        }
+    }
+
+    private void logMidi(String message)
+    {
+        log(message);
+    }
+
+    @Override
+    public void close()
+    {
+        midiDevice.close();
+    }
+
+    public boolean isMouseOver(int x, int y, int x2, int y2)
+    {
+        return mouseX >= x && mouseX <= x2 && mouseY >= y && mouseY <= y2;
     }
 
 }

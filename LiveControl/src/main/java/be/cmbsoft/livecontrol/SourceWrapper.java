@@ -3,6 +3,8 @@ package be.cmbsoft.livecontrol;
 import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.livecontrol.sources.Source;
 
+import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
+
 public abstract class SourceWrapper
 {
     Source source;
@@ -19,7 +21,7 @@ public abstract class SourceWrapper
 
     public IldaFrame getFrame()
     {
-        return source.getFrame();
+        return source == null ? EMPTY_FRAME : source.getFrame();
     }
 
     public void next()

@@ -2,6 +2,8 @@ package be.cmbsoft.livecontrol.fx;
 
 
 import be.cmbsoft.ilda.IldaFrame;
+import be.cmbsoft.livecontrol.LiveControl;
+
 import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 
 public class StrobeEffect extends Effect
@@ -37,4 +39,19 @@ public class StrobeEffect extends Effect
         }
 
     }
+
+    @Override
+    public void display(LiveControl parent, int x, int y, int w, int h)
+    {
+        if (on)
+        {
+            parent.fill(255);
+        }
+        else
+        {
+            parent.fill(0);
+        }
+        parent.rect(x, y, w, h);
+    }
+
 }
