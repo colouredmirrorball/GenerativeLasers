@@ -99,6 +99,9 @@ public class Settings
     {
         String alias;
         private Bounds bounds;
+        private boolean invertX;
+        private boolean invertY;
+        private float   intensity;
 
         public String getAlias()
         {
@@ -118,6 +121,36 @@ public class Settings
         public void setBounds(Bounds bounds)
         {
             this.bounds = bounds;
+        }
+
+        public boolean isInvertX()
+        {
+            return invertX;
+        }
+
+        public void setInvertX(boolean invertX)
+        {
+            this.invertX = invertX;
+        }
+
+        public boolean isInvertY()
+        {
+            return invertY;
+        }
+
+        public void setInvertY(boolean invertY)
+        {
+            this.invertY = invertY;
+        }
+
+        public float getIntensity()
+        {
+            return intensity;
+        }
+
+        public void setIntensity(float intensity)
+        {
+            this.intensity = intensity;
         }
 
     }

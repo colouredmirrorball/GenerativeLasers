@@ -25,6 +25,7 @@ import be.cmbsoft.laseroutput.Bounds;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.LsxOscOutput;
+import be.cmbsoft.laseroutput.OutputOption;
 import be.cmbsoft.laseroutput.etherdream.Etherdream;
 import be.cmbsoft.laseroutput.etherdream.EtherdreamSource;
 import be.cmbsoft.laseroutput.etherdream.EtherdreamStatus;
@@ -76,20 +77,21 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             }
         });
 
+    // Program control flow
     private final Settings                          settings;
     private final File                              settingsFile = new File("settings.json");
     private final ObjectMapper                      objectMapper;
     private final Map<Integer, PFont>               fonts        = new HashMap<>();
     private final CircularFifoQueue<UndoableAction> actions      = new CircularFifoQueue<>(128);
     private final List<UndoableAction>              redoList     = new ArrayList<>();
-
+    // Laser processing
     private final EtherdreamOutput          discoverDevice = new EtherdreamOutput();
-    private final Map<String, LaserOutput> outputs = new HashMap<>();
+    private final Map<String, LaserOutput>  outputs        = new HashMap<>();
+    public  PGraphics      previousIcon;
     private final Matrix                    matrix;
     private final EffectConfigurator        effectConfigurator;
     private final Map<String, Parameter<?>> parameterMap   = new HashMap<>();
-
-    private ControlP5                                              controlP5;
+    public  PGraphics      nextIcon;
     private GUI                                                    gui;
     private PGraphics                                              defaultIcon;
     private Map<ControllerInterface, UIBuilder.PositionCalculator> uiPositions;
@@ -99,16 +101,16 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private boolean       mouseDragged;
     private UIConfig      uiConfig;
     private UIBuilder.Tab activeTab     = UIBuilder.Tab.DEFAULT;
-
+    private boolean booted = false;
+    // UI
+    private ControlP5                                              controlP5;
+    // I/O
     private AudioProcessor audioProcessor;
-    private MidiBus    midiBus;
-    public  PGraphics  previousIcon;
-    public  PGraphics  nextIcon;
-    private MidiDevice matrixInputDevice;
-    private boolean    booted = false;
-    private MidiDevice matrixOutputDevice;
-    private MidiDevice controlDevice;
-    private PImage     network;
+    private MidiBus        midiBus;
+    private MidiDevice     matrixInputDevice;
+    private MidiDevice     matrixOutputDevice;
+    private MidiDevice     controlDevice;
+    private PImage         network;
 
     public LiveControl()
     {
@@ -390,23 +392,19 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             {
                 if (isMouseOver(x, y + h / 2, x + w / 2, y + h))
                 {
-                    bounds.setLowerLeft(
-                        new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h, -1, 1)));
+                    bounds.setLowerLeft(getRemappedMouse(x, w, y, h));
                 }
                 if (isMouseOver(x, y, x + w / 2, y + h / 2))
                 {
-                    bounds.setUpperLeft(
-                        new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h, -1, 1)));
+                    bounds.setUpperLeft(getRemappedMouse(x, w, y, h));
                 }
                 if (isMouseOver(x + w / 2, y, x + w, y + h / 2))
                 {
-                    bounds.setUpperRight(new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h, -1,
-                        1)));
+                    bounds.setUpperRight(getRemappedMouse(x, w, y, h));
                 }
                 if (isMouseOver(x + w / 2, y + h / 2, x + w, y + h))
                 {
-                    bounds.setLowerRight(new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h,
-                        -1, 1)));
+                    bounds.setLowerRight(getRemappedMouse(x, w, y, h));
                 }
                 persistBounds(output, bounds);
             }
@@ -426,7 +424,12 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             x += w + 20;
         }
 
+    }
 
+    private @NotNull PVector getRemappedMouse(int x, int w, int y, int h)
+    {
+        return new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h,
+            -1, 1));
     }
 
     private void drawDefault()
@@ -454,13 +457,24 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     private LaserOutput createOutput(Settings.OutputSettings output)
     {
+
         if (output instanceof Settings.LsxOutputSettings lsxOutput)
         {
             return new LsxOscOutput(lsxOutput.timeline, lsxOutput.frameNumber, lsxOutput.host, lsxOutput.port);
         }
         if (output instanceof Settings.EtherdreamOutputSettings etherdreamSettings)
         {
-            return new EtherdreamOutput().setAlias(etherdreamSettings.getAlias());
+            EtherdreamOutput etherdreamOutput = new EtherdreamOutput().setAlias(etherdreamSettings.getAlias());
+            if (etherdreamSettings.isInvertX())
+            {
+                etherdreamOutput.option(OutputOption.INVERT_X);
+            }
+            if (etherdreamSettings.isInvertY())
+            {
+                etherdreamOutput.option(OutputOption.INVERT_Y);
+            }
+            etherdreamOutput.setIntensity(etherdreamSettings.getIntensity());
+            return etherdreamOutput;
         }
         throw new IllegalStateException("Unknown output type");
     }
