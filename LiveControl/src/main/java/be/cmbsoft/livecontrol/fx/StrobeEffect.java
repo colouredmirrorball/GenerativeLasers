@@ -1,10 +1,10 @@
 package be.cmbsoft.livecontrol.fx;
 
 
-import be.cmbsoft.ilda.IldaFrame;
-import be.cmbsoft.livecontrol.LiveControl;
+import java.util.List;
 
-import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
+import be.cmbsoft.ilda.IldaPoint;
+import be.cmbsoft.livecontrol.LiveControl;
 
 public class StrobeEffect extends Effect
 {
@@ -18,9 +18,9 @@ public class StrobeEffect extends Effect
     }
 
     @Override
-    public IldaFrame apply(IldaFrame ildaFrame)
+    public List<IldaPoint> apply(List<IldaPoint> points)
     {
-        return on ? ildaFrame : EMPTY_FRAME;
+        return on ? points : List.of();
     }
 
     @Override

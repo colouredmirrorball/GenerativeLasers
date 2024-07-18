@@ -1,11 +1,13 @@
 package be.cmbsoft.livecontrol.fx;
 
-import be.cmbsoft.ilda.IldaFrame;
+import java.util.List;
+
+import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.livecontrol.LiveControl;
 
 public abstract class Effect
 {
-    public abstract IldaFrame apply(IldaFrame ildaFrame);
+    public abstract List<IldaPoint> apply(List<IldaPoint> points);
 
     public abstract void update(ProgramState state);
 

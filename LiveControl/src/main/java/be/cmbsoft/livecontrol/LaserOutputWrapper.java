@@ -1,6 +1,9 @@
 package be.cmbsoft.livecontrol;
 
+import java.util.List;
+
 import be.cmbsoft.ilda.IldaFrame;
+import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.laseroutput.LaserOutput;
 import processing.core.PConstants;
 import processing.core.PGraphics;
@@ -13,9 +16,10 @@ public class LaserOutputWrapper
 
     public LaserOutputWrapper(LaserOutput output) {this.output = output;}
 
-    public void project(IldaFrame ildaFrame)
+    public void project(List<IldaPoint> ildaFrame)
     {
-        this.ildaFrame = ildaFrame;
+        this.ildaFrame = new IldaFrame();
+        this.ildaFrame.getPoints().addAll(ildaFrame);
         output.project(ildaFrame);
     }
 

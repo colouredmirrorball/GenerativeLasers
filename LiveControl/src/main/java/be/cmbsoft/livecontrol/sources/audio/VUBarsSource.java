@@ -10,7 +10,7 @@ public class VUBarsSource extends AudioSource
 {
 
     private static final int BARS = 10;
-    private final        int barWidth;
+    //    private final        int barWidth;
     private final        int width;
     private final        int height;
 
@@ -20,7 +20,7 @@ public class VUBarsSource extends AudioSource
         super(parent);
         width = parent.width;
         height = parent.height;
-        barWidth = height / BARS - 10;
+
     }
 
     @Override
@@ -31,7 +31,7 @@ public class VUBarsSource extends AudioSource
         r.colorMode(HSB);
         float signalLeft  = map(getProcessor().getAmplitudeLeft().analyze(), 0, 0.5f, 0, BARS);
         float signalRight = map(getProcessor().getAmplitudeRight().analyze(), 0, 0.5f, 0, BARS);
-
+        int barWidth = barWidth = r.height / BARS;
         for (int i = 0; i < BARS; i++)
         {
             if (signalLeft >= i)

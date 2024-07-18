@@ -3,6 +3,7 @@ package be.cmbsoft.livecontrol;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 
 import be.cmbsoft.ilda.IldaFrame;
@@ -16,7 +17,6 @@ import be.cmbsoft.livecontrol.sources.Source;
 import processing.core.PGraphics;
 
 import static be.cmbsoft.livecontrol.LiveControl.log;
-import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 import static processing.core.PConstants.P3D;
 
 public class Matrix
@@ -30,7 +30,7 @@ public class Matrix
     private final boolean[][]     matrix              = new boolean[ROWS][MODIFIERS + OUTPUTS];
     private final List<Effect>    modifiers           = new ArrayList<>();
     private final PGraphics[]     sourceVisualisation = new PGraphics[8];
-    private final IldaFrame[]     processedFrames     = new IldaFrame[ROWS];
+    private final List<List<IldaPoint>> processedFrames = new ArrayList<>(ROWS);
     private final Optimiser optimiser;
 
     public Matrix(Function<Integer, SourceWrapper> sourceProvider,
@@ -42,6 +42,10 @@ public class Matrix
         }
         this.outputProvider = outputProvider;
         optimiser = new Optimiser(optimisationSettings);
+        for (int i = 0; i < ROWS; i++)
+        {
+            processedFrames.add(List.of());
+        }
     }
 
     public void update()
@@ -54,52 +58,51 @@ public class Matrix
         for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++)
         {
 
-            IldaFrame ildaFrame = Optional.ofNullable(sources[sourceIndex])
+            List<IldaPoint> points = Optional.ofNullable(sources[sourceIndex])
                                           .map(SourceWrapper::getFrame)
-                                          .orElse(EMPTY_FRAME);
+                                             .map(IldaFrame::getCopyOnWritePoints)
+                                             .orElse(new ArrayList<>());
             for (int modifierIndex = 0; modifierIndex < MODIFIERS; modifierIndex++)
             {
                 if (matrix[sourceIndex][modifierIndex])
                 {
-                    ildaFrame = getModifier(modifierIndex).apply(ildaFrame);
+                    points = getModifier(modifierIndex).apply(points);
                 }
             }
-            processedFrames[sourceIndex] = ildaFrame;
+            processedFrames.set(sourceIndex, points);
         }
         // For all outputs
         for (int outputIndex = MODIFIERS; outputIndex < MODIFIERS + OUTPUTS; outputIndex++)
         {
-            IldaFrame frame = null;
+            List<IldaPoint> frame = null;
             for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++)
             {
 
                 if (matrix[sourceIndex][outputIndex])
                 {
-                    IldaFrame processedFrame = processedFrames[sourceIndex];
+                    List<IldaPoint> processedPoints = processedFrames.get(sourceIndex);
                     if (frame == null)
                     {
-                        frame = processedFrame;
+                        frame = processedPoints;
                     }
                     else
                     {
-                        List<IldaPoint> points = processedFrame.getCopyOnWritePoints();
-                        if (!points.isEmpty())
+                        if (!processedPoints.isEmpty())
                         {
-                            IldaPoint firstPoint     = points.get(0);
+                            IldaPoint firstPoint = processedPoints.get(0);
                             IldaPoint duplicateFirst = new IldaPoint(firstPoint);
                             duplicateFirst.setBlanked(true);
-                            // FIXME this circumvents interpolation...
-                            frame.getPoints().add(duplicateFirst);
-                            frame.getPoints().addAll(points);
+                            frame.add(duplicateFirst);
+                            frame.addAll(processedPoints);
                         }
                     }
                 }
             }
             if (frame == null)
             {
-                frame = EMPTY_FRAME;
+                frame = List.of();
             }
-            optimiser.optimiseSegment(frame.getPoints());
+            frame = optimiser.optimiseSegment(new CopyOnWriteArrayList<>(frame));
             outputProvider.apply(outputIndex - MODIFIERS).project(frame);
         }
     }
