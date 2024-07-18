@@ -14,6 +14,7 @@ public abstract class AudioSource extends Source
     {
         this.parent = parent;
         renderer = new IldaRenderer(parent);
+        renderer.setOptimise(true);
     }
 
     protected IldaRenderer getRenderer()

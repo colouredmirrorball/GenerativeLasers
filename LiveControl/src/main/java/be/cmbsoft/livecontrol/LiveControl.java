@@ -20,6 +20,7 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.jetbrains.annotations.NotNull;
 
 import be.cmbsoft.ilda.IldaPoint;
+import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
 import be.cmbsoft.laseroutput.LsxOscOutput;
@@ -85,8 +86,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private final Matrix                    matrix;
     private final EffectConfigurator        effectConfigurator;
     private final Map<String, Parameter<?>> parameterMap   = new HashMap<>();
-//    private final List<Source>           activeSources        = new ArrayList<>();
-
 
     private ControlP5                                              controlP5;
     private GUI                                                    gui;
@@ -133,7 +132,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             log("Could not initialise settings...");
         }
         settings = settings1;
-        matrix = new Matrix(getSourceProvider(), getOutputProvider());
+        OptimisationSettings optimisationSettings = new OptimisationSettings();
+        optimisationSettings.setBlankDwell(true);
+        optimisationSettings.setBlankDwellAmount(5);
+        //        optimisationSettings.fromJSON(settings.getOptimisationSettings());
+        matrix = new Matrix(getSourceProvider(), getOutputProvider(), optimisationSettings);
         effectConfigurator = new EffectConfigurator(this);
         setupMidi();
     }
@@ -262,7 +265,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             outputs.put(UUID.randomUUID(), createOutput(output));
         }
 
-        outputs.put(UUID.randomUUID(), new EtherdreamOutput());
+//        outputs.put(UUID.randomUUID(), new EtherdreamOutput());
         buildDefaultSettings();
 
         audioProcessor = new AudioProcessor(this);
@@ -292,7 +295,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 //        settings.etherdreamOutputs.add(etherdreamOutputSettings);
 
         SourceSettings ildaSource = new SourceSettings();
-        ildaSource.setIldaFolder("D:\\Laser\\ILDA");
+        ildaSource.setIldaFolder("D:\\Laser\\ILDA\\Live");
         ildaSource.setType(SourceType.ILDA_FOLDER);
         SourceSettings audioSource = new SourceSettings();
 //        ildaSource.setIldaFolder("D:\\Laser\\ILDA");

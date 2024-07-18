@@ -13,6 +13,7 @@ public class Settings
     private String midiMatrixInputDevice;
     private String midiMatrixOutputDevice;
     private String midiControlDevice;
+    private String optimisationSettings;
 
     public List<SourceSettings> getSources()
     {
@@ -52,6 +53,16 @@ public class Settings
     public void setMidiControlDevice(String midiControlDevice)
     {
         this.midiControlDevice = midiControlDevice;
+    }
+
+    public String getOptimisationSettings()
+    {
+        return optimisationSettings;
+    }
+
+    public void setOptimisationSettings(String optimisationSettings)
+    {
+        this.optimisationSettings = optimisationSettings;
     }
 
 

@@ -7,6 +7,8 @@ import java.util.function.Function;
 
 import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.ilda.IldaPoint;
+import be.cmbsoft.ilda.OptimisationSettings;
+import be.cmbsoft.ilda.Optimiser;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
@@ -29,14 +31,17 @@ public class Matrix
     private final List<Effect>    modifiers           = new ArrayList<>();
     private final PGraphics[]     sourceVisualisation = new PGraphics[8];
     private final IldaFrame[]     processedFrames     = new IldaFrame[ROWS];
+    private final Optimiser optimiser;
 
-    public Matrix(Function<Integer, SourceWrapper> sourceProvider, Function<Integer, LaserOutputWrapper> outputProvider)
+    public Matrix(Function<Integer, SourceWrapper> sourceProvider,
+        Function<Integer, LaserOutputWrapper> outputProvider, OptimisationSettings optimisationSettings)
     {
         for (int i = 0; i < ROWS; i++)
         {
             sources[i] = Optional.ofNullable(sourceProvider.apply(i)).orElse(new EmptySourceWrapper());
         }
         this.outputProvider = outputProvider;
+        optimiser = new Optimiser(optimisationSettings);
     }
 
     public void update()
@@ -77,7 +82,7 @@ public class Matrix
                     }
                     else
                     {
-                        List<IldaPoint> points = processedFrame.getPoints();
+                        List<IldaPoint> points = processedFrame.getCopyOnWritePoints();
                         if (!points.isEmpty())
                         {
                             IldaPoint firstPoint     = points.get(0);
@@ -90,7 +95,12 @@ public class Matrix
                     }
                 }
             }
-            outputProvider.apply(outputIndex - MODIFIERS).project(frame == null ? EMPTY_FRAME : frame);
+            if (frame == null)
+            {
+                frame = EMPTY_FRAME;
+            }
+            optimiser.optimiseSegment(frame.getPoints());
+            outputProvider.apply(outputIndex - MODIFIERS).project(frame);
         }
     }
 
