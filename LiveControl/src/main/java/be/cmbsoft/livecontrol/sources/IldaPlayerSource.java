@@ -13,7 +13,7 @@ public class IldaPlayerSource extends Source
 
     public IldaPlayerSource(File ildaFile)
     {
-        frames = IldaReader.readFile(ildaFile);
+        frames = ildaFile.getPath().endsWith("ild") ? IldaReader.readFile(ildaFile) : List.of();
     }
 
     public IldaPlayerSource(List<IldaFrame> frames)

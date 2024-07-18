@@ -10,6 +10,9 @@ public class Settings
     public List<LsxOutputSettings>        lsxOutputs        = new ArrayList<>();
     public List<EtherdreamOutputSettings> etherdreamOutputs = new ArrayList<>();
     private List<SourceSettings> sources;
+    private String midiMatrixInputDevice;
+    private String midiMatrixOutputDevice;
+    private String midiControlDevice;
 
     public List<SourceSettings> getSources()
     {
@@ -19,6 +22,36 @@ public class Settings
     public void setSources(List<SourceSettings> sources)
     {
         this.sources = sources;
+    }
+
+    public String getMidiMatrixInputDevice()
+    {
+        return midiMatrixInputDevice;
+    }
+
+    public void setMidiMatrixInputDevice(String midiMatrixInputDevice)
+    {
+        this.midiMatrixInputDevice = midiMatrixInputDevice;
+    }
+
+    public String getMidiMatrixOutputDevice()
+    {
+        return midiMatrixOutputDevice;
+    }
+
+    public void setMidiMatrixOutputDevice(String midiMatrixOutputDevice)
+    {
+        this.midiMatrixOutputDevice = midiMatrixOutputDevice;
+    }
+
+    public String getMidiControlDevice()
+    {
+        return midiControlDevice;
+    }
+
+    public void setMidiControlDevice(String midiControlDevice)
+    {
+        this.midiControlDevice = midiControlDevice;
     }
 
 

@@ -73,12 +73,12 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             }
         });
 
-    private final        Settings                          settings;
-    private final        File                              settingsFile = new File("settings.json");
-    private final        ObjectMapper                      objectMapper;
-    private final        Map<Integer, PFont>               fonts        = new HashMap<>();
-    private final        CircularFifoQueue<UndoableAction> actions      = new CircularFifoQueue<>(128);
-    private final        List<UndoableAction>              redoList     = new ArrayList<>();
+    private final Settings                          settings;
+    private final File                              settingsFile = new File("settings.json");
+    private final ObjectMapper                      objectMapper;
+    private final Map<Integer, PFont>               fonts        = new HashMap<>();
+    private final CircularFifoQueue<UndoableAction> actions      = new CircularFifoQueue<>(128);
+    private final List<UndoableAction>              redoList     = new ArrayList<>();
 
     private final EtherdreamOutput          discoverDevice = new EtherdreamOutput();
     private final Map<UUID, LaserOutput>    outputs        = new HashMap<>();
@@ -102,10 +102,13 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private AudioProcessor audioProcessor;
 
     private MidiBus    midiBus;
-    private MidiDevice midiDevice;
+    public  PGraphics previousIcon;
+    public  PGraphics nextIcon;
+    private MidiDevice matrixInputDevice;
     private boolean    booted = false;
-
-    private PImage network;
+    private MidiDevice matrixOutputDevice;
+    private MidiDevice controlDevice;
+    private PImage    network;
 
     public LiveControl()
     {
@@ -137,9 +140,12 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     private void setupMidi()
     {
-        MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
-        String            theMIDIDevice  = "MIDIIN2 (Launchpad Pro)";
-        MidiDevice.Info   selectedDevice = null;
+        MidiDevice.Info[] midiDeviceInfo               = MidiSystem.getMidiDeviceInfo();
+        String            matrixInputDeviceIdentifier  = settings.getMidiMatrixInputDevice();
+        String            matrixOutputDeviceIdentifier = settings.getMidiMatrixOutputDevice();
+        String            controlDeviceIdentifier      = settings.getMidiControlDevice();
+        String            theMIDIDevice                = "MIDIIN2 (Launchpad Pro)";
+        MidiDevice.Info   selectedDevice               = null;
         log("Looking for MIDI devices...");
         for (MidiDevice.Info info : midiDeviceInfo)
         {
@@ -154,16 +160,16 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         {
             if (selectedDevice != null)
             {
-                midiDevice = MidiSystem.getMidiDevice(selectedDevice);
-                if (midiDevice.getMaxTransmitters() == 0)
+                matrixInputDevice = MidiSystem.getMidiDevice(selectedDevice);
+                if (matrixInputDevice.getMaxTransmitters() == 0)
                 {
                     log(theMIDIDevice + " is not an input...");
                 }
 
-                Transmitter transmitter = midiDevice.getTransmitter();
+                Transmitter transmitter = matrixInputDevice.getTransmitter();
                 transmitter.setReceiver(this);
 
-                midiDevice.open();
+                matrixInputDevice.open();
             }
             else
             {
@@ -266,6 +272,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         uiConfig = new UIConfig(this);
         network = shapeToPGraphic(44, 44, uiConfig.getBackgroundColor(), uiConfig.getForegroundColor(),
             loadIconShape("network").orElse(new PShape()));
+        nextIcon = shapeToPGraphic(20, 20, 0, uiConfig.getForegroundColor(),
+            loadIconShape("next").orElse(new PShape()));
+        previousIcon = shapeToPGraphic(20, 20, 0, uiConfig.getForegroundColor(),
+            loadIconShape("previous").orElse(new PShape()));
         buildUI(controlP5, gui, this);
         prevWidth = width;
         prevHeight = height;
@@ -277,9 +287,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     private void buildDefaultSettings()
     {
-        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
-        etherdreamOutputSettings.alias = "6E851F3F2177";
-        settings.etherdreamOutputs.add(etherdreamOutputSettings);
+//        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
+//        etherdreamOutputSettings.alias = "6E851F3F2177";
+//        settings.etherdreamOutputs.add(etherdreamOutputSettings);
 
         SourceSettings ildaSource = new SourceSettings();
         ildaSource.setIldaFolder("D:\\Laser\\ILDA");
@@ -402,11 +412,22 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     }
 
     @Override
+    public void keyPressed()
+    {
+        if (key == ESC)
+        {
+            outputs.values().forEach(LaserOutput::halt);
+            key = 0;
+
+        }
+    }
+
+    @Override
     public void exit()
     {
         outputs.values().forEach(LaserOutput::halt);
         saveSettings();
-        if (midiDevice != null)
+        if (matrixInputDevice != null)
         {
             close();
         }
@@ -759,7 +780,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     @Override
     public void close()
     {
-        midiDevice.close();
+        matrixInputDevice.close();
     }
 
     public boolean isMouseOver(int x, int y, int x2, int y2)

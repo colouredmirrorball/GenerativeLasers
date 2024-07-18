@@ -18,7 +18,7 @@ public class AudioEffectsSourceWrapper extends SourceWrapper
     public AudioEffectsSourceWrapper(LiveControl liveControl)
     {
         AudioProcessor audioProcessor = liveControl.getAudioProcessor();
-        sources = List.of(new SpectrumBarsSource(audioProcessor, liveControl), new VUBarsSource(audioProcessor,
+        sources = List.of(new SpectrumBarsSource(audioProcessor, liveControl), new VUBarsSource(
             liveControl), new WaveformSource(audioProcessor, liveControl));
     }
 

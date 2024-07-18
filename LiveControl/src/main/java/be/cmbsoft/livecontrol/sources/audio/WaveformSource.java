@@ -19,7 +19,7 @@ public class WaveformSource extends AudioSource
 
     public WaveformSource(AudioProcessor processor, LiveControl parent)
     {
-        super(processor, parent);
+        super(parent);
         width = parent.width;
         height = parent.height;
         hueParameter = new Parameter<>("waveformHue", Integer.class);
@@ -33,6 +33,7 @@ public class WaveformSource extends AudioSource
         float[]      samples   = getProcessor().getWaveform().analyze();
         int          hue       = Optional.ofNullable(hueParameter.getValue()).orElse(0);
         float        intensity = getProcessor().getAmplitudeLeft().analyze();
+        r.beginDraw();
         r.stroke(hue, 255, map(intensity, 0, 0.3f, 25, 255));
 
         r.beginShape(LINE);
@@ -41,6 +42,7 @@ public class WaveformSource extends AudioSource
             r.vertex(map(i, 0, getProcessor().getSamplesAmount(), 0, width), map(samples[i], -1, 1, 0, height));
         }
         r.endShape();
+        r.endDraw();
     }
 
 

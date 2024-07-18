@@ -2,17 +2,17 @@ package be.cmbsoft.livecontrol.sources.audio;
 
 import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.ilda.IldaRenderer;
+import be.cmbsoft.livecontrol.LiveControl;
 import be.cmbsoft.livecontrol.sources.Source;
-import processing.core.PApplet;
 
 public abstract class AudioSource extends Source
 {
-    private final AudioProcessor processor;
-    private final IldaRenderer   renderer;
+    private final IldaRenderer renderer;
+    private final LiveControl  parent;
 
-    protected AudioSource(AudioProcessor processor, PApplet parent)
+    protected AudioSource(LiveControl parent)
     {
-        this.processor = processor;
+        this.parent = parent;
         renderer = new IldaRenderer(parent);
     }
 
@@ -29,7 +29,7 @@ public abstract class AudioSource extends Source
 
     protected AudioProcessor getProcessor()
     {
-        return processor;
+        return parent.getAudioProcessor();
     }
 
 }

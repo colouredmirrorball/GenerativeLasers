@@ -1,7 +1,7 @@
 package be.cmbsoft.livecontrol.sources.audio;
 
 import be.cmbsoft.ilda.IldaRenderer;
-import processing.core.PApplet;
+import be.cmbsoft.livecontrol.LiveControl;
 
 import static processing.core.PApplet.map;
 import static processing.core.PConstants.HSB;
@@ -14,9 +14,9 @@ public class SpectrumBarsSource extends AudioSource
     private final        int height;
 
 
-    public SpectrumBarsSource(AudioProcessor processor, PApplet parent)
+    public SpectrumBarsSource(AudioProcessor processor, LiveControl parent)
     {
-        super(processor, parent);
+        super(parent);
         barWidth = parent.width / MAX_BANDS;
         height = parent.height;
     }
@@ -25,6 +25,7 @@ public class SpectrumBarsSource extends AudioSource
     public void update()
     {
         IldaRenderer renderer = getRenderer();
+        renderer.beginDraw();
         renderer.colorMode(HSB);
         float[] spectrum = getProcessor().getAnalysedFftSpectrum();
         for (int i = 0; i < MAX_BANDS; i++)
@@ -34,6 +35,7 @@ public class SpectrumBarsSource extends AudioSource
             // Draw the rectangles, adjust their height using the scale factor
             renderer.rect(i * barWidth, height, barWidth, -signal * height * 2);
         }
+        renderer.endDraw();
     }
 
 

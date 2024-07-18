@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import be.cmbsoft.ilda.IldaFrame;
+import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
@@ -13,6 +14,7 @@ import be.cmbsoft.livecontrol.sources.Source;
 import processing.core.PGraphics;
 
 import static be.cmbsoft.livecontrol.LiveControl.log;
+import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 import static processing.core.PConstants.P3D;
 
 public class Matrix
@@ -21,11 +23,12 @@ public class Matrix
     public static final int MODIFIERS = 4;
     public static final int OUTPUTS   = 4;
 
-    private final SourceWrapper[]                sources              = new SourceWrapper[ROWS];
+    private final SourceWrapper[] sources             = new SourceWrapper[ROWS];
     private final Function<Integer, LaserOutputWrapper> outputProvider;
-    private final boolean[][]                    matrix               = new boolean[ROWS][MODIFIERS + OUTPUTS];
-    private final List<Effect>                   modifiers            = new ArrayList<>();
-    private final PGraphics[]                    effectVisualisations = new PGraphics[8];
+    private final boolean[][]     matrix              = new boolean[ROWS][MODIFIERS + OUTPUTS];
+    private final List<Effect>    modifiers           = new ArrayList<>();
+    private final PGraphics[]     sourceVisualisation = new PGraphics[8];
+    private final IldaFrame[]     processedFrames     = new IldaFrame[ROWS];
 
     public Matrix(Function<Integer, SourceWrapper> sourceProvider, Function<Integer, LaserOutputWrapper> outputProvider)
     {
@@ -42,27 +45,52 @@ public class Matrix
         {
             Optional.ofNullable(source).map(s -> s.source).ifPresent(Source::update);
         }
+        // Go over every source
+        for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++)
+        {
+
+            IldaFrame ildaFrame = Optional.ofNullable(sources[sourceIndex])
+                                          .map(SourceWrapper::getFrame)
+                                          .orElse(EMPTY_FRAME);
+            for (int modifierIndex = 0; modifierIndex < MODIFIERS; modifierIndex++)
+            {
+                if (matrix[sourceIndex][modifierIndex])
+                {
+                    ildaFrame = getModifier(modifierIndex).apply(ildaFrame);
+                }
+            }
+            processedFrames[sourceIndex] = ildaFrame;
+        }
         // For all outputs
         for (int outputIndex = MODIFIERS; outputIndex < MODIFIERS + OUTPUTS; outputIndex++)
         {
-            // Go over every source
+            IldaFrame frame = null;
             for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++)
             {
+
                 if (matrix[sourceIndex][outputIndex])
                 {
-                    IldaFrame ildaFrame = Optional.ofNullable(sources[sourceIndex])
-                                                  .map(SourceWrapper::getFrame)
-                                                  .orElse(new IldaFrame());
-                    for (int modifierIndex = 0; modifierIndex < MODIFIERS; modifierIndex++)
+                    IldaFrame processedFrame = processedFrames[sourceIndex];
+                    if (frame == null)
                     {
-                        if (matrix[sourceIndex][modifierIndex])
+                        frame = processedFrame;
+                    }
+                    else
+                    {
+                        List<IldaPoint> points = processedFrame.getPoints();
+                        if (!points.isEmpty())
                         {
-                            ildaFrame = getModifier(modifierIndex).apply(ildaFrame);
+                            IldaPoint firstPoint     = points.get(0);
+                            IldaPoint duplicateFirst = new IldaPoint(firstPoint);
+                            duplicateFirst.setBlanked(true);
+                            // FIXME this circumvents interpolation...
+                            frame.getPoints().add(duplicateFirst);
+                            frame.getPoints().addAll(points);
                         }
                     }
-                    outputProvider.apply(outputIndex).project(ildaFrame);
                 }
             }
+            outputProvider.apply(outputIndex - MODIFIERS).project(frame == null ? EMPTY_FRAME : frame);
         }
     }
 
@@ -151,11 +179,21 @@ public class Matrix
         for (SourceWrapper wrapper : sources)
         {
             Source source = wrapper.source;
-            if (effectVisualisations[i] == null)
+            if (sourceVisualisation[i] == null)
             {
-                effectVisualisations[i] = parent.createGraphics(w, h, P3D);
+                sourceVisualisation[i] = parent.createGraphics(w, h, P3D);
             }
-            PGraphics visualisation = effectVisualisations[i];
+            parent.image(parent.previousIcon, x - 27, y + 30);
+            parent.image(parent.nextIcon, x + w + 7, y + 30);
+            if (parent.isMouseClicked() && parent.isMouseOver(x - 27, y, x, y + h))
+            {
+                wrapper.previous();
+            }
+            if (parent.isMouseClicked() && parent.isMouseOver(x + w, y, x + w + 27, y + h))
+            {
+                wrapper.next();
+            }
+            PGraphics visualisation = sourceVisualisation[i];
             visualisation.beginDraw();
             visualisation.background(0);
             Optional.ofNullable(source).map(Source::getFrame)
@@ -188,11 +226,6 @@ public class Matrix
     public void disable(int row, int column)
     {
         matrix[row][column] = false;
-    }
-
-    public int getColor(int row, int column)
-    {
-        return matrix[row][column] ? 255 : 0;
     }
 
 }
