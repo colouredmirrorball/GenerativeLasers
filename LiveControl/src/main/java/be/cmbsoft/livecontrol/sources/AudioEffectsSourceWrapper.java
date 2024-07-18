@@ -7,6 +7,8 @@ import be.cmbsoft.livecontrol.SourceWrapper;
 import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.sources.audio.AudioSource;
 import be.cmbsoft.livecontrol.sources.audio.SpectrumBarsSource;
+import be.cmbsoft.livecontrol.sources.audio.VUBarsSource;
+import be.cmbsoft.livecontrol.sources.audio.WaveformSource;
 
 public class AudioEffectsSourceWrapper extends SourceWrapper
 {
@@ -16,7 +18,8 @@ public class AudioEffectsSourceWrapper extends SourceWrapper
     public AudioEffectsSourceWrapper(LiveControl liveControl)
     {
         AudioProcessor audioProcessor = liveControl.getAudioProcessor();
-        sources = List.of(new SpectrumBarsSource(audioProcessor, liveControl));
+        sources = List.of(new SpectrumBarsSource(audioProcessor, liveControl), new VUBarsSource(audioProcessor,
+            liveControl), new WaveformSource(audioProcessor, liveControl));
     }
 
     @Override

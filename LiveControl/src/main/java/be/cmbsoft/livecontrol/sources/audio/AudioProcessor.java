@@ -8,7 +8,7 @@ import processing.sound.Waveform;
 
 public class AudioProcessor
 {
-    private final Amplitude amplitude;
+
     private final Waveform  waveform;
     private final FFT       fft;
     private final AudioIn   inputLeft;
@@ -27,9 +27,6 @@ public class AudioProcessor
         inputRight = new AudioIn(parent, 1);
         inputRight.start();
 
-        amplitude = new Amplitude(parent);
-        amplitude.input(inputLeft);
-
         amplitudeRight = new Amplitude(parent);
         amplitudeRight.input(inputRight);
 
@@ -41,11 +38,6 @@ public class AudioProcessor
 
         fft = new FFT(parent, bands);
         fft.input(inputLeft);
-    }
-
-    public Amplitude getAmplitude()
-    {
-        return amplitude;
     }
 
     public Amplitude getAmplitudeLeft()
@@ -82,6 +74,11 @@ public class AudioProcessor
     {
         fft.analyze();
         return fft.spectrum;
+    }
+
+    public int getSamplesAmount()
+    {
+        return samples;
     }
 
 }

@@ -1,0 +1,47 @@
+package be.cmbsoft.livecontrol.sources.audio;
+
+import java.util.Optional;
+
+import be.cmbsoft.ilda.IldaRenderer;
+import be.cmbsoft.livecontrol.LiveControl;
+import be.cmbsoft.livecontrol.fx.Parameter;
+
+import static processing.core.PApplet.map;
+import static processing.core.PConstants.LINE;
+
+public class WaveformSource extends AudioSource
+{
+
+
+    private final int                width;
+    private final int                height;
+    private final Parameter<Integer> hueParameter;
+
+    public WaveformSource(AudioProcessor processor, LiveControl parent)
+    {
+        super(processor, parent);
+        width = parent.width;
+        height = parent.height;
+        hueParameter = new Parameter<>("waveformHue", Integer.class);
+        parent.newParameter("waveformHue", hueParameter);
+    }
+
+    @Override
+    public void update()
+    {
+        IldaRenderer r         = getRenderer();
+        float[]      samples   = getProcessor().getWaveform().analyze();
+        int          hue       = Optional.ofNullable(hueParameter.getValue()).orElse(0);
+        float        intensity = getProcessor().getAmplitudeLeft().analyze();
+        r.stroke(hue, 255, map(intensity, 0, 0.3f, 25, 255));
+
+        r.beginShape(LINE);
+        for (int i = 0; i < getProcessor().getSamplesAmount(); i++)
+        {
+            r.vertex(map(i, 0, getProcessor().getSamplesAmount(), 0, width), map(samples[i], -1, 1, 0, height));
+        }
+        r.endShape();
+    }
+
+
+}
