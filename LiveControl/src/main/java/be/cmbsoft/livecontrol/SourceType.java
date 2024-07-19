@@ -2,5 +2,5 @@ package be.cmbsoft.livecontrol;
 
 public enum SourceType
 {
-    ILDA_FOLDER, AUDIO;
+    ILDA_FOLDER, AUDIO, BEAMS
 }
