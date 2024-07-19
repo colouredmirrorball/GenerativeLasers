@@ -151,7 +151,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
                 midiContainer.output(x, y, matrix);
             }
         });
-        midiContainer.setupMidi(settings, () -> new ControlHandler(this));
+        midiContainer.setupMidi(settings, () -> new ControlHandler(this), () -> matrix);
         chaser = new Chaser(this, matrix);
     }
 
@@ -802,6 +802,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     public void disableChase(int chaseIndex)
     {
         chaser.disable(chaseIndex);
+    }
+
+    public void setFlash(boolean b)
+    {
+        matrix.setFlashMode(b);
     }
 
 }

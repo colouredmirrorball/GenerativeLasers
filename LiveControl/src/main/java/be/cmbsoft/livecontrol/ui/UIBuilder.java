@@ -7,6 +7,8 @@ import be.cmbsoft.livecontrol.LiveControl;
 import be.cmbsoft.livecontrol.actions.AddOutput;
 import be.cmbsoft.livecontrol.actions.ChaseDisabledAction;
 import be.cmbsoft.livecontrol.actions.ChaseEnabledAction;
+import be.cmbsoft.livecontrol.actions.FlashDisabledAction;
+import be.cmbsoft.livecontrol.actions.FlashEnabledAction;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import controlP5.ControlP5;
@@ -47,6 +49,23 @@ public class UIBuilder
             chaseButton(gui, parent, index);
         }
 
+
+        gui.addToggle("Flash mode")
+           .setEnabledAction(() -> parent.doAction(new FlashEnabledAction(parent)))
+           .setDisabledAction(() -> parent.doAction(new FlashDisabledAction(parent)))
+           .setPosition(new be.cmbsoft.livecontrol.gui.PositionCalculator()
+           {
+               @Override
+               public PVector updatePosition(GUIContainer parent)
+               {
+                   return new PVector(parent.getWidth() - 300, 800);
+               }
+           })
+           .setSize(256, 64)
+           .setInfoText("Toggle flash mode")
+           .setFontSize(32)
+           .setGroupIndex(DEFAULT.ordinal())
+        ;
 
         controlP5.Tab output = controlP5.addTab("Outputs").setHeight(tabHeight)
 

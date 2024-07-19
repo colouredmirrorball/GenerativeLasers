@@ -10,77 +10,126 @@ import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.ilda.Optimiser;
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.chase.ChaseReceiver;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
+import be.cmbsoft.livecontrol.midi.MidiReceiver;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
-import static processing.core.PConstants.P3D;
 import processing.core.PGraphics;
 
-public class Matrix implements ChaseReceiver
+import static be.cmbsoft.livecontrol.LiveControl.log;
+import static processing.core.PConstants.P3D;
+
+public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
 {
+    public static final int                                   ROWS                = 8;
+    public static final int                                   MODIFIERS           = 4;
+    public static final int                                   OUTPUTS             = 4;
+
     public interface MatrixListener
     {
         void onUpdate(int i, int j, boolean matrix);
 
     }
-    public static final int ROWS      = 8;
-    public static final int MODIFIERS = 4;
-    public static final int OUTPUTS   = 4;
-    private final SourceWrapper[]       sources             = new SourceWrapper[ROWS];
-    private final Function<Integer, LaserOutputWrapper> outputProvider;
-    private final boolean[][]           matrix              = new boolean[ROWS][MODIFIERS + OUTPUTS];
-    private final List<Effect>          modifiers           = new ArrayList<>();
-    private final PGraphics[]           sourceVisualisation = new PGraphics[8];
-    private final List<List<IldaPoint>> processedFrames     = new ArrayList<>(ROWS);
-    private final Optimiser             optimiser;
-    private final List<MatrixListener>  listeners           = new ArrayList<>();
-
+    private final       SourceWrapper[]                       sources             = new SourceWrapper[ROWS];
+    private final       Function<Integer, LaserOutputWrapper> outputProvider;
+    private final       boolean[][]                           matrix              =
+        new boolean[ROWS][MODIFIERS + OUTPUTS];
+    private final       List<Effect>                          modifiers           = new ArrayList<>();
+    private final       PGraphics[]                           sourceVisualisation = new PGraphics[8];
+    private final       List<List<IldaPoint>>                 processedFrames     = new ArrayList<>(ROWS);
+    private final       Optimiser                             optimiser;
+    private final       List<MatrixListener>                  listeners           = new ArrayList<>();
+    private             boolean                               flashMode           = true;
     public Matrix(Function<Integer, SourceWrapper> sourceProvider, Function<Integer, LaserOutputWrapper> outputProvider,
         OptimisationSettings optimisationSettings)
     {
-        for (int i = 0; i < ROWS; i++) {
+        for (int i = 0; i < ROWS; i++)
+        {
             sources[i] = Optional.ofNullable(sourceProvider.apply(i)).orElse(new EmptySourceWrapper());
         }
         this.outputProvider = outputProvider;
         optimiser = new Optimiser(optimisationSettings);
-        for (int i = 0; i < ROWS; i++) {
+        for (int i = 0; i < ROWS; i++)
+        {
             processedFrames.add(List.of());
         }
     }
 
+    @Override
+    public void noteOn(int channel, int pitch, int velocity)
+    {
+        int x = 8 - pitch / 10;
+        int y = pitch % 10 - 1;
+        if (flashMode)
+        {
+            enable(x, y);
+        }
+        else
+        {
+            toggleAndPublish(x, y);
+        }
+    }
+
+    @Override
+    public void noteOff(int channel, int pitch, int velocity)
+    {
+        int x = 8 - pitch / 10;
+        int y = pitch % 10 - 1;
+        if (flashMode)
+        {
+            disable(x, y);
+        }
+    }
+
+    @Override
+    public void controlChange(int channel, int pitch, int velocity)
+    {
+
+    }
+
     public void update()
     {
-        for (SourceWrapper source: sources) {
+        for (SourceWrapper source : sources)
+        {
             Optional.ofNullable(source).map(s -> s.source).ifPresent(Source::update);
         }
         // Go over every source
-        for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++) {
+        for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++)
+        {
 
             List<IldaPoint> points = Optional.ofNullable(sources[sourceIndex])
-                .map(SourceWrapper::getFrame)
-                .map(IldaFrame::getCopyOnWritePoints)
-                .orElse(new ArrayList<>());
-            for (int modifierIndex = 0; modifierIndex < MODIFIERS; modifierIndex++) {
-                if (matrix[sourceIndex][modifierIndex]) {
+                                             .map(SourceWrapper::getFrame)
+                                             .map(IldaFrame::getCopyOnWritePoints)
+                                             .orElse(new ArrayList<>());
+            for (int modifierIndex = 0; modifierIndex < MODIFIERS; modifierIndex++)
+            {
+                if (matrix[sourceIndex][modifierIndex])
+                {
                     points = getModifier(modifierIndex).apply(points);
                 }
             }
             processedFrames.set(sourceIndex, points);
         }
         // For all outputs
-        for (int outputIndex = MODIFIERS; outputIndex < MODIFIERS + OUTPUTS; outputIndex++) {
+        for (int outputIndex = MODIFIERS; outputIndex < MODIFIERS + OUTPUTS; outputIndex++)
+        {
             List<IldaPoint> frame = null;
-            for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++) {
+            for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++)
+            {
 
-                if (matrix[sourceIndex][outputIndex]) {
+                if (matrix[sourceIndex][outputIndex])
+                {
                     List<IldaPoint> processedPoints = processedFrames.get(sourceIndex);
-                    if (frame == null) {
+                    if (frame == null)
+                    {
                         frame = processedPoints;
-                    } else {
-                        if (!processedPoints.isEmpty()) {
+                    }
+                    else
+                    {
+                        if (!processedPoints.isEmpty())
+                        {
                             IldaPoint firstPoint = processedPoints.get(0);
                             IldaPoint duplicateFirst = new IldaPoint(firstPoint);
                             duplicateFirst.setBlanked(true);
@@ -90,7 +139,8 @@ public class Matrix implements ChaseReceiver
                     }
                 }
             }
-            if (frame == null) {
+            if (frame == null)
+            {
                 frame = List.of();
             }
             frame = optimiser.optimiseSegment(new CopyOnWriteArrayList<>(frame));
@@ -117,14 +167,17 @@ public class Matrix implements ChaseReceiver
         int y = 80;
         int w = 80;
         int h = 80;
-        for (int i = 0; i < MODIFIERS; i++) {
-            if (i < modifiers.size()) {
+        for (int i = 0; i < MODIFIERS; i++)
+        {
+            if (i < modifiers.size())
+            {
                 Effect modifier = modifiers.get(i);
                 drawModifier(parent, modifier, x, y, w, h);
             }
             x += w + 15;
         }
-        for (int i = 0; i < OUTPUTS; i++) {
+        for (int i = 0; i < OUTPUTS; i++)
+        {
             LaserOutputWrapper output = outputProvider.apply(i);
             output.display(parent, x, y, w, h);
             x += w + 15;
@@ -132,15 +185,21 @@ public class Matrix implements ChaseReceiver
         x = 200;
         y = 200;
         parent.stroke(parent.getUiConfig().getForegroundColor());
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                if (parent.isMouseClicked() && parent.isMouseOver(x, y, x + w, y + h)) {
+        for (int i = 0; i < matrix.length; i++)
+        {
+            for (int j = 0; j < matrix[i].length; j++)
+            {
+                if (parent.isMouseClicked() && parent.isMouseOver(x, y, x + w, y + h))
+                {
                     toggleAndPublish(i, j);
                     parent.releaseMouse();
                 }
-                if (matrix[i][j]) {
+                if (matrix[i][j])
+                {
                     parent.fill(255);
-                } else {
+                }
+                else
+                {
                     parent.fill(0);
                 }
                 parent.rect(x, y, w, h);
@@ -164,11 +223,13 @@ public class Matrix implements ChaseReceiver
     public void enable(int row, int column)
     {
         matrix[row][column] = true;
+        publish(row, column, true);
     }
 
     public void disable(int row, int column)
     {
         matrix[row][column] = false;
+        publish(row, column, false);
     }
 
     public void addListener(MatrixListener listener)
@@ -178,7 +239,8 @@ public class Matrix implements ChaseReceiver
 
     private Effect getModifier(int modifierIndex)
     {
-        if (modifiers.size() <= modifierIndex) {
+        if (modifiers.size() <= modifierIndex)
+        {
             return new TrivialEffect();
         }
         return modifiers.get(modifierIndex);
@@ -208,25 +270,29 @@ public class Matrix implements ChaseReceiver
         int w = 80;
         int h = 80;
         int i = 0;
-        for (SourceWrapper wrapper: sources) {
+        for (SourceWrapper wrapper : sources)
+        {
             Source source = wrapper.source;
-            if (sourceVisualisation[i] == null) {
+            if (sourceVisualisation[i] == null)
+            {
                 sourceVisualisation[i] = parent.createGraphics(w, h, P3D);
             }
             parent.image(parent.previousIcon, x - 27, y + 30);
             parent.image(parent.nextIcon, x + w + 7, y + 30);
-            if (parent.isMouseClicked() && parent.isMouseOver(x - 27, y, x, y + h)) {
+            if (parent.isMouseClicked() && parent.isMouseOver(x - 27, y, x, y + h))
+            {
                 wrapper.previous();
             }
-            if (parent.isMouseClicked() && parent.isMouseOver(x + w, y, x + w + 27, y + h)) {
+            if (parent.isMouseClicked() && parent.isMouseOver(x + w, y, x + w + 27, y + h))
+            {
                 wrapper.next();
             }
             PGraphics visualisation = sourceVisualisation[i];
             visualisation.beginDraw();
             visualisation.background(0);
             Optional.ofNullable(source)
-                .map(Source::getFrame)
-                .ifPresent(frame -> frame.renderFrame(visualisation, true));
+                    .map(Source::getFrame)
+                    .ifPresent(frame -> frame.renderFrame(visualisation, true));
             visualisation.endDraw();
             parent.fill(parent.getUiConfig().getForegroundColor());
             parent.noStroke();
@@ -235,6 +301,16 @@ public class Matrix implements ChaseReceiver
             y += h + 15;
             i++;
         }
+    }
+
+    public boolean isFlashMode()
+    {
+        return flashMode;
+    }
+
+    public void setFlashMode(boolean flashMode)
+    {
+        this.flashMode = flashMode;
     }
 
 }

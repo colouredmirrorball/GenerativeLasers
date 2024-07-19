@@ -1,10 +1,10 @@
 package be.cmbsoft.livecontrol.midi;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
+import java.util.ArrayList;
+import java.util.List;
 
 import static be.cmbsoft.livecontrol.LiveControl.log;
 
@@ -19,7 +19,6 @@ public class MidiReceiver implements Receiver
     @Override
     public void send(MidiMessage message, long timeStamp)
     {
-//        if (!booted) return;
         if (message instanceof ShortMessage shortMessage)
         {
             int command = shortMessage.getCommand();
@@ -27,28 +26,24 @@ public class MidiReceiver implements Receiver
             int data1   = shortMessage.getData1();
             int data2   = shortMessage.getData2();
 
-//            Noot noot = new Noot(channel, data1);
 
             // Note On event
             if (command == ShortMessage.NOTE_ON)
             {
                 logMidi("Note On - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
                 noteOn(channel, data1, data2);
-//                activateEffect(noot);
             }
             // Note Off event
             else if (command == ShortMessage.NOTE_OFF)
             {
                 logMidi("Note Off - Channel: " + channel + ", Note: " + data1 + ", Velocity: " + data2);
                 noteOff(channel, data1, data2);
-//                deactivateEffect(noot);
             }
             // Control Change event
             else if (command == ShortMessage.CONTROL_CHANGE)
             {
                 logMidi("Control Change - Channel: " + channel + ", Controller: " + data1 + ", Value: " + data2);
                 controlChange(channel, data1, data2);
-//                processControl(noot, data2);
             }
         }
     }
@@ -83,7 +78,6 @@ public class MidiReceiver implements Receiver
     @Override
     public void close()
     {
-//        device.close();
     }
 
     public MidiReceiver addNoteListener(NoteListener listener)
