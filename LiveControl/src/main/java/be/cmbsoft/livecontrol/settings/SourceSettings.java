@@ -1,4 +1,4 @@
-package be.cmbsoft.livecontrol;
+package be.cmbsoft.livecontrol.settings;
 
 public class SourceSettings
 {

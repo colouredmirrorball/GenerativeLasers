@@ -46,4 +46,7 @@ public interface GUIContainer
 
     float getSliderDampFactor();
 
+    int getWidth();
+
+    int getHeight();
 }

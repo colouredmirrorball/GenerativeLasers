@@ -1,4 +1,4 @@
-package be.cmbsoft.livecontrol;
+package be.cmbsoft.livecontrol.settings;
 
 import java.util.ArrayList;
 import java.util.List;

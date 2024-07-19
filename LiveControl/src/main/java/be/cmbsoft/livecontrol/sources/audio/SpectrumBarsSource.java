@@ -2,7 +2,6 @@ package be.cmbsoft.livecontrol.sources.audio;
 
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.livecontrol.LiveControl;
-
 import static processing.core.PApplet.map;
 import static processing.core.PConstants.HSB;
 
@@ -14,7 +13,7 @@ public class SpectrumBarsSource extends AudioSource
     private final        int height;
 
 
-    public SpectrumBarsSource(AudioProcessor processor, LiveControl parent)
+    public SpectrumBarsSource(LiveControl parent)
     {
         super(parent);
         barWidth = parent.width / MAX_BANDS;

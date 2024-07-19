@@ -4,7 +4,6 @@ import java.util.List;
 
 import be.cmbsoft.livecontrol.LiveControl;
 import be.cmbsoft.livecontrol.SourceWrapper;
-import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.sources.audio.AudioSource;
 import be.cmbsoft.livecontrol.sources.audio.SpectrumBarsSource;
 import be.cmbsoft.livecontrol.sources.audio.VUBarsSource;
@@ -17,9 +16,8 @@ public class AudioEffectsSourceWrapper extends SourceWrapper
 
     public AudioEffectsSourceWrapper(LiveControl liveControl)
     {
-        AudioProcessor audioProcessor = liveControl.getAudioProcessor();
-        sources = List.of(new SpectrumBarsSource(audioProcessor, liveControl), new VUBarsSource(
-            liveControl), new WaveformSource(audioProcessor, liveControl));
+        sources = List.of(new SpectrumBarsSource(liveControl), new VUBarsSource(liveControl),
+            new WaveformSource(liveControl));
     }
 
     @Override

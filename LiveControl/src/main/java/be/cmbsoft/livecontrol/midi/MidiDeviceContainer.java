@@ -1,16 +1,18 @@
-package be.cmbsoft.livecontrol;
+package be.cmbsoft.livecontrol.midi;
 
+import java.util.Optional;
+import java.util.function.Supplier;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import static be.cmbsoft.livecontrol.LiveControl.error;
 import static be.cmbsoft.livecontrol.LiveControl.log;
+import be.cmbsoft.livecontrol.MatrixReceiver;
+import be.cmbsoft.livecontrol.settings.Settings;
 
 public class MidiDeviceContainer
 {

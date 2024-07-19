@@ -1,10 +1,10 @@
-package be.cmbsoft.livecontrol;
+package be.cmbsoft.livecontrol.midi;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
-import java.util.ArrayList;
-import java.util.List;
 
 import static be.cmbsoft.livecontrol.LiveControl.log;
 

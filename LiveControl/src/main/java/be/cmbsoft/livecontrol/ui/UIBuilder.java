@@ -4,16 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import be.cmbsoft.livecontrol.LiveControl;
-import be.cmbsoft.livecontrol.actions.AddOutput;
-import be.cmbsoft.livecontrol.gui.GUI;
-import controlP5.ControlP5;
-import controlP5.ControllerInterface;
-
 import static be.cmbsoft.livecontrol.LiveControl.log;
+import be.cmbsoft.livecontrol.actions.AddOutput;
+import be.cmbsoft.livecontrol.actions.ChaseAction;
+import be.cmbsoft.livecontrol.gui.GUI;
+import be.cmbsoft.livecontrol.gui.GUIContainer;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.ABOUT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.DEFAULT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.OUTPUTS;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.SETTINGS;
+import controlP5.ControlP5;
+import controlP5.ControllerInterface;
+import processing.core.PVector;
 
 public class UIBuilder
 {
@@ -38,6 +40,11 @@ public class UIBuilder
             .addListener(listener -> activateTab(gui, DEFAULT, parent))
             .activateEvent(true)
             .setId(DEFAULT.ordinal());
+
+        for (int index = 0; index < 8; index++) {
+            chaseButton(gui, parent, index);
+        }
+
 
         controlP5.Tab output = controlP5.addTab("Outputs").setHeight(tabHeight)
 
@@ -92,6 +99,24 @@ public class UIBuilder
 
     }
 
+    private static void chaseButton(GUI gui, LiveControl parent, int index)
+    {
+        gui.addToggle("Chase " + index)
+            .setPosition(new be.cmbsoft.livecontrol.gui.PositionCalculator()
+            {
+                @Override
+                public PVector updatePosition(GUIContainer parent)
+                {
+                    return new PVector(parent.getWidth() - 300, 100 + 70 * index);
+                }
+            })
+            .setSize(256, 64)
+            .setInfoText("Activate chase")
+            .setFontSize(32)
+            .setGroupIndex(DEFAULT.ordinal())
+            .setPressAction(() -> parent.doAction(new ChaseAction(parent, index)));
+    }
+
     public static void activateTab(GUI gui, Tab tab, LiveControl parent)
     {
         log("Activated tab: " + tab.name());
@@ -108,7 +133,7 @@ public class UIBuilder
 
     public enum Tab
     {
-        DEFAULT, OUTPUTS, SETTINGS, ABOUT;
+        DEFAULT, OUTPUTS, SETTINGS, ABOUT
     }
 
     private UIBuilder()

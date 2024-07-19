@@ -1,5 +1,7 @@
 package be.cmbsoft.livecontrol;
 
+import be.cmbsoft.livecontrol.midi.MidiReceiver;
+
 public class MatrixReceiver extends MidiReceiver
 {
     @Override

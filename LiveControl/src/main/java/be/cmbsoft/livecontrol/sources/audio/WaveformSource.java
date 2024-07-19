@@ -5,7 +5,6 @@ import java.util.Optional;
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.livecontrol.LiveControl;
 import be.cmbsoft.livecontrol.fx.Parameter;
-
 import static processing.core.PApplet.map;
 import static processing.core.PConstants.LINE;
 
@@ -17,7 +16,7 @@ public class WaveformSource extends AudioSource
     private final int                height;
     private final Parameter<Integer> hueParameter;
 
-    public WaveformSource(AudioProcessor processor, LiveControl parent)
+    public WaveformSource(LiveControl parent)
     {
         super(parent);
         width = parent.width;
