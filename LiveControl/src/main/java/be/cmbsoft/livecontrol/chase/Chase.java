@@ -107,6 +107,11 @@ public class Chase
         return StepBuilder.newInstance(this);
     }
 
+    public Step getCurrentStep()
+    {
+        return prev;
+    }
+
     private Step getStep(int index)
     {
         return index >= steps.size() ? null : steps.get(index);

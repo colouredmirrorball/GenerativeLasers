@@ -23,7 +23,16 @@ public class Chaser
         configurator.newParameter("Chase speed", chaseSpeed);
         firstChaseRow = new Parameter<>("First chase row", Integer.class);
         configurator.newParameter("First chase row", firstChaseRow);
-        firstChase = new Chase().addReceiver(receiver);
+        firstChase = new Chase().addReceiver(receiver)
+            .addStep()
+            .toggle(0, 4)
+            .addStep()
+            .toggle(0, 5)
+            .addStep()
+            .toggle(0, 6)
+            .addStep()
+            .toggle(0, 5)
+            .get();
         chases.add(firstChase);
         random        = new Random();
         this.receiver = receiver;
@@ -31,10 +40,13 @@ public class Chaser
 
     public void toggle(int chaseIndex)
     {
-        if (chaseIndex < chases.size()) {
+        if (chaseIndex < chases.size())
+        {
             chases.get(chaseIndex).toggle();
-        } else {
-            for (int i = chases.size(); i < chaseIndex; i++) {
+        } else
+        {
+            for (int i = chases.size(); i < chaseIndex; i++)
+            {
                 chases.add(newRandomChase());
             }
             chases.get(chases.size() - 1).toggle();
@@ -45,10 +57,19 @@ public class Chaser
     {
         Float speed    = Optional.ofNullable(chaseSpeed.getValue()).orElse(1f);
         float interval = 1000.0f / speed;
-        for (Chase chase: chases) {
-            if (chase.isActive()) {
+        for (Chase chase: chases)
+        {
+            if (chase.isActive())
+            {
+                if (chase == firstChase)
+                {
+                    Integer newX = Optional.ofNullable(firstChaseRow.getValue()).orElse(0);
+                    Optional.ofNullable(chase.getCurrentStep()).ifPresent(step -> step.setXForAllCoordinates(newX));
+
+                }
                 long lastTime = chase.getLastTime();
-                if (System.currentTimeMillis() - lastTime > interval) {
+                if (System.currentTimeMillis() - lastTime > interval)
+                {
                     chase.next();
                 }
             }

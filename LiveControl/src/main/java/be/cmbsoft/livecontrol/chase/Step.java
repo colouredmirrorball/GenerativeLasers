@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Step
 {
-    record Coordinate(int x, int y)
+    public record Coordinate(int x, int y)
     {
     }
 
@@ -19,5 +19,10 @@ public class Step
     public List<Coordinate> getCoordinates()
     {
         return coordinates;
+    }
+
+    public void setXForAllCoordinates(Integer newX)
+    {
+        coordinates.replaceAll(c -> new Coordinate(newX, c.y));
     }
 }
