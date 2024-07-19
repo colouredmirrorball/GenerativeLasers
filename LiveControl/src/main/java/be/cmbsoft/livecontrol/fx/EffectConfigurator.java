@@ -10,14 +10,14 @@ public class EffectConfigurator
         this.parent = parent;
     }
 
-    public <T> Parameter<T> newParameter(String name, Class<T> parameterType)
+    public Parameter newParameter(String name)
     {
-        Parameter<T> parameter = new Parameter<>(name, parameterType);
+        Parameter parameter = new Parameter(name);
         registerParameter(parameter);
         return parameter;
     }
 
-    private void registerParameter(Parameter<?> parameter)
+    private void registerParameter(Parameter parameter)
     {
         parent.newParameter(parameter.getName(), parameter);
     }

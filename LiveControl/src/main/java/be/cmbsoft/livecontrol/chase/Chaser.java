@@ -11,17 +11,17 @@ import be.cmbsoft.livecontrol.fx.Parameter;
 public class Chaser
 {
     private final List<Chase>        chases = new ArrayList<>();
-    private final Parameter<Float>   chaseSpeed;
-    private final Parameter<Integer> firstChaseRow;
-    private final Random             random;
+    private final Parameter chaseSpeed;
+    private final Parameter firstChaseRow;
+    private final Random    random;
     private final ChaseReceiver      receiver;
     private final Chase              firstChase;
 
     public Chaser(EffectConfiguratorContainer configurator, ChaseReceiver receiver)
     {
-        chaseSpeed = new Parameter<>("Chase speed", Float.class);
+        chaseSpeed = new Parameter("Chase speed");
         configurator.newParameter("Chase speed", chaseSpeed);
-        firstChaseRow = new Parameter<>("First chase row", Integer.class);
+        firstChaseRow = new Parameter("First chase row");
         configurator.newParameter("First chase row", firstChaseRow);
         firstChase = new Chase().addReceiver(receiver)
             .addStep()
@@ -63,7 +63,7 @@ public class Chaser
             {
                 if (chase == firstChase)
                 {
-                    Integer newX = Optional.ofNullable(firstChaseRow.getValue()).orElse(0);
+                    int newX = (int) firstChaseRow.getValue();
                     Optional.ofNullable(chase.getCurrentStep()).ifPresent(step -> step.setXForAllCoordinates(newX));
 
                 }

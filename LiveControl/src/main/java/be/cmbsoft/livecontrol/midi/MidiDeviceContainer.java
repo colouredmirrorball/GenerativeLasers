@@ -22,13 +22,12 @@ public class MidiDeviceContainer
     private MidiDevice controlDevice;
     private Receiver matrixReceiver;
 
-    public void setupMidi(Settings settings)
+    public void setupMidi(Settings settings, Supplier<MidiReceiver.NoteListener> controlListenerProvider)
     {
         MidiDevice.Info[] midiDeviceInfo               = MidiSystem.getMidiDeviceInfo();
         String            matrixInputDeviceIdentifier  = settings.getMidiMatrixInputDevice();
         String            matrixOutputDeviceIdentifier = settings.getMidiMatrixOutputDevice();
         String            controlDeviceIdentifier      = settings.getMidiControlDevice();
-//        String            theMIDIDevice                = "MIDIIN2 (Launchpad Pro)";
         MidiDevice.Info selectedMatrixInputDevice  = null;
         MidiDevice.Info selectedMatrixOutputDevice = null;
         MidiDevice.Info selectedControlDevice      = null;
@@ -51,8 +50,11 @@ public class MidiDeviceContainer
             }
         }
         matrixInputDevice = addInput(selectedMatrixInputDevice, matrixInputDeviceIdentifier, MatrixReceiver::new);
-        controlDevice = addInput(selectedControlDevice, controlDeviceIdentifier, MidiReceiver::new);
+        controlDevice = addInput(selectedControlDevice, controlDeviceIdentifier,
+            () -> new MidiReceiver().addNoteListener(controlListenerProvider.get()));
         matrixOutputDevice = addOutput(selectedMatrixOutputDevice, matrixOutputDeviceIdentifier);
+
+
     }
 
     private MidiDevice addOutput(MidiDevice.Info info, String identifier)

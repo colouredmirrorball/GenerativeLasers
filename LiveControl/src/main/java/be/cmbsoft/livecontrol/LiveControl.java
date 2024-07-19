@@ -31,6 +31,7 @@ import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import be.cmbsoft.livecontrol.gui.GuiElement;
 import be.cmbsoft.livecontrol.midi.MidiDeviceContainer;
+import be.cmbsoft.livecontrol.settings.ChannelAndNote;
 import be.cmbsoft.livecontrol.settings.Settings;
 import be.cmbsoft.livecontrol.settings.SourceSettings;
 import be.cmbsoft.livecontrol.settings.SourceType;
@@ -43,6 +44,7 @@ import be.cmbsoft.livecontrol.ui.UIBuilder;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
@@ -57,6 +59,7 @@ import processing.core.PVector;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
+
 
     private static final LaserOutputWrapper DUMMY_OUTPUT = new LaserOutputWrapper(new LaserOutput()
     {
@@ -86,7 +89,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private final Matrix                                                 matrix;
     private final Chaser                                                 chaser;
     private final EffectConfigurator                                     effectConfigurator;
-    private final Map<String, Parameter<?>> parameterMap   = new HashMap<>();
+    private final Map<String, Parameter> parameterMap = new HashMap<>();
     private final MidiDeviceContainer                                    midiContainer;
     //UI
     public        PGraphics                                              previousIcon;
@@ -112,6 +115,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         Settings settings1;
         log("Hello there! This is Generative Lasers.");
         objectMapper = new ObjectMapper();
+        SimpleModule customDeserialiserModule = new SimpleModule();
+        customDeserialiserModule.addKeyDeserializer(ChannelAndNote.class,
+            new ChannelAndNote.ChannelAndNoteDeserialiser());
+        objectMapper.registerModule(customDeserialiserModule);
         try {
             if (settingsFile.exists()) {
                 settings1 = objectMapper.readValue(settingsFile, Settings.class);
@@ -142,7 +149,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
                 midiContainer.output(x, y, matrix);
             }
         });
-        midiContainer.setupMidi(settings);
+        midiContainer.setupMidi(settings, () -> new ControlHandler(this));
         chaser = new Chaser(this, matrix);
     }
 
@@ -172,9 +179,15 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     }
 
     @Override
-    public void newParameter(String name, Parameter<?> parameter)
+    public void newParameter(String name, Parameter parameter)
     {
         parameterMap.put(name, parameter);
+    }
+
+    @Override
+    public Parameter getController(int channel, int pitch)
+    {
+        return parameterMap.get(settings.getMidiMap().get(new ChannelAndNote(channel, pitch)));
     }
 
     public void toggleChase(int chaseIndex)
@@ -574,6 +587,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         settings.setMidiMatrixInputDevice("MIDIIN2 (Launchpad Pro)");
         settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
         settings.setMidiControlDevice("nanoKONTROL2");
+
+        settings.getMidiMap().put(new ChannelAndNote(1, 10), "Chase speed");
+        settings.getMidiMap().put(new ChannelAndNote(1, 11), "First chase row");
+        settings.getMidiMap().put(new ChannelAndNote(1, 12), "waveformHue");
     }
 
     private void processLasers()

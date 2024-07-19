@@ -1,21 +1,21 @@
 package be.cmbsoft.livecontrol.fx;
 
-public class Parameter<F>
+public class Parameter
 {
     private final String name;
-    F value;
+    float value;
 
-    public <T> Parameter(String name, Class<T> parameterType)
+    public Parameter(String name)
     {
         this.name = name;
     }
 
-    public F getValue()
+    public float getValue()
     {
         return value;
     }
 
-    public void setValue(F value)
+    public void setValue(float value)
     {
         this.value = value;
     }

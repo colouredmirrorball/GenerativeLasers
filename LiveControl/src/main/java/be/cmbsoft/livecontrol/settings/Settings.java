@@ -1,7 +1,9 @@
 package be.cmbsoft.livecontrol.settings;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import be.cmbsoft.laseroutput.Bounds;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -15,6 +17,7 @@ public class Settings
     private String midiMatrixOutputDevice;
     private String midiControlDevice;
     private String optimisationSettings;
+    private Map<ChannelAndNote, String> midiMap = new HashMap<>();
 
     public List<SourceSettings> getSources()
     {
@@ -187,5 +190,15 @@ public class Settings
             this.port = port;
         }
 
+    }
+
+    public Map<ChannelAndNote, String> getMidiMap()
+    {
+        return midiMap;
+    }
+
+    public void setMidiMap(Map<ChannelAndNote, String> midiMap)
+    {
+        this.midiMap = midiMap;
     }
 }

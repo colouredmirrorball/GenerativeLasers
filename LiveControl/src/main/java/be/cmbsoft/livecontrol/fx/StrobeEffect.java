@@ -8,13 +8,13 @@ import be.cmbsoft.livecontrol.LiveControl;
 
 public class StrobeEffect extends Effect
 {
-    private final Parameter<Float> frequency;
+    private final Parameter frequency;
     boolean on = true;
     private long lastTime;
 
     public StrobeEffect(EffectConfigurator configurator)
     {
-        frequency = configurator.newParameter("frequency", Float.class);
+        frequency = configurator.newParameter("frequency");
     }
 
     @Override
@@ -26,8 +26,9 @@ public class StrobeEffect extends Effect
     @Override
     public void update(ProgramState state)
     {
-        Float frequencyValue = this.frequency.getValue();
-        if (frequencyValue == null || frequencyValue.equals(0f)) {
+        float frequencyValue = this.frequency.getValue();
+        if (frequencyValue == 0f)
+        {
             on = true;
         } else {
             long millis   = state.millis();

@@ -1,7 +1,5 @@
 package be.cmbsoft.livecontrol.sources.audio;
 
-import java.util.Optional;
-
 import be.cmbsoft.ilda.IldaRenderer;
 import be.cmbsoft.livecontrol.LiveControl;
 import be.cmbsoft.livecontrol.fx.Parameter;
@@ -14,14 +12,14 @@ public class WaveformSource extends AudioSource
 
     private final int                width;
     private final int                height;
-    private final Parameter<Integer> hueParameter;
+    private final Parameter hueParameter;
 
     public WaveformSource(LiveControl parent)
     {
         super(parent);
         width = parent.width;
         height = parent.height;
-        hueParameter = new Parameter<>("waveformHue", Integer.class);
+        hueParameter = new Parameter("waveformHue");
         parent.newParameter("waveformHue", hueParameter);
     }
 
@@ -30,7 +28,7 @@ public class WaveformSource extends AudioSource
     {
         IldaRenderer r         = getRenderer();
         float[]      samples   = getProcessor().getWaveform().analyze();
-        int          hue       = Optional.ofNullable(hueParameter.getValue()).orElse(0);
+        int hue = (int) hueParameter.getValue();
         float        intensity = getProcessor().getAmplitudeLeft().analyze();
         r.beginDraw();
         r.stroke(hue, 255, map(intensity, 0, 0.3f, 25, 255));

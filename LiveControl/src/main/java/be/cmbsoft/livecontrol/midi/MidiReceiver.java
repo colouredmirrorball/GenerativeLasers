@@ -86,9 +86,10 @@ public class MidiReceiver implements Receiver
 //        device.close();
     }
 
-    public void addNoteListener(NoteListener listener)
+    public MidiReceiver addNoteListener(NoteListener listener)
     {
         listeners.add(listener);
+        return this;
     }
 
     public interface NoteListener
