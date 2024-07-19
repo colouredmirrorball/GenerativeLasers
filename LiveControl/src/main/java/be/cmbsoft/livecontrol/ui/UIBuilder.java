@@ -4,18 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import be.cmbsoft.livecontrol.LiveControl;
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.actions.AddOutput;
-import be.cmbsoft.livecontrol.actions.ChaseAction;
+import be.cmbsoft.livecontrol.actions.ChaseDisabledAction;
+import be.cmbsoft.livecontrol.actions.ChaseEnabledAction;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
+import controlP5.ControlP5;
+import controlP5.ControllerInterface;
+import processing.core.PVector;
+
+import static be.cmbsoft.livecontrol.LiveControl.log;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.ABOUT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.DEFAULT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.OUTPUTS;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.SETTINGS;
-import controlP5.ControlP5;
-import controlP5.ControllerInterface;
-import processing.core.PVector;
 
 public class UIBuilder
 {
@@ -102,6 +104,8 @@ public class UIBuilder
     private static void chaseButton(GUI gui, LiveControl parent, int index)
     {
         gui.addToggle("Chase " + index)
+           .setEnabledAction(() -> parent.doAction(new ChaseEnabledAction(parent, index)))
+           .setDisabledAction(() -> parent.doAction(new ChaseDisabledAction(parent, index)))
             .setPosition(new be.cmbsoft.livecontrol.gui.PositionCalculator()
             {
                 @Override
@@ -114,7 +118,7 @@ public class UIBuilder
             .setInfoText("Activate chase")
             .setFontSize(32)
             .setGroupIndex(DEFAULT.ordinal())
-            .setPressAction(() -> parent.doAction(new ChaseAction(parent, index)));
+        ;
     }
 
     public static void activateTab(GUI gui, Tab tab, LiveControl parent)

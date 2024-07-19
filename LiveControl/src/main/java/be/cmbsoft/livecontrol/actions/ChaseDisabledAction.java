@@ -2,22 +2,21 @@ package be.cmbsoft.livecontrol.actions;
 
 import be.cmbsoft.livecontrol.LiveControl;
 
-public class ChaseAction extends UndoableAction implements IAction
+public class ChaseDisabledAction extends UndoableAction implements IAction
 {
     private final int         chaseIndex;
     private final LiveControl parent;
 
-    public ChaseAction(LiveControl parent, int chaseIndex)
+    public ChaseDisabledAction(LiveControl parent, int index)
     {
-        this.parent     = parent;
-        this.chaseIndex = chaseIndex;
+        this.parent = parent;
+        this.chaseIndex = index;
     }
 
     @Override
     public void execute()
     {
-
-        parent.toggleChase(chaseIndex);
+        parent.disableChase(chaseIndex);
     }
 
     @Override
@@ -25,4 +24,5 @@ public class ChaseAction extends UndoableAction implements IAction
     {
         parent.toggleChase(chaseIndex);
     }
+
 }

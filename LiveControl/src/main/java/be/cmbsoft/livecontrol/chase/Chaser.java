@@ -8,6 +8,8 @@ import java.util.Random;
 import be.cmbsoft.livecontrol.fx.EffectConfiguratorContainer;
 import be.cmbsoft.livecontrol.fx.Parameter;
 
+import static be.cmbsoft.laseroutput.LsxOscOutput.map;
+
 public class Chaser
 {
     private final List<Chase>        chases = new ArrayList<>();
@@ -55,7 +57,7 @@ public class Chaser
 
     public void update()
     {
-        Float speed    = Optional.ofNullable(chaseSpeed.getValue()).orElse(1f);
+        float speed = map(chaseSpeed.getValue(), 0, 127, 0.1f, 10f);
         float interval = 1000.0f / speed;
         for (Chase chase: chases)
         {
@@ -63,7 +65,7 @@ public class Chaser
             {
                 if (chase == firstChase)
                 {
-                    int newX = (int) firstChaseRow.getValue();
+                    int newX = (int) map(firstChaseRow.getValue(), 0, 127, 0, 7);
                     Optional.ofNullable(chase.getCurrentStep()).ifPresent(step -> step.setXForAllCoordinates(newX));
 
                 }
@@ -103,4 +105,29 @@ public class Chaser
     {
         return random.nextInt(max);
     }
+
+    public void enable(int chaseIndex)
+    {
+        if (chaseIndex < chases.size())
+        {
+            chases.get(chaseIndex).enable();
+        }
+        else
+        {
+            for (int i = chases.size(); i <= chaseIndex; i++)
+            {
+                chases.add(newRandomChase());
+            }
+            chases.get(chaseIndex).enable();
+        }
+    }
+
+    public void disable(int chaseIndex)
+    {
+        if (chaseIndex < chases.size())
+        {
+            chases.get(chaseIndex).disable();
+        }
+    }
+
 }

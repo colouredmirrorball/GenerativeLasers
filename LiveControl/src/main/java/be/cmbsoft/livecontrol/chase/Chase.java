@@ -3,9 +3,17 @@ package be.cmbsoft.livecontrol.chase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Chase
 {
+    private List<Step.Coordinate> prevStepCoordinates;
+
+    public void enable()
+    {
+        active = true;
+    }
+
     public static class StepBuilder
     {
         private final Chase chase;
@@ -45,6 +53,16 @@ public class Chase
     private       long          lastTime;
     private       int           index         = 0;
     private       Step          prev;
+
+    public void disable()
+    {
+        active = false;
+        if (prevStepCoordinates != null)
+        {
+            prevStepCoordinates.forEach(coordinate -> deactivate(coordinate.x(), coordinate.y()));
+        }
+        prevStepCoordinates = null;
+    }
     private       ChaseReceiver chaseReceiver = null;
     private       boolean       active        = false;
 
@@ -56,8 +74,9 @@ public class Chase
     public void toggle()
     {
         active = !active;
-        if (prev != null) {
-            prev.getCoordinates().forEach(coordinate -> deactivate(coordinate.x(), coordinate.y()));
+        if (prevStepCoordinates != null)
+        {
+            prevStepCoordinates.forEach(coordinate -> deactivate(coordinate.x(), coordinate.y()));
         }
         if (active) {
             next();
@@ -81,12 +100,14 @@ public class Chase
         if (index >= steps.size()) {
             index = 0;
         }
-        if (prev != null) {
-            prev.getCoordinates().forEach(coordinate -> deactivate(coordinate.x(), coordinate.y()));
+        if (prevStepCoordinates != null)
+        {
+            prevStepCoordinates.forEach(coordinate -> deactivate(coordinate.x(), coordinate.y()));
         }
         Step next = getStep(index);
         if (next != null) {
             next.getCoordinates().forEach(coordinate -> activate(coordinate.x(), coordinate.y()));
+            prevStepCoordinates = new CopyOnWriteArrayList<>(next.getCoordinates());
         }
         prev     = next;
         lastTime = System.currentTimeMillis();

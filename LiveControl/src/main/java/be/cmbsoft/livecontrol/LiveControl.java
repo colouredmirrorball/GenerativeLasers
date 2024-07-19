@@ -10,6 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.jetbrains.annotations.NotNull;
+
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.Bounds;
@@ -41,21 +44,20 @@ import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
 import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
-import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
+
+import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
@@ -588,8 +590,8 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
         settings.setMidiControlDevice("nanoKONTROL2");
 
-        settings.getMidiMap().put(new ChannelAndNote(1, 10), "Chase speed");
-        settings.getMidiMap().put(new ChannelAndNote(1, 11), "First chase row");
+        settings.getMidiMap().put(new ChannelAndNote(0, 7), "Chase speed");
+        settings.getMidiMap().put(new ChannelAndNote(0, 23), "First chase row");
         settings.getMidiMap().put(new ChannelAndNote(1, 12), "waveformHue");
     }
 
@@ -790,6 +792,16 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             }
         }
         return new float[]{x, y};
+    }
+
+    public void enableChase(int chaseIndex)
+    {
+        chaser.enable(chaseIndex);
+    }
+
+    public void disableChase(int chaseIndex)
+    {
+        chaser.disable(chaseIndex);
     }
 
 }

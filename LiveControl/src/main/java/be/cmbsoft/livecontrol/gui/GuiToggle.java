@@ -46,19 +46,6 @@ public class GuiToggle extends GuiImageButton
     public GuiToggle toggle()
     {
         state = !state;
-        return this;
-    }
-
-    public GuiToggle setState(boolean state)
-    {
-        this.state = state;
-        return this;
-    }
-
-    @Override
-    public void mouseClicked()
-    {
-        toggle();
         if (state)
         {
             if (enabledAction != null)
@@ -81,6 +68,19 @@ public class GuiToggle extends GuiImageButton
                 else {disabledAction.execute();}
             }
         }
+        return this;
+    }
+
+    public GuiToggle setState(boolean state)
+    {
+        this.state = state;
+        return this;
+    }
+
+    @Override
+    public void mouseClicked()
+    {
+        toggle();
         super.mouseClicked();
     }
 
