@@ -4,21 +4,27 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import be.cmbsoft.livecontrol.SourceWrapper;
-
+import be.cmbsoft.livecontrol.LiveControl;
 import static be.cmbsoft.livecontrol.LiveControl.log;
+import be.cmbsoft.livecontrol.SourceWrapper;
+import be.cmbsoft.livecontrol.fx.Parameter;
 
 public class IldaFolderPlayerSourceWrapper extends SourceWrapper
 {
 
     private final List<IldaPlayerSource> sources = new ArrayList<>();
     private final File                   folder;
+    private final LiveControl parent;
     private       int                    index;
+    private final Parameter   playbackSpeed;
 
-    public IldaFolderPlayerSourceWrapper(File folder)
+    public IldaFolderPlayerSourceWrapper(File folder, LiveControl parent)
     {
         super();
         this.folder = folder;
+        this.parent   = parent;
+        playbackSpeed = new Parameter("Playback speed");
+        parent.newParameter("Playback speed", playbackSpeed);
     }
 
 
@@ -74,6 +80,7 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
         {
             File             nextFile         = files[index];
             IldaPlayerSource ildaPlayerSource = new IldaPlayerSource(nextFile);
+            ildaPlayerSource.setPlaybackSpeedParameter(playbackSpeed);
             sources.add(ildaPlayerSource);
             return ildaPlayerSource;
         }

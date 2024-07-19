@@ -10,16 +10,15 @@ import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.ilda.Optimiser;
+import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.chase.ChaseReceiver;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.midi.MidiReceiver;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
-import processing.core.PGraphics;
-
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import static processing.core.PConstants.P3D;
+import processing.core.PGraphics;
 
 public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
 {
@@ -42,6 +41,8 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
     private final       Optimiser                             optimiser;
     private final       List<MatrixListener>                  listeners           = new ArrayList<>();
     private             boolean                               flashMode           = true;
+
+    private final IldaFrame emptyDebugFrame;
     public Matrix(Function<Integer, SourceWrapper> sourceProvider, Function<Integer, LaserOutputWrapper> outputProvider,
         OptimisationSettings optimisationSettings)
     {
@@ -55,6 +56,9 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
         {
             processedFrames.add(List.of());
         }
+        IldaPoint ildaPoint = new IldaPoint(0, 0, 0, 1, 1, 1, true);
+        emptyDebugFrame = new IldaFrame();
+        emptyDebugFrame.getPoints().add(ildaPoint);
     }
 
     @Override
@@ -115,7 +119,8 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
         // For all outputs
         for (int outputIndex = MODIFIERS; outputIndex < MODIFIERS + OUTPUTS; outputIndex++)
         {
-            List<IldaPoint> frame = null;
+            List<IldaPoint> frame = null;//emptyDebugFrame.getPoints();
+            //List<IldaPoint> frame = emptyDebugFrame.getPoints();
             for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++)
             {
 
