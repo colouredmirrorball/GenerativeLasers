@@ -1,6 +1,7 @@
 package be.cmbsoft.livecontrol;
 
 import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
@@ -17,6 +18,7 @@ public class MidiDeviceContainer
     private MidiDevice matrixInputDevice;
     private MidiDevice matrixOutputDevice;
     private MidiDevice controlDevice;
+    private Receiver matrixReceiver;
 
     public void setupMidi(Settings settings)
     {
@@ -63,9 +65,10 @@ public class MidiDeviceContainer
                 {
                     log(identifier + " is not an output...");
                 }
-
-                Receiver receiver = device.getReceiver();
+                matrixReceiver = device.getReceiver();
+//                Receiver receiver = device.getReceiver();
                 device.open();
+                log("Opened MIDI output " + identifier);
             }
             catch (MidiUnavailableException e)
             {
@@ -79,7 +82,7 @@ public class MidiDeviceContainer
         return device;
     }
 
-    private MidiDevice addInput(MidiDevice.Info info, String identifier, Supplier<Receiver> receiverProvider)
+    private MidiDevice addInput(MidiDevice.Info info, String identifier, Supplier<MidiReceiver> receiverProvider)
     {
         MidiDevice device = null;
         try
@@ -93,9 +96,12 @@ public class MidiDeviceContainer
                 }
 
                 Transmitter transmitter = device.getTransmitter();
-                transmitter.setReceiver(receiverProvider.get());
+                MidiReceiver receiver = receiverProvider.get();
+//                receiver.addNoteListener();
+                transmitter.setReceiver(receiver);
 
                 device.open();
+                log("Opened MIDI input " + identifier);
             }
             else
             {
@@ -106,7 +112,7 @@ public class MidiDeviceContainer
         catch (Exception exception)
         {
             // Continue without MIDI
-            exception.printStackTrace();
+            error("Could not open device " + identifier, exception);
         }
         return device;
     }
@@ -116,6 +122,46 @@ public class MidiDeviceContainer
         Optional.ofNullable(matrixInputDevice).ifPresent(MidiDevice::close);
         Optional.ofNullable(matrixOutputDevice).ifPresent(MidiDevice::close);
         Optional.ofNullable(controlDevice).ifPresent(MidiDevice::close);
+    }
+
+    public void output(int x, int y, boolean on)
+    {
+        MidiMessage message = new ColorMessage(x, y, on);
+        Optional.ofNullable(matrixReceiver).ifPresent(receiver -> receiver.send(message, -1));
+    }
+
+    private static class ColorMessage extends MidiMessage
+    {
+        public ColorMessage(int x, int y, boolean on)
+        {
+            super(transform(x, y, on));
+        }
+
+        private static byte[] transform(int x, int y, boolean on)
+        {
+            return new byte[]{(byte) (240 & 0xff), 0, 32 & 0xff, 41 & 0xff, 2 & 0xff, 16 & 0xff, 11 & 0xff,
+                (byte) (getLed(x, y) & 0xff),
+                127 & 0xff, 60 & 0xff, 0,
+                (byte) (247 & 0xff)};
+        }
+
+        private static byte getLed(int x, int y)
+        {
+            return (byte) (x + 10 * y);
+        }
+
+        private static byte getColor(boolean on)
+        {
+            return (byte) (on ? 0x3 : 0);
+        }
+
+        @Override
+        public Object clone()
+        {
+            // ??
+            return this;
+        }
+
     }
 
 }

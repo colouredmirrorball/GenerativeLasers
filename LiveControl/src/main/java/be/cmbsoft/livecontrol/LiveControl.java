@@ -132,6 +132,17 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         matrix = new Matrix(getSourceProvider(), getOutputProvider(), optimisationSettings);
         effectConfigurator = new EffectConfigurator(this);
         midiContainer = new MidiDeviceContainer();
+        matrix.addListener(new Matrix.MatrixListener()
+        {
+            @Override
+            public void onUpdate(int i, int j, boolean matrix)
+            {
+                // Here, i = 0 is the first note row, but Launchpad notes start at the bottom
+                int y = j % 8;
+                int x = 81 - y * i;
+                midiContainer.output(x, y, matrix);
+            }
+        });
         midiContainer.setupMidi(settings);
     }
 

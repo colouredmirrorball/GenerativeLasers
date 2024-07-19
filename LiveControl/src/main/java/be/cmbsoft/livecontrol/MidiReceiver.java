@@ -3,14 +3,14 @@ package be.cmbsoft.livecontrol;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
+import java.util.ArrayList;
+import java.util.List;
 
 import static be.cmbsoft.livecontrol.LiveControl.log;
 
 public class MidiReceiver implements Receiver
 {
-
-
-//    private final MidiDevice device;
+    private final List<NoteListener> listeners = new ArrayList<>();
 
     public MidiReceiver()
     {
@@ -55,17 +55,24 @@ public class MidiReceiver implements Receiver
 
     protected void controlChange(int channel, int controller, int value)
     {
-
+        listeners.forEach(rec -> rec.controlChange(channel, controller, value));
     }
 
     protected void noteOff(int channel, int pitch, int velocity)
     {
-
+        listeners.forEach(rec -> rec.noteOff(channel, pitch, velocity));
     }
 
     protected void noteOn(int channel, int pitch, int velocity)
     {
-
+        if (velocity == 0)
+        {
+            listeners.forEach(rec -> rec.noteOff(channel, pitch, velocity));
+        }
+        else
+        {
+            listeners.forEach(rec -> rec.noteOn(channel, pitch, velocity));
+        }
     }
 
     private void logMidi(String message)
@@ -77,6 +84,21 @@ public class MidiReceiver implements Receiver
     public void close()
     {
 //        device.close();
+    }
+
+    public void addNoteListener(NoteListener listener)
+    {
+        listeners.add(listener);
+    }
+
+    public interface NoteListener
+    {
+        void noteOn(int channel, int pitch, int velocity);
+
+        void noteOff(int channel, int pitch, int velocity);
+
+        void controlChange(int channel, int pitch, int velocity);
+
     }
 
 }

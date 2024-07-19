@@ -32,6 +32,7 @@ public class Matrix
     private final PGraphics[]     sourceVisualisation = new PGraphics[8];
     private final List<List<IldaPoint>> processedFrames = new ArrayList<>(ROWS);
     private final Optimiser optimiser;
+    private final List<MatrixListener> listeners = new ArrayList<>();
 
     public Matrix(Function<Integer, SourceWrapper> sourceProvider,
         Function<Integer, LaserOutputWrapper> outputProvider, OptimisationSettings optimisationSettings)
@@ -175,6 +176,7 @@ public class Matrix
     private void publish(int i, int j, boolean matrix)
     {
         log("Toggling " + i + " " + j + " " + matrix);
+        listeners.forEach(listener -> listener.onUpdate(i, j, matrix));
     }
 
     private void drawModifier(LiveControl parent, Effect modifier, int x, int y, int w, int h)
@@ -239,6 +241,17 @@ public class Matrix
     public void disable(int row, int column)
     {
         matrix[row][column] = false;
+    }
+
+    public void addListener(MatrixListener listener)
+    {
+        listeners.add(listener);
+    }
+
+    public interface MatrixListener
+    {
+        void onUpdate(int i, int j, boolean matrix);
+
     }
 
 }
