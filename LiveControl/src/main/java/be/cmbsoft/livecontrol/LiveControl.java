@@ -674,6 +674,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             stroke(uiConfig.getForegroundColor());
             strokeWeight(1);
             rect(x, y, w, h);
+
+            fill(uiConfig.getFontColor());
+            textAlign(LEFT);
+            text("Points: " + output.getCurrentFramePointCount(), x, y + h + 80);
+
             x += w + 20;
         }
 
