@@ -592,6 +592,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         settings.getMidiMap().put(new ChannelAndNote(0, 23), "First chase row");
         settings.getMidiMap().put(new ChannelAndNote(1, 12), "waveformHue");
         settings.getMidiMap().put(new ChannelAndNote(0, 0), "Playback speed");
+        settings.getMidiMap().put(new ChannelAndNote(0, 33), "Beam one");
+        settings.getMidiMap().put(new ChannelAndNote(0, 49), "Beam two");
+        settings.getMidiMap().put(new ChannelAndNote(0, 65), "Beam three");
     }
 
     private void processLasers()

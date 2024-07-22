@@ -29,7 +29,7 @@ public class ConeSource extends BeamSource
     }
 
     @Override
-    public void update()
+    public void render()
     {
         IldaRenderer renderer = getRenderer();
         renderer.beginDraw();
@@ -49,5 +49,12 @@ public class ConeSource extends BeamSource
                 (float) (renderer.height * (0.5 + 0.5 * oldEffectRadius * Math.cos(phase))), oldRadius, oldRadius);
         }
         renderer.endDraw();
+    }
+
+    @Override
+    protected void trigger()
+    {
+        amount = (int) parent.random(7);
+        radius = parent.random(50);
     }
 }

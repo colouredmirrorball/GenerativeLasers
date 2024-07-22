@@ -5,7 +5,6 @@ import be.cmbsoft.livecontrol.LiveControl;
 
 public class LineEffect extends BeamSource
 {
-    private final LiveControl parent;
     float effectSpeed = 0.05f;
 
     float offset;
@@ -19,22 +18,21 @@ public class LineEffect extends BeamSource
     public LineEffect(LiveControl parent)
     {
         super(parent);
-        this.parent = parent;
     }
 
     @Override
-    public void update()
+    public void render()
     {
         IldaRenderer renderer = getRenderer();
         renderer.beginDraw();
-        offset    = parent.height / 2;
+        offset = renderer.height / 2;
         oldAngle  = oldAngle + (angle - oldAngle) * effectSpeed;
         oldOffset = oldOffset + (offset - oldOffset) * effectSpeed;
 
         renderer.pushMatrix();
-        renderer.translate(parent.width / 2, parent.height / 2);
+        renderer.translate(renderer.width / 2, renderer.height / 2);
         renderer.rotateZ(oldAngle);
-        renderer.translate(-parent.width / 2, -parent.height / 2 + oldOffset);
+        renderer.translate(-renderer.width / 2, -renderer.height / 2 + oldOffset);
         if (dots) {
             renderer.stroke(secondColor);
             renderer.point(10, 0);
@@ -42,14 +40,20 @@ public class LineEffect extends BeamSource
             renderer.point(30, 0);
         }
         renderer.stroke(firstColor);
-        renderer.line(dots ? 40 : 0, 0, dots ? parent.width - 40 : parent.width, 0);
+        renderer.line(dots ? 40 : 0, 0, dots ? renderer.width - 40 : renderer.width, 0);
         if (dots) {
             renderer.stroke(secondColor);
-            renderer.point(parent.width - 30, 0);
-            renderer.point(parent.width - 20, 0);
-            renderer.point(parent.width - 10, 0);
+            renderer.point(renderer.width - 30, 0);
+            renderer.point(renderer.width - 20, 0);
+            renderer.point(renderer.width - 10, 0);
         }
         renderer.popMatrix();
         renderer.endDraw();
+    }
+
+    @Override
+    protected void trigger()
+    {
+
     }
 }

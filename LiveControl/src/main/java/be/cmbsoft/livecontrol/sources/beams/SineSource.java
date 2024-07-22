@@ -38,7 +38,7 @@ public class SineSource extends BeamSource
     }
 
     @Override
-    public void update()
+    public void render()
     {
         IldaRenderer renderer = getRenderer();
         renderer.beginDraw();
@@ -53,10 +53,16 @@ public class SineSource extends BeamSource
 
             double phase = TWO_PI * (map(i - amount / 2, 0, amount, 0, oldFrequency) + time);
             renderer.stroke(lerpColor(firstColor, secondColor, abs(map(i, 0, amount, 0, 2) - 1), 3));
-            renderer.vertex((parent.width * i) / amount,
-                (float) (parent.height * (0.5 + 0.5 * oldAmplitude * Math.sin(phase))));
+            renderer.vertex((renderer.width * i) / amount,
+                (float) (renderer.height * (0.5 + 0.5 * oldAmplitude * Math.sin(phase))));
         }
         renderer.endShape();
         renderer.endDraw();
+    }
+
+    @Override
+    protected void trigger()
+    {
+        frequency = parent.random(5);
     }
 }

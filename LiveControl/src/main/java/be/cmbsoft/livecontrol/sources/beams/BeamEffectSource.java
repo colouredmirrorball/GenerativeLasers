@@ -22,7 +22,7 @@ public class BeamEffectSource extends BeamSource
     }
 
     @Override
-    public void update()
+    public void render()
     {
         IldaRenderer renderer = getRenderer();
         renderer.beginDraw();
@@ -35,6 +35,12 @@ public class BeamEffectSource extends BeamSource
             oldPositions[i].y = y + (positions[i].y - y) * speed;
         }
         renderer.endDraw();
+    }
+
+    @Override
+    protected void trigger()
+    {
+        assignRandomPositions();
     }
 
     void assignRandomPositions()
