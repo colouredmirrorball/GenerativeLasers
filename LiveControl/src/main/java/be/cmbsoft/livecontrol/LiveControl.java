@@ -10,6 +10,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.jetbrains.annotations.NotNull;
+
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.laseroutput.Bounds;
@@ -41,21 +44,20 @@ import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
 import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
-import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
+
+import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
@@ -64,7 +66,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private static final LaserOutputWrapper DUMMY_OUTPUT = new LaserOutputWrapper(new LaserOutput()
     {
         @Override
-        public void project(List<IldaPoint> points)
+        public void projectImpl(List<IldaPoint> points)
         {
 
         }
@@ -575,10 +577,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 //        settings.etherdreamOutputs.add(etherdreamOutputSettings);
 
         SourceSettings ildaSource = new SourceSettings();
-        ildaSource.setIldaFolder("C:\\Users\\Florian\\ILDA\\Live");
+//        ildaSource.setIldaFolder("C:\\Users\\Florian\\ILDA\\Live");
+        ildaSource.setIldaFolder("D:\\Laser\\ILDA\\Live");
         ildaSource.setType(SourceType.ILDA_FOLDER);
         SourceSettings audioSource = new SourceSettings();
-//        ildaSource.setIldaFolder("D:\\Laser\\ILDA");
         audioSource.setType(SourceType.AUDIO);
         SourceSettings beamSource = new SourceSettings();
         beamSource.setType(SourceType.BEAMS);

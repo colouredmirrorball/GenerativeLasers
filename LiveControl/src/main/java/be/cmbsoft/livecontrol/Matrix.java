@@ -10,15 +10,16 @@ import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.ilda.Optimiser;
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.chase.ChaseReceiver;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.midi.MidiReceiver;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
-import static processing.core.PConstants.P3D;
 import processing.core.PGraphics;
+
+import static be.cmbsoft.livecontrol.LiveControl.log;
+import static processing.core.PConstants.P3D;
 
 public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
 {
@@ -119,8 +120,8 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
         // For all outputs
         for (int outputIndex = MODIFIERS; outputIndex < MODIFIERS + OUTPUTS; outputIndex++)
         {
-            List<IldaPoint> frame = null;//emptyDebugFrame.getPoints();
-            //List<IldaPoint> frame = emptyDebugFrame.getPoints();
+//            List<IldaPoint> frame = null;//emptyDebugFrame.getPoints();
+            List<IldaPoint> frame = emptyDebugFrame.getCopyOnWritePoints();
             for (int sourceIndex = 0; sourceIndex < ROWS; sourceIndex++)
             {
 
