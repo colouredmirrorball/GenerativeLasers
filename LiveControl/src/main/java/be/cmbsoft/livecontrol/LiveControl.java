@@ -136,6 +136,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         OptimisationSettings optimisationSettings = new OptimisationSettings();
         optimisationSettings.setBlankDwell(true);
         optimisationSettings.setBlankDwellAmount(5);
+        optimisationSettings.setMaxDistLit(0.05f);
         //        optimisationSettings.fromJSON(settings.getOptimisationSettings());
         matrix        = new Matrix(getSourceProvider(), getOutputProvider(), optimisationSettings);
         effectConfigurator = new EffectConfigurator(this);
