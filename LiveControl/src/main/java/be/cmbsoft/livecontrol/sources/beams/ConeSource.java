@@ -1,8 +1,9 @@
 package be.cmbsoft.livecontrol.sources.beams;
 
 import be.cmbsoft.ilda.IldaRenderer;
-import static be.cmbsoft.laseroutput.LsxOscOutput.map;
 import be.cmbsoft.livecontrol.LiveControl;
+
+import static be.cmbsoft.laseroutput.LsxOscOutput.map;
 import static processing.core.PConstants.TWO_PI;
 
 public class ConeSource extends BeamSource
@@ -33,7 +34,7 @@ public class ConeSource extends BeamSource
     {
         IldaRenderer renderer = getRenderer();
         renderer.beginDraw();
-        renderer.setEllipseDetail(0.3f);
+        renderer.setEllipseDetail(0.4f);
         renderer.setEllipseCorrection(1);
         oldRadius       = oldRadius + (radius - oldRadius) * effectSpeed;
         oldEffectRadius = oldEffectRadius + (effectRadius - oldEffectRadius) * effectSpeed;

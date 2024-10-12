@@ -26,4 +26,18 @@ public record ChannelAndNote(int channel, int pitch)
     {
         return channel + ":" + pitch;
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return obj instanceof ChannelAndNote channelAndNote && channelAndNote.channel == channel &&
+            pitch == channelAndNote.pitch;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return 1000 * channel + pitch;
+    }
+
 }
