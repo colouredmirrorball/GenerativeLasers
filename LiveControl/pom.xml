@@ -30,7 +30,7 @@
         <dependency>
             <groupId>be.cmbsoft</groupId>
             <artifactId>Oscillabstract</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0_standalone-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
