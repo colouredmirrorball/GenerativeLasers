@@ -573,7 +573,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             case ILDA_FOLDER -> new IldaFolderPlayerSourceWrapper(new File(sourceSettings.getIldaFolder()), this);
             case AUDIO -> new AudioEffectsSourceWrapper(this);
             case BEAMS -> new BeamSourceWrapper(this);
-            case OSCILLABSTRACT -> new OscillabstractSourceWrapper(this);
+            case OSCILLABSTRACT -> new OscillabstractSourceWrapper();
             default -> new EmptySourceWrapper();
         };
     }
@@ -592,7 +592,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         audioSource.setType(SourceType.AUDIO);
         SourceSettings beamSource = new SourceSettings();
         beamSource.setType(SourceType.BEAMS);
-        settings.setSources(List.of(ildaSource, audioSource, beamSource));
+        SourceSettings oscillabstractSource = new SourceSettings();
+        oscillabstractSource.setType(SourceType.OSCILLABSTRACT);
+        settings.setSources(List.of(ildaSource, audioSource, beamSource, oscillabstractSource));
 
         settings.setMidiMatrixInputDevice("MIDIIN2 (Launchpad Pro)");
         settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
