@@ -12,11 +12,7 @@ public class GuiScroller extends GuiSlider
         setBounds(0, 1);
     }
 
-    public void display(PGraphics graphics)
-    {
-        super.display(graphics);
-    }
-
+    @Override
     public GuiSlider setPosition(float value)
     {
         super.setPosition(value);

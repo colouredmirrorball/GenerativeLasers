@@ -14,7 +14,6 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
 
     private final List<IldaPlayerSource> sources = new ArrayList<>();
     private final File                   folder;
-    private final LiveControl parent;
     private       int                    index;
     private final Parameter   playbackSpeed;
 
@@ -22,7 +21,6 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
     {
         super();
         this.folder = folder;
-        this.parent   = parent;
         playbackSpeed = new Parameter("Playback speed");
         parent.newParameter("Playback speed", playbackSpeed);
     }

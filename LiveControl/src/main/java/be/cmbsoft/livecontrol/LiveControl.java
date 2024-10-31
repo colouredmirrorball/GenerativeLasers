@@ -42,6 +42,7 @@ import be.cmbsoft.livecontrol.sources.AudioEffectsSourceWrapper;
 import be.cmbsoft.livecontrol.sources.BeamSourceWrapper;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
+import be.cmbsoft.livecontrol.sources.OscillabstractSourceWrapper;
 import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
 import be.cmbsoft.livecontrol.ui.UIConfig;
@@ -572,6 +573,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             case ILDA_FOLDER -> new IldaFolderPlayerSourceWrapper(new File(sourceSettings.getIldaFolder()), this);
             case AUDIO -> new AudioEffectsSourceWrapper(this);
             case BEAMS -> new BeamSourceWrapper(this);
+            case OSCILLABSTRACT -> new OscillabstractSourceWrapper(this);
             default -> new EmptySourceWrapper();
         };
     }

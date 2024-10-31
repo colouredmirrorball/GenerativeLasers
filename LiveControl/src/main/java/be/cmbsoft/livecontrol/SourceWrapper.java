@@ -8,15 +8,9 @@ import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 public abstract class SourceWrapper
 {
     Source source;
-//    Supplier<Source> nextSupplier;
-//    Supplier<Source> previousSupplier;
 
     protected SourceWrapper()
     {
-//        next();
-//        this.nextSupplier = nextSupplier;
-//        this.previousSupplier = previousSupplier;
-//        this.source = nextSupplier.get();
     }
 
     public IldaFrame getFrame()
@@ -27,7 +21,6 @@ public abstract class SourceWrapper
     public void next()
     {
         source = provideNextSource();
-//        source = nextSupplier.get();
     }
 
     protected abstract Source provideNextSource();
@@ -35,7 +28,6 @@ public abstract class SourceWrapper
     public void previous()
     {
         source = providePreviousSource();
-//        source = previousSupplier.get();
     }
 
     protected abstract Source providePreviousSource();
