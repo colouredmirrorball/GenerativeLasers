@@ -42,7 +42,7 @@ public interface GUIContainer
 
     void setMouseOverInfoText(String infoText);
 
-    void addGuiElement(GuiElement element);
+    void addGuiElement(GuiElement<?> element);
 
     float getSliderDampFactor();
 

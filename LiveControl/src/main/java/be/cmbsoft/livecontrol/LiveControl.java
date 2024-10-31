@@ -98,14 +98,13 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     public        PGraphics                                              nextIcon;
     private       GUI                                                    gui;
     private       PGraphics                                              defaultIcon;
-    private       Map<ControllerInterface, UIBuilder.PositionCalculator> uiPositions;
+    private Map<ControllerInterface<?>, UIBuilder.PositionCalculator> uiPositions;
     private       int                                                    prevWidth, prevHeight;
     private boolean       mouseClicked  = false;
     private boolean       mouseReleased = false;
     private boolean       mouseDragged;
     private UIConfig      uiConfig;
     private UIBuilder.Tab activeTab     = UIBuilder.Tab.DEFAULT;
-    private boolean       booted        = false;
     // UI
     private ControlP5     controlP5;
     // I/O
@@ -137,20 +136,15 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         optimisationSettings.setBlankDwell(true);
         optimisationSettings.setBlankDwellAmount(5);
         optimisationSettings.setMaxDistLit(0.05f);
-        //        optimisationSettings.fromJSON(settings.getOptimisationSettings());
         matrix        = new Matrix(getSourceProvider(), getOutputProvider(), optimisationSettings);
         effectConfigurator = new EffectConfigurator(this);
         midiContainer = new MidiDeviceContainer();
-        matrix.addListener(new Matrix.MatrixListener()
+        matrix.addListener((i, j, matrix) ->
         {
-            @Override
-            public void onUpdate(int i, int j, boolean matrix)
-            {
-                // Here, i = 0 is the first note row, but Launchpad notes start at the bottom
-                int y = j % 8;
-                int x = 81 - y * i;
-                midiContainer.output(x, y, matrix);
-            }
+            // Here, i = 0 is the first note row, but Launchpad notes start at the bottom
+            int y = j % 8;
+            int x = 81 - y * i;
+            midiContainer.output(x, y, matrix);
         });
         midiContainer.setupMidi(settings, () -> new ControlHandler(this), () -> matrix);
         chaser = new Chaser(this, matrix);
@@ -165,14 +159,12 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     public static void log(String what)
     {
-//        LogManager.getLogger(LiveControl.class).info(what);
         println(what);
     }
 
     public static void error(Exception exception)
     {
         exception.printStackTrace();
-//        LogManager.getLogger(LiveControl.class).error(exception, exception);
     }
 
     public static void error(String s, Exception e)
@@ -218,7 +210,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             outputs.put(UUID.randomUUID().toString(), createOutput(output));
         }
 
-//        outputs.put(UUID.randomUUID(), new EtherdreamOutput());
         buildDefaultSettings();
 
         audioProcessor = new AudioProcessor(this);
@@ -238,7 +229,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         activateTab(UIBuilder.Tab.DEFAULT);
         matrix.enable(0, 4);
 
-        booted = true;
     }
 
     @Override
@@ -378,16 +368,16 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         }).orElse(new PImage[]{getDefaultIcon()});
     }
 
-    public void setUIPositions(Map<ControllerInterface, UIBuilder.PositionCalculator> positions)
+    public void setUIPositions(Map<ControllerInterface<?>, UIBuilder.PositionCalculator> positions)
     {
         this.uiPositions = positions;
     }
 
     public void updateUIPositions()
     {
-        for (Map.Entry<ControllerInterface, UIBuilder.PositionCalculator> entry
+        for (Map.Entry<ControllerInterface<?>, UIBuilder.PositionCalculator> entry
             : uiPositions.entrySet()) {
-            ControllerInterface          controller = entry.getKey();
+            ControllerInterface<?> controller = entry.getKey();
             UIBuilder.PositionCalculator position   = entry.getValue();
             controller.setPosition(calculatePosition(position, controller));
         }
@@ -493,10 +483,25 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         //TODO
     }
 
-    @Override
-    public void addGuiElement(GuiElement element)
+    private float[] calculatePosition(UIBuilder.PositionCalculator position, ControllerInterface<?> controller)
     {
-        gui.addGuiElement(element);
+        float x = 0;
+        float y = 0;
+        switch (position.getType()) {
+            case UPPER_RIGHT_ANCHOR -> {
+                x = width - position.getOffsetX() - controller.getWidth();
+                y = position.getOffsetY();
+            }
+            case UPPER_LEFT_ANCHOR -> {
+                x = position.getOffsetX();
+                y = position.getOffsetY();
+            }
+            case LOWER_RIGHT_ANCHOR -> {
+            }
+            case LOWER_LEFT_ANCHOR -> {
+            }
+        }
+        return new float[]{x, y};
     }
 
     @Override
@@ -783,25 +788,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         }
     }
 
-    private float[] calculatePosition(UIBuilder.PositionCalculator position, ControllerInterface controller)
+    @Override
+    public void addGuiElement(GuiElement<?> element)
     {
-        float x = 0;
-        float y = 0;
-        switch (position.getType()) {
-            case UPPER_RIGHT_ANCHOR -> {
-                x = width - position.getOffsetX() - controller.getWidth();
-                y = position.getOffsetY();
-            }
-            case UPPER_LEFT_ANCHOR -> {
-                x = position.getOffsetX();
-                y = position.getOffsetY();
-            }
-            case LOWER_RIGHT_ANCHOR -> {
-            }
-            case LOWER_LEFT_ANCHOR -> {
-            }
-        }
-        return new float[]{x, y};
+        gui.addGuiElement(element);
     }
 
     public void enableChase(int chaseIndex)
