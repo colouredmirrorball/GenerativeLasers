@@ -18,6 +18,7 @@ import processing.core.PVector;
 import static be.cmbsoft.livecontrol.LiveControl.log;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.ABOUT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.DEFAULT;
+import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.OSCILLABSTRACT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.OUTPUTS;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.SETTINGS;
 
@@ -80,6 +81,11 @@ public class UIBuilder
            .setFontSize(32)
            .setGroupIndex(OUTPUTS.ordinal())
            .setPressAction(() -> parent.doAction(new AddOutput(parent)));
+
+        controlP5.Tab oscillabstract = controlP5.addTab("Oscillabstract").setHeight(tabHeight)
+                                                .addListener(listener -> activateTab(gui, OSCILLABSTRACT, parent))
+                                                .activateEvent(true)
+                                                .setId(OSCILLABSTRACT.ordinal());
 
 
 //        positions.put(controlP5.addButton("Detect")
@@ -156,7 +162,7 @@ public class UIBuilder
 
     public enum Tab
     {
-        DEFAULT, OUTPUTS, SETTINGS, ABOUT
+        DEFAULT, OUTPUTS, OSCILLABSTRACT, SETTINGS, ABOUT
     }
 
     private UIBuilder()

@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
+import be.cmbsoft.ildaviewer.ProgramState;
+import be.cmbsoft.ildaviewer.oscillabstract.Oscillabstract;
 import be.cmbsoft.laseroutput.Bounds;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
@@ -58,6 +60,9 @@ import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
 
+import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
+import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
+import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
@@ -111,6 +116,8 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     // I/O
     private AudioProcessor audioProcessor;
     private PImage        network;
+    private Oscillabstract                     oscillabstract;
+    private be.cmbsoft.ildaviewer.ProgramState oscState;
 
     public LiveControl()
     {
@@ -211,6 +218,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             outputs.put(UUID.randomUUID().toString(), createOutput(output));
         }
 
+        oscState = new ProgramState();
+        oscState.setSettings(getDefaultSettings());
+        initialiseState(oscState, this, "Arial");
+
         buildDefaultSettings();
 
         audioProcessor = new AudioProcessor(this);
@@ -235,6 +246,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     @Override
     public void draw()
     {
+        updateProgramState();
         background(0);
         if (prevWidth != width || prevHeight != height) {
             prevWidth = width;
@@ -247,6 +259,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         switch (activeTab) {
             case DEFAULT -> drawDefault();
             case OUTPUTS -> drawOutputs();
+            case OSCILLABSTRACT -> oscillabstract.update(oscState, this.g);
             case SETTINGS -> drawSettings();
             case ABOUT -> drawAbout();
         }
@@ -256,10 +269,24 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         mouseDragged = false;
     }
 
+    private void updateProgramState()
+    {
+        setStateFromPApplet(oscState, this);
+    }
+
     @Override
     public void mouseClicked()
     {
         this.mouseClicked = true;
+    }
+
+    @Override
+    public void mousePressed()
+    {
+        mouseClicked = true;
+        updateProgramState();
+
+        if (activeTab == UIBuilder.Tab.OSCILLABSTRACT) oscillabstract.mousePressed(oscState);
     }
 
     @Override
@@ -531,6 +558,18 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     public void activateTab(UIBuilder.Tab tab)
     {
         this.activeTab = tab;
+        if (tab == UIBuilder.Tab.OSCILLABSTRACT)
+        {
+            initOscillabstract();
+        }
+    }
+
+    private void initOscillabstract()
+    {
+        if (oscillabstract == null)
+        {
+            oscillabstract = new Oscillabstract(oscState);
+        }
     }
 
     // Reflexive usage by ControlP5
