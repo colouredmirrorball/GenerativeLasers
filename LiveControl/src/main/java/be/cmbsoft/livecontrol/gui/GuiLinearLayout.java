@@ -213,7 +213,7 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         else
         {
             throw new RuntimeException("Error: invalid mode when setting LinearLayout orientation. Mode can only be" +
-                " cmb.soft.text2laser.gui.GuiLinearLayout.HORIZONTAL or cmb.soft.text2laser.gui.GuiLinearLayout.VERTICAL.");
+                " HORIZONTAL or VERTICAL.");
         }
         return this;
     }
@@ -246,6 +246,11 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
                 elements.remove(i.get());
             }
         }
+    }
+
+    public void clear()
+    {
+        elements.clear();
     }
 
 }

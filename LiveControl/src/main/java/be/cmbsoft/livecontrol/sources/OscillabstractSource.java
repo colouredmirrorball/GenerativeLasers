@@ -1,17 +1,23 @@
 package be.cmbsoft.livecontrol.sources;
 
 import be.cmbsoft.ilda.IldaFrame;
+import be.cmbsoft.ildaviewer.ProgramState;
+import be.cmbsoft.ildaviewer.oscillabstract.ExternalOutput;
+import be.cmbsoft.ildaviewer.oscillabstract.Oscillabstract;
+import be.cmbsoft.ildaviewer.oscillabstract.Workspace;
 
 import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 
 public class OscillabstractSource extends Source
 {
-//    private final IldaViewer ildaViewer;
 
-    public OscillabstractSource()
+    private final Workspace workspace = new Workspace();
+
+    public OscillabstractSource(ProgramState state, Oscillabstract oscillabstract)
     {
-//        this.ildaViewer = new IldaViewer();
-//        PApplet.runSketch(new String[]{""}, ildaViewer);
+        ExternalOutput externalOutput = new ExternalOutput(state);
+        workspace.getElements().add(externalOutput);
+        oscillabstract.registerWorkspace(workspace);
     }
 
     @Override

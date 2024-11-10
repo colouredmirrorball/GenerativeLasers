@@ -10,7 +10,7 @@ import processing.core.PGraphics;
 import processing.core.PVector;
 
 /**
- * A parent class for all cmb.soft.text2laser.gui.GUI elements
+ * A parent class for all GUI elements
  * Created by Florian on 10/11/2017.
  */
 public abstract class GuiElement<T extends GuiElement<T>>

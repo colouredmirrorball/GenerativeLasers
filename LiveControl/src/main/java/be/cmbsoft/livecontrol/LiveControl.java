@@ -17,6 +17,7 @@ import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.ildaviewer.ProgramState;
 import be.cmbsoft.ildaviewer.oscillabstract.Oscillabstract;
+import be.cmbsoft.ildaviewer.oscillabstract.Workspace;
 import be.cmbsoft.laseroutput.Bounds;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
@@ -35,6 +36,7 @@ import be.cmbsoft.livecontrol.fx.Parameter;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import be.cmbsoft.livecontrol.gui.GuiElement;
+import be.cmbsoft.livecontrol.gui.GuiLinearLayout;
 import be.cmbsoft.livecontrol.midi.MidiDeviceContainer;
 import be.cmbsoft.livecontrol.settings.ChannelAndNote;
 import be.cmbsoft.livecontrol.settings.Settings;
@@ -118,6 +120,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private PImage        network;
     private Oscillabstract                     oscillabstract;
     private be.cmbsoft.ildaviewer.ProgramState oscState;
+    private GuiLinearLayout workspaceButtons;
 
     public LiveControl()
     {
@@ -259,7 +262,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         switch (activeTab) {
             case DEFAULT -> drawDefault();
             case OUTPUTS -> drawOutputs();
-            case OSCILLABSTRACT -> oscillabstract.update(oscState, this.g);
+            case OSCILLABSTRACT -> drawOscillabstract();
             case SETTINGS -> drawSettings();
             case ABOUT -> drawAbout();
         }
@@ -267,6 +270,15 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         mouseClicked = false;
         mouseReleased = false;
         mouseDragged = false;
+    }
+
+    private void drawOscillabstract()
+    {
+        oscillabstract.update(oscState, this.g);
+        for (Workspace workspace : oscillabstract.getWorkspaces())
+        {
+
+        }
     }
 
     private void updateProgramState()
@@ -570,6 +582,13 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         {
             oscillabstract = new Oscillabstract(oscState);
         }
+        workspaceButtons.clear();
+        oscillabstract.getWorkspaces().forEach(workspace ->
+        {
+            workspaceButtons.addElement(gui.addButton(workspace.getName())
+                                           .setPressAction(() -> oscillabstract.activateWorkspace(workspace))
+                                           .setSize(200, 50));
+        });
     }
 
     // Reflexive usage by ControlP5
@@ -612,7 +631,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             case ILDA_FOLDER -> new IldaFolderPlayerSourceWrapper(new File(sourceSettings.getIldaFolder()), this);
             case AUDIO -> new AudioEffectsSourceWrapper(this);
             case BEAMS -> new BeamSourceWrapper(this);
-            case OSCILLABSTRACT -> new OscillabstractSourceWrapper();
+            case OSCILLABSTRACT -> new OscillabstractSourceWrapper(this);
             default -> new EmptySourceWrapper();
         };
     }
@@ -850,6 +869,21 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     public void setFlash(boolean b)
     {
         matrix.setFlashMode(b);
+    }
+
+    public ProgramState getOscState()
+    {
+        return oscState;
+    }
+
+    public Oscillabstract getOscillabstract()
+    {
+        return oscillabstract;
+    }
+
+    public void setOscillabstractWorkspaceButtons(GuiLinearLayout guiLinearLayout)
+    {
+        this.workspaceButtons = guiLinearLayout;
     }
 
 }

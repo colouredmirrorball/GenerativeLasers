@@ -87,6 +87,11 @@ public class UIBuilder
                                                 .activateEvent(true)
                                                 .setId(OSCILLABSTRACT.ordinal());
 
+        parent.setOscillabstractWorkspaceButtons(gui.addLinearLayout()
+                                                    .setPosition(10, 100)
+                                                    .setSize(256, 64)
+                                                    .setGroupIndex(OSCILLABSTRACT.ordinal()));
+
 
 //        positions.put(controlP5.addButton("Detect")
 //                        .moveTo(output)
