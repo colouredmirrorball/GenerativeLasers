@@ -17,6 +17,7 @@ public class OscillabstractSource extends Source
     {
         ExternalOutput externalOutput = new ExternalOutput(state);
         workspace.getElements().add(externalOutput);
+        workspace.setName("Default workspace");
         oscillabstract.registerWorkspace(workspace);
     }
 

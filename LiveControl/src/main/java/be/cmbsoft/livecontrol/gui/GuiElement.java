@@ -3,6 +3,7 @@ package be.cmbsoft.livecontrol.gui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import be.cmbsoft.livecontrol.actions.IAction;
 import processing.core.PConstants;
@@ -78,7 +79,7 @@ public abstract class GuiElement<T extends GuiElement<T>>
         if (clicked) {graphics.fill(0);}
         else {graphics.fill(graphics.red(strokecolour), graphics.green(strokecolour), graphics.blue(strokecolour));}
         graphics.textAlign(PConstants.CENTER, PConstants.CENTER);
-        graphics.text(title, x + 3, y + 3, width, height);
+        graphics.text(Optional.ofNullable(title).orElse("Untitled"), x + 3, y + 3, width, height);
         if (clicked && !parent.isMousePressed()) clicked = false;
 
     }
