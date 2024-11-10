@@ -10,16 +10,15 @@ import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.ilda.Optimiser;
+import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.chase.ChaseReceiver;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.midi.MidiReceiver;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
-import processing.core.PGraphics;
-
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import static processing.core.PConstants.P3D;
+import processing.core.PGraphics;
 
 public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
 {
@@ -285,14 +284,26 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
             }
             parent.image(parent.previousIcon, x - 27, y + 30);
             parent.image(parent.nextIcon, x + w + 7, y + 30);
-            if (parent.isMouseClicked() && parent.isMouseOver(x - 27, y, x, y + h))
+            if (parent.isMouseClicked())
             {
-                wrapper.previous();
+
+                if (parent.isMouseOver(x - 27, y, x, y + h))
+                {
+                    wrapper.previous();
+                    parent.releaseMouse();
+                }
+                if (parent.isMouseOver(x + w, y, x + w + 27, y + h))
+                {
+                    wrapper.next();
+                    parent.releaseMouse();
+                }
+                if (parent.isMouseOver(x, y, x + w, y + h))
+                {
+                    wrapper.mouseClicked();
+                    parent.releaseMouse();
+                }
             }
-            if (parent.isMouseClicked() && parent.isMouseOver(x + w, y, x + w + 27, y + h))
-            {
-                wrapper.next();
-            }
+
             PGraphics visualisation = sourceVisualisation[i];
             visualisation.beginDraw();
             visualisation.background(0);

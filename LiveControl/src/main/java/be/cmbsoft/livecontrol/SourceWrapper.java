@@ -1,9 +1,8 @@
 package be.cmbsoft.livecontrol;
 
 import be.cmbsoft.ilda.IldaFrame;
-import be.cmbsoft.livecontrol.sources.Source;
-
 import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
+import be.cmbsoft.livecontrol.sources.Source;
 
 public abstract class SourceWrapper
 {
@@ -21,6 +20,11 @@ public abstract class SourceWrapper
     public void next()
     {
         source = provideNextSource();
+    }
+
+    public void mouseClicked()
+    {
+
     }
 
     protected abstract Source provideNextSource();

@@ -10,14 +10,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.jetbrains.annotations.NotNull;
-
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
+import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
+import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
+import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
 import be.cmbsoft.ildaviewer.ProgramState;
 import be.cmbsoft.ildaviewer.oscillabstract.Oscillabstract;
-import be.cmbsoft.ildaviewer.oscillabstract.Workspace;
 import be.cmbsoft.laseroutput.Bounds;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
@@ -49,23 +48,22 @@ import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
 import be.cmbsoft.livecontrol.sources.OscillabstractSourceWrapper;
 import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
+import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
-
-import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
-import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
-import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
-import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
@@ -105,6 +103,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private final Oscillabstract                                            oscillabstract;
     private final be.cmbsoft.ildaviewer.ProgramState                        oscState;
     //UI
+    private ControlP5 controlP5;
     public        PGraphics                                                 previousIcon;
     public        PGraphics                                                 nextIcon;
     private       GUI                                                       gui;
@@ -239,11 +238,12 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
         gui = new GUI(this);
         // UI
-        ControlP5 controlP5 = new ControlP5(this, getFont(36));
-        uiConfig = new UIConfig(this);
-        network = shapeToPGraphic(44, 44, uiConfig.getBackgroundColor(), uiConfig.getForegroundColor(),
+
+        controlP5 = new ControlP5(this, getFont(36));
+        uiConfig  = new UIConfig(this);
+        network   = shapeToPGraphic(44, 44, uiConfig.getBackgroundColor(), uiConfig.getForegroundColor(),
             loadIconShape("network").orElse(new PShape()));
-        nextIcon =
+        nextIcon  =
             shapeToPGraphic(20, 20, 0, uiConfig.getForegroundColor(), loadIconShape("next").orElse(new PShape()));
         previousIcon =
             shapeToPGraphic(20, 20, 0, uiConfig.getForegroundColor(), loadIconShape("previous").orElse(new PShape()));
@@ -283,13 +283,16 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         mouseDragged = false;
     }
 
+    public void activateUITab(UIBuilder.Tab tab)
+    {
+        controlP5.getTab(StringUtils.capitalize(tab.name().toLowerCase())).bringToFront();
+        activateTab(tab);
+
+    }
+
     private void drawOscillabstract()
     {
         oscillabstract.update(oscState, this.g);
-        for (Workspace workspace : oscillabstract.getWorkspaces())
-        {
-
-        }
     }
 
     private void updateProgramState()
@@ -588,6 +591,8 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     public void releaseMouse()
     {
         this.mouseReleased = true;
+        this.mouseClicked = false;
+        oscState.setMousePressed(false);
     }
 
     @Override
@@ -833,13 +838,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private void initOscillabstract()
     {
         workspaceButtons.clear();
-        oscillabstract.getWorkspaces().forEach(workspace ->
-        {
-            workspaceButtons.addElement(gui.addButton(workspace.getName())
-                                           .setTitle(workspace.getName())
-                                           .setPressAction(() -> oscillabstract.activateWorkspace(workspace))
-                                           .setSize(200, 50));
-        });
+        oscillabstract.getWorkspaces()
+            .forEach(workspace -> workspaceButtons.addElement(gui.addButton(workspace.getName())
+                .setTitle(workspace.getName())
+                .setPressAction(() -> oscillabstract.activateWorkspace(workspace))
+                .setSize(200, 50)));
     }
 
     // Reflexive usage by ControlP5

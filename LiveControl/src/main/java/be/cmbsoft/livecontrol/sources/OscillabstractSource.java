@@ -5,7 +5,6 @@ import be.cmbsoft.ildaviewer.ProgramState;
 import be.cmbsoft.ildaviewer.oscillabstract.ExternalOutput;
 import be.cmbsoft.ildaviewer.oscillabstract.Oscillabstract;
 import be.cmbsoft.ildaviewer.oscillabstract.Workspace;
-
 import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 
 public class OscillabstractSource extends Source
@@ -38,4 +37,8 @@ public class OscillabstractSource extends Source
 
     }
 
+    public Workspace getWorkspace()
+    {
+        return workspace;
+    }
 }

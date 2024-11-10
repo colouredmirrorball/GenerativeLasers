@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import be.cmbsoft.livecontrol.LiveControl;
+import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.actions.AddOutput;
 import be.cmbsoft.livecontrol.actions.ChaseDisabledAction;
 import be.cmbsoft.livecontrol.actions.ChaseEnabledAction;
@@ -11,16 +12,14 @@ import be.cmbsoft.livecontrol.actions.FlashDisabledAction;
 import be.cmbsoft.livecontrol.actions.FlashEnabledAction;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
-import controlP5.ControlP5;
-import controlP5.ControllerInterface;
-import processing.core.PVector;
-
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.ABOUT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.DEFAULT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.OSCILLABSTRACT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.OUTPUTS;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.SETTINGS;
+import controlP5.ControlP5;
+import controlP5.ControllerInterface;
+import processing.core.PVector;
 
 public class UIBuilder
 {
@@ -89,7 +88,7 @@ public class UIBuilder
 
         parent.setOscillabstractWorkspaceButtons(gui.addLinearLayout()
                                                     .setPosition(10, 100)
-                                                    .setSize(256, 64)
+                                                    .setSize(256, 64).setSpacing(10)
                                                     .setGroupIndex(OSCILLABSTRACT.ordinal()));
 
 

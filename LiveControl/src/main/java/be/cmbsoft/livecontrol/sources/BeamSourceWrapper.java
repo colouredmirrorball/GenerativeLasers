@@ -22,7 +22,6 @@ public class BeamSourceWrapper extends SourceWrapper
     }
 
     @Override
-
     protected Source provideNextSource()
     {
         position++;
@@ -40,5 +39,11 @@ public class BeamSourceWrapper extends SourceWrapper
             position = sources.size() - 1;
         }
         return sources.get(position);
+    }
+
+    @Override
+    public void mouseClicked()
+    {
+        sources.get(position).mouseClicked();
     }
 }

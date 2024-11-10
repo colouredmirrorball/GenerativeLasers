@@ -89,6 +89,11 @@ public abstract class BeamSource extends Source
         return secondColor;
     }
 
+    public void mouseClicked()
+    {
+        trigger();
+    }
+
     protected abstract void trigger();
 
     protected abstract void render();
