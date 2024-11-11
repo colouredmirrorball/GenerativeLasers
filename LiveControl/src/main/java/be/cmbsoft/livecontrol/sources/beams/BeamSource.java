@@ -22,7 +22,7 @@ public abstract class BeamSource extends Source
 
     protected BeamSource(LiveControl parent)
     {
-        renderer = new IldaRenderer(parent);
+        renderer = new IldaRenderer(parent).setBlankBeforePointCount(2);
         renderer.setOptimise(true);
         this.parent = parent;
         //parent.colorMode(PConstants.HSB);

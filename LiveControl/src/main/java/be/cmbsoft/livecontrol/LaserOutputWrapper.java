@@ -48,6 +48,7 @@ public class LaserOutputWrapper
             parent.noStroke();
             parent.fill(parent.getGuiStrokeColor());
             parent.textAlign(PConstants.LEFT, PConstants.TOP);
+            parent.textSize(12);
             parent.text(ildaFrame.getPointCount(), x, y + h + 10);
         }
     }

@@ -45,8 +45,9 @@ public class BeamEffectSource extends BeamSource
 
     void assignRandomPositions()
     {
+        IldaRenderer renderer = getRenderer();
         for (int i = 0; i < positions.length; i++) {
-            positions[i] = new PVector((int) parent.random(parent.width), (int) parent.random(parent.height));
+            positions[i] = new PVector((int) parent.random(renderer.width), (int) parent.random(renderer.height));
         }
     }
 }

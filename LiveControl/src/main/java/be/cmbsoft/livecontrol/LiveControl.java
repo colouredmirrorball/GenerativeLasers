@@ -151,8 +151,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         settings = settings1;
         OptimisationSettings optimisationSettings = new OptimisationSettings();
         optimisationSettings.setBlankDwell(true);
-        optimisationSettings.setBlankDwellAmount(5);
-        optimisationSettings.setMaxDistLit(0.05f);
+        optimisationSettings.setBlankDwellAmount(2);
+        optimisationSettings.setMaxDistLit(0.1f);
+        optimisationSettings.setMaxDistBlank(2);
         oscState = new ProgramState();
         oscState.setSettings(getDefaultSettings());
         initialiseState(oscState, this, "Arial");
