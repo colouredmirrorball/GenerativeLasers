@@ -33,7 +33,7 @@ public class LaserOutputWrapper
         {
             parent.fill(255, 0, 0);
         }
-        parent.rect(x, y, w, h);
+        parent.rect(x - 2, y - 2, w + 4, h + 4);
         if (renderer == null)
         {
             renderer = parent.createGraphics(w, h, PConstants.P3D);
@@ -45,7 +45,21 @@ public class LaserOutputWrapper
             ildaFrame.renderFrame(renderer, true);
             renderer.endDraw();
             parent.image(renderer, x, y);
+            parent.noStroke();
+            parent.fill(parent.getGuiStrokeColor());
+            parent.textAlign(PConstants.LEFT, PConstants.TOP);
+            parent.text(ildaFrame.getPointCount(), x, y + h + 10);
         }
+    }
+
+    public LaserOutput getWrappedOutput()
+    {
+        return output;
+    }
+
+    public void halt()
+    {
+        output.halt();
     }
 
 }

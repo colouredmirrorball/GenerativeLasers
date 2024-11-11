@@ -10,11 +10,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
-import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
-import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
-import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
 import be.cmbsoft.ildaviewer.ProgramState;
 import be.cmbsoft.ildaviewer.oscillabstract.Oscillabstract;
 import be.cmbsoft.laseroutput.Bounds;
@@ -48,22 +49,23 @@ import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
 import be.cmbsoft.livecontrol.sources.OscillabstractSourceWrapper;
 import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
-import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
+
+import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
+import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
+import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
+import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
@@ -94,7 +96,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private final List<UndoableAction>                                      redoList       = new ArrayList<>();
     // Laser processing
     private final EtherdreamOutput                                          discoverDevice = new EtherdreamOutput();
-    private final Map<String, LaserOutput>                                  outputs        = new HashMap<>();
+    private final Map<String, LaserOutputWrapper> outputs = new HashMap<>();
     private final Matrix                                                    matrix;
     private final Chaser                                                    chaser;
     private final EffectConfigurator                                        effectConfigurator;
@@ -222,8 +224,8 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
         for (Settings.EtherdreamOutputSettings output : settings.etherdreamOutputs)
         {
-            LaserOutput laser = createOutput(output);
-            setBounds(output.getBounds(), laser);
+            LaserOutputWrapper laser = createOutput(output);
+            setBounds(output.getBounds(), laser.getWrappedOutput());
             outputs.put(output.getAlias(), laser);
         }
         for (Settings.OutputSettings output : settings.lsxOutputs)
@@ -301,30 +303,32 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     }
 
     @Override
-    public void mouseClicked()
+    public void mouseReleased()
     {
-        this.mouseClicked = true;
+        this.mouseReleased = true;
+        updateProgramState();
     }
 
     @Override
     public void mousePressed()
     {
-        mouseClicked = true;
         updateProgramState();
 
         if (activeTab == UIBuilder.Tab.OSCILLABSTRACT) oscillabstract.mousePressed(oscState);
     }
 
     @Override
-    public void mouseReleased()
+    public void mouseClicked()
     {
-        this.mouseReleased = true;
+        this.mouseClicked = true;
+        updateProgramState();
     }
 
     @Override
     public void mouseDragged()
     {
         this.mouseDragged = true;
+        updateProgramState();
     }
 
     @Override
@@ -332,7 +336,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     {
         if (key == ESC)
         {
-            outputs.values().forEach(LaserOutput::halt);
+            outputs.values().forEach(LaserOutputWrapper::halt);
             key = 0;
 
         }
@@ -341,7 +345,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     @Override
     public void exit()
     {
-        outputs.values().forEach(LaserOutput::halt);
+        outputs.values().forEach(LaserOutputWrapper::halt);
         saveSettings();
         midiContainer.close();
         super.exit();
@@ -352,10 +356,30 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 //        outputs.put(uuid, null);
     }
 
-    public void removeOutput(String id)
+    private LaserOutputWrapper createOutput(Settings.OutputSettings output)
     {
-        Optional.ofNullable(outputs.get(id)).ifPresent(LaserOutput::halt);
-        outputs.remove(id);
+
+        if (output instanceof Settings.LsxOutputSettings lsxOutput)
+        {
+            return new LaserOutputWrapper(
+                new LsxOscOutput(lsxOutput.getTimeline(), lsxOutput.getFrameNumber(), lsxOutput.getHost(),
+                    lsxOutput.getPort()));
+        }
+        if (output instanceof Settings.EtherdreamOutputSettings etherdreamSettings)
+        {
+            EtherdreamOutput etherdreamOutput = new EtherdreamOutput().setAlias(etherdreamSettings.getAlias());
+            if (etherdreamSettings.isInvertX())
+            {
+                etherdreamOutput.option(OutputOption.INVERT_X);
+            }
+            if (etherdreamSettings.isInvertY())
+            {
+                etherdreamOutput.option(OutputOption.INVERT_Y);
+            }
+            etherdreamOutput.setIntensity(etherdreamSettings.getIntensity());
+            return new LaserOutputWrapper(etherdreamOutput);
+        }
+        throw new IllegalStateException("Unknown output type");
     }
 
     public void updateUIPositions()
@@ -379,6 +403,38 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     public void doAction(ISimpleAction action)
     {
         action.execute();
+    }
+
+    public void removeOutput(String id)
+    {
+        Optional.ofNullable(outputs.get(id)).ifPresent(LaserOutputWrapper::halt);
+        outputs.remove(id);
+    }
+
+    private float[] calculatePosition(UIBuilder.PositionCalculator position, ControllerInterface<?> controller)
+    {
+        float x = 0;
+        float y = 0;
+        switch (position.getType())
+        {
+            case UPPER_RIGHT_ANCHOR ->
+            {
+                x = width - position.getOffsetX() - controller.getWidth();
+                y = position.getOffsetY();
+            }
+            case UPPER_LEFT_ANCHOR ->
+            {
+                x = position.getOffsetX();
+                y = position.getOffsetY();
+            }
+            case LOWER_RIGHT_ANCHOR ->
+            {
+            }
+            case LOWER_LEFT_ANCHOR ->
+            {
+            }
+        }
+        return new float[]{x, y};
     }
 
     private void drawOutputs()
@@ -417,8 +473,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         x = 500;
         w = 400;
         h = 400;
-        for (LaserOutput output : outputs.values())
+        for (LaserOutputWrapper wrapper : outputs.values())
         {
+            LaserOutput output = wrapper.getWrappedOutput();
             Bounds bounds = output.getBounds();
             if (mousePressed && isMouseOver(x, y, x + w, y + h))
             {
@@ -461,57 +518,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             x += w + 20;
         }
 
-    }
-
-    private float[] calculatePosition(UIBuilder.PositionCalculator position, ControllerInterface<?> controller)
-    {
-        float x = 0;
-        float y = 0;
-        switch (position.getType())
-        {
-            case UPPER_RIGHT_ANCHOR ->
-            {
-                x = width - position.getOffsetX() - controller.getWidth();
-                y = position.getOffsetY();
-            }
-            case UPPER_LEFT_ANCHOR ->
-            {
-                x = position.getOffsetX();
-                y = position.getOffsetY();
-            }
-            case LOWER_RIGHT_ANCHOR ->
-            {
-            }
-            case LOWER_LEFT_ANCHOR ->
-            {
-            }
-        }
-        return new float[]{x, y};
-    }
-
-    private LaserOutput createOutput(Settings.OutputSettings output)
-    {
-
-        if (output instanceof Settings.LsxOutputSettings lsxOutput)
-        {
-            return new LsxOscOutput(lsxOutput.getTimeline(), lsxOutput.getFrameNumber(), lsxOutput.getHost(),
-                lsxOutput.getPort());
-        }
-        if (output instanceof Settings.EtherdreamOutputSettings etherdreamSettings)
-        {
-            EtherdreamOutput etherdreamOutput = new EtherdreamOutput().setAlias(etherdreamSettings.getAlias());
-            if (etherdreamSettings.isInvertX())
-            {
-                etherdreamOutput.option(OutputOption.INVERT_X);
-            }
-            if (etherdreamSettings.isInvertY())
-            {
-                etherdreamOutput.option(OutputOption.INVERT_Y);
-            }
-            etherdreamOutput.setIntensity(etherdreamSettings.getIntensity());
-            return etherdreamOutput;
-        }
-        throw new IllegalStateException("Unknown output type");
     }
 
     public void setUIPositions(Map<ControllerInterface<?>, UIBuilder.PositionCalculator> positions)
@@ -725,7 +731,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private Function<Integer, LaserOutputWrapper> getOutputProvider()
     {
         return i -> i >= outputs.size() ? DUMMY_OUTPUT
-            : outputs.values().stream().distinct().skip(i).map(LaserOutputWrapper::new).iterator().next();
+            : outputs.values().stream().distinct().skip(i).iterator().next();
     }
 
     private Function<Integer, SourceWrapper> getSourceProvider()
