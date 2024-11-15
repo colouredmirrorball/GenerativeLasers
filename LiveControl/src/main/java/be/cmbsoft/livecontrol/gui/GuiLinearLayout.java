@@ -6,21 +6,25 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import be.cmbsoft.livecontrol.actions.SliderValueUpdatedAction;
+import static be.cmbsoft.livecontrol.gui.GuiLinearLayout.Orientation.HORIZONTAL;
+import static be.cmbsoft.livecontrol.gui.GuiLinearLayout.Orientation.VERTICAL;
+import static processing.core.PApplet.map;
 import processing.core.PGraphics;
 import processing.core.PVector;
 
-import static processing.core.PApplet.map;
-
 /**
- * Sort cmb.soft.text2laser.gui.GUI elements in a nice list
+ * Sort GUI elements in a nice list
  * Created by Florian on 12/11/2017.
  */
 public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
 {
-    public static final int HORIZONTAL = 10;
-    public static final int VERTICAL   = 11;
-    protected final List<GuiElement> elements       = new ArrayList<>();
-    int mode;
+    public enum Orientation
+    {
+        HORIZONTAL, VERTICAL
+    }
+
+    protected final List<GuiElement<?>> elements = new ArrayList<>();
+    private         Orientation         orientation;
     int spacing = 10;
     int         contentSize = 0;
     float       scrollOffset;
@@ -33,127 +37,40 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         super(parent);
     }
 
+    @Override
     public void display(PGraphics graphics)
     {
-        if (mode == VERTICAL)
+        if (orientation == VERTICAL)
         {
-            if (contentSize > height)
-            {
-                //scrolling enabled!
-                scrolling = true;
-                if (parent.isMouseDragged() && mouseOver)
-                {
-                    scrollOffset += parent.getMouseY() - parent.getPMouseY();
-                    if (scrollBar != null) scrollBar.setPosition(map(scrollOffset, 0, -contentSize + height, 1, 0));
-                    //println(scrollOffset, scrollBar.updatePosition(), scrollBar.updatePosition()*contentSize,
-                    // contentSize);
-                }
-            }
-            else
-            {
-                scrollOffset = 0;
-                scrolling = false;
-            }
+            displayVertical();
         }
         else
         {
-            if (contentSize > width)
-            {
-                //scrolling enabled!
-                scrolling = true;
-                if (parent.isMouseDragged() && mouseOver)
-                {
-                    scrollOffset += parent.getMouseX() - parent.getPMouseX();
-                    if (scrollBar != null) scrollBar.setPosition(map(scrollOffset, 0, contentSize, 1, 0));
-                }
-
-            }
-            else
-            {
-                scrollOffset = 0;
-                scrolling = false;
-            }
+            displayHorizontal();
         }
-        for (GuiElement element : elements)
+        for (GuiElement<?> element : elements)
         {
-            if (mode == VERTICAL)
-            {
-                PVector position = element.posCalc.updatePosition(parent);
-
-                element.visible = (position.y >= y && position.y <= y + height);
-            }
-            else
-            {
-                PVector position = element.posCalc.updatePosition(parent);
-
-                element.visible = (position.x >= x && position.x <= x + width);
-            }
-            element.display(parent.getGraphics());
+            displayElement(element);
         }
         if (displayOutline)
         {
-            graphics.strokeWeight(strokeWeight);
-            if (mouseOver)
-            {
-                graphics.stroke(graphics.red(mouseovercolour), graphics.green(mouseovercolour),
-                    graphics.blue(mouseovercolour));
-            }
-            else
-            {
-                graphics.stroke(graphics.red(strokecolour), graphics.green(strokecolour), graphics.blue(strokecolour));
-            }
-
-            graphics.noFill();
-
-            graphics.rect(x, y, width, height, 3);
+            displayOutline(graphics);
         }
-        if (scrolling)
-        {
-            if (scrollBar == null)
+        if (scrolling && scrollBar == null)
             {
-                scrollBar = new GuiScroller(parent);
-                scrollBar
-                    .setValueChangedAction(new SliderValueUpdatedAction()
-                    {
-                        @Override
-                        public void execute(GuiSlider slider)
-                        {
-                            scrollOffset = map(slider.getPosition(), 1, 0, 0, -contentSize + height);
-                        }
-
-                        @Override
-                        public void undo(GuiSlider slider)
-                        {
-
-                        }
-
-                    })
-                    .setPosition(1f)
-                    .setPosition(new PositionCalculator()
-                    {
-                        @Override
-                        public PVector updatePosition(GUIContainer parent)
-                        {
-                            return new PVector(x + width - 10, y);
-                        }
-                    })
-
-                    .setSize(10, height);
-                parent.addGuiElement(scrollBar);
-
+                displayScrollbar();
 
             }
-        }
     }
 
-    public GuiLinearLayout addElement(GuiElement element)
+    public GuiLinearLayout addElement(GuiElement<?> element)
     {
-
         elements.add(element);
         updateElementPositions();
         return this;
     }
 
+    @Override
     public GuiLinearLayout setPosition(int x, int y)
     {
         super.setPosition(x, y);
@@ -161,6 +78,7 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         return this;
     }
 
+    @Override
     public GuiLinearLayout setPosition(PositionCalculator positionCalculator)
     {
         super.setPosition(positionCalculator);
@@ -170,13 +88,13 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
 
     public void updateElementPositions()
     {
-        if (elements == null) return;
+        if (elements.isEmpty()) return;
         int posX = x, posY = y;
-        if (mode == HORIZONTAL)
+        if (orientation == HORIZONTAL)
         {
             posX += scrollOffset;
             contentSize = 0;
-            for (GuiElement el : elements)
+            for (GuiElement<?> el : elements)
             {
                 el.setPosition(posX, posY);
                 posX += el.width + spacing;
@@ -188,7 +106,7 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         {
             posY += scrollOffset;
             contentSize = 0;
-            for (GuiElement el : elements)
+            for (GuiElement<?> el : elements)
             {
                 el.setPosition(posX, posY);
                 posY += el.height + spacing;
@@ -204,11 +122,11 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
 
     }
 
-    public GuiLinearLayout setMode(int mode)
+    public GuiLinearLayout setOrientation(Orientation orientation)
     {
-        if (mode == HORIZONTAL || mode == VERTICAL)
+        if (orientation == HORIZONTAL || orientation == VERTICAL)
         {
-            this.mode = mode;
+            this.orientation = orientation;
         }
         else
         {
@@ -216,6 +134,88 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
                 " HORIZONTAL or VERTICAL.");
         }
         return this;
+    }
+
+    public void removeElement(GuiElement<?> guiDraggableButton)
+    {
+        for (AtomicInteger i = new AtomicInteger(elements.size() - 1); i.get() >= 0; i.getAndDecrement())
+        {
+            GuiElement<?> element = elements.get(i.get());
+            if (element == guiDraggableButton)
+            {
+                elements.remove(i.get());
+            }
+        }
+    }
+
+    @Override
+    public void setVisible(boolean visible)
+    {
+        super.setVisible(visible);
+        for (GuiElement<?> element : elements)
+        {
+            element.setVisible(visible);
+        }
+    }
+
+    private void displayScrollbar()
+    {
+        scrollBar = new GuiScroller(parent);
+        scrollBar.setValueChangedAction(new SliderValueUpdatedAction()
+            {
+                @Override
+                public void execute(GuiSlider slider)
+                {
+                    scrollOffset = map(slider.getPosition(), 1, 0, 0, -contentSize + height);
+                }
+
+                @Override
+                public void undo(GuiSlider slider)
+                {
+
+                }
+
+            }).setPosition(1f).setPosition(new PositionCalculator()
+            {
+                @Override
+                public PVector updatePosition(GUIContainer parent)
+                {
+                    return new PVector(x + width - 10, y);
+                }
+            })
+
+            .setSize(10, height);
+        parent.addGuiElement(scrollBar);
+    }
+
+    private void displayOutline(PGraphics graphics)
+    {
+        graphics.strokeWeight(strokeWeight);
+        if (mouseOver)
+        {
+            graphics.stroke(graphics.red(mouseovercolour), graphics.green(mouseovercolour),
+                graphics.blue(mouseovercolour));
+        } else
+        {
+            graphics.stroke(graphics.red(strokecolour), graphics.green(strokecolour), graphics.blue(strokecolour));
+        }
+
+        graphics.noFill();
+
+        graphics.rect(x, y, width, height, 3);
+    }
+
+    private void displayElement(GuiElement<?> element)
+    {
+        PVector position = element.posCalc.updatePosition(parent);
+        if (orientation == VERTICAL)
+        {
+            element.visible = (position.y >= y && position.y <= y + height);
+        } else
+        {
+            element.visible = (position.x >= x && position.x <= x + width);
+        }
+        element.display(parent.getGraphics());
     }
 
     public int getSpacing()
@@ -235,16 +235,22 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         return this;
     }
 
-
-    public void removeElement(GuiElement guiDraggableButton)
+    private void displayHorizontal()
     {
-        for (AtomicInteger i = new AtomicInteger(elements.size() - 1); i.get() >= 0; i.getAndDecrement())
+        if (contentSize > width)
         {
-            GuiElement element = elements.get(i.get());
-            if (element == guiDraggableButton)
+            //scrolling enabled!
+            scrolling = true;
+            if (parent.isMouseDragged() && mouseOver)
             {
-                elements.remove(i.get());
+                scrollOffset += parent.getMouseX() - parent.getPMouseX();
+                if (scrollBar != null) scrollBar.setPosition(map(scrollOffset, 0, contentSize, 1, 0));
             }
+
+        } else
+        {
+            scrollOffset = 0;
+            scrolling    = false;
         }
     }
 
@@ -253,4 +259,21 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         elements.clear();
     }
 
+    private void displayVertical()
+    {
+        if (contentSize > height)
+        {
+            //scrolling enabled!
+            scrolling = true;
+            if (parent.isMouseDragged() && mouseOver)
+            {
+                scrollOffset += parent.getMouseY() - parent.getPMouseY();
+                if (scrollBar != null) scrollBar.setPosition(map(scrollOffset, 0, -contentSize + height, 1, 0));
+            }
+        } else
+        {
+            scrollOffset = 0;
+            scrolling    = false;
+        }
+    }
 }
