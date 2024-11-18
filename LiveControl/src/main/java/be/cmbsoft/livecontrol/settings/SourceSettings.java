@@ -1,28 +1,20 @@
 package be.cmbsoft.livecontrol.settings;
 
-public class SourceSettings
+import be.cmbsoft.livecontrol.sources.AudioEffectsSourceWrapper;
+import be.cmbsoft.livecontrol.sources.BeamSourceWrapper;
+import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
+import be.cmbsoft.livecontrol.sources.OscillabstractSourceWrapper;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({@JsonSubTypes.Type(value = AudioEffectsSourceWrapper.AudioEffectsSettings.class, name = "audioEffects"),
+    @JsonSubTypes.Type(value = BeamSourceWrapper.BeamSourceSettings.class, name = "beam"),
+    @JsonSubTypes.Type(value = IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings.class, name = "ildaFolderPlayer"),
+    @JsonSubTypes.Type(value = OscillabstractSourceWrapper.OscillabstractSourceSettings.class,
+        name = "oscillabstract"),})
+public interface SourceSettings
 {
-    private String     ildaFolder;
-    private SourceType sourceType;
 
-    public SourceType getType()
-    {
-        return sourceType;
-    }
-
-    public void setType(SourceType sourceType)
-    {
-        this.sourceType = sourceType;
-    }
-
-    public String getIldaFolder()
-    {
-        return ildaFolder;
-    }
-
-    public void setIldaFolder(String ildaFolder)
-    {
-        this.ildaFolder = ildaFolder;
-    }
 
 }

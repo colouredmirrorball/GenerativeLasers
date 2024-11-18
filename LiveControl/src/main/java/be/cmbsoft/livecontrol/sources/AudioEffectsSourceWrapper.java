@@ -4,6 +4,7 @@ import java.util.List;
 
 import be.cmbsoft.livecontrol.LiveControl;
 import be.cmbsoft.livecontrol.SourceWrapper;
+import be.cmbsoft.livecontrol.settings.SourceSettings;
 import be.cmbsoft.livecontrol.sources.audio.AudioSource;
 import be.cmbsoft.livecontrol.sources.audio.SpectrumBarsSource;
 import be.cmbsoft.livecontrol.sources.audio.VUBarsSource;
@@ -11,6 +12,10 @@ import be.cmbsoft.livecontrol.sources.audio.WaveformSource;
 
 public class AudioEffectsSourceWrapper extends SourceWrapper
 {
+    public record AudioEffectsSettings(int position) implements SourceSettings
+    {
+    }
+
     private final List<AudioSource> sources;
     private       int               position = 0;
 
@@ -18,6 +23,18 @@ public class AudioEffectsSourceWrapper extends SourceWrapper
     {
         sources = List.of(new SpectrumBarsSource(liveControl), new VUBarsSource(liveControl),
             new WaveformSource(liveControl));
+    }
+
+    @Override
+    public AudioEffectsSettings getSettings()
+    {
+        return new AudioEffectsSettings(position);
+    }
+
+    public AudioEffectsSourceWrapper setSettings(AudioEffectsSettings settings)
+    {
+        position = settings.position();
+        return this;
     }
 
     @Override

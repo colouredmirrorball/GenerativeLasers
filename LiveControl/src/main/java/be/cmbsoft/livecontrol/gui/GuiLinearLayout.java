@@ -24,13 +24,13 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
     }
 
     protected final List<GuiElement<?>> elements = new ArrayList<>();
-    private         Orientation         orientation;
     int spacing = 10;
     int         contentSize = 0;
     float       scrollOffset;
     boolean     scrolling   = false;
     GuiScroller scrollBar;
-    private         boolean          displayOutline = false;
+    private Orientation orientation;
+    private boolean     displayOutline = false;
 
     public GuiLinearLayout(GUIContainer parent)
     {
@@ -43,8 +43,7 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         if (orientation == VERTICAL)
         {
             displayVertical();
-        }
-        else
+        } else
         {
             displayHorizontal();
         }
@@ -57,10 +56,9 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
             displayOutline(graphics);
         }
         if (scrolling && scrollBar == null)
-            {
-                displayScrollbar();
-
-            }
+        {
+            displayScrollbar();
+        }
     }
 
     public GuiLinearLayout addElement(GuiElement<?> element)
@@ -101,8 +99,7 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
                 contentSize += el.width + spacing;
 
             }
-        }
-        else
+        } else
         {
             posY += scrollOffset;
             contentSize = 0;
@@ -127,11 +124,10 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         if (orientation == HORIZONTAL || orientation == VERTICAL)
         {
             this.orientation = orientation;
-        }
-        else
+        } else
         {
-            throw new RuntimeException("Error: invalid mode when setting LinearLayout orientation. Mode can only be" +
-                " HORIZONTAL or VERTICAL.");
+            throw new RuntimeException("Error: invalid mode when setting LinearLayout orientation. Mode can only be"
+                + " HORIZONTAL or VERTICAL.");
         }
         return this;
     }
@@ -156,6 +152,28 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         {
             element.setVisible(visible);
         }
+    }
+
+    public int getSpacing()
+    {
+        return spacing;
+    }
+
+    public GuiLinearLayout setSpacing(int spacing)
+    {
+        this.spacing = spacing;
+        return this;
+    }
+
+    public GuiLinearLayout setDisplayOutline(boolean b)
+    {
+        this.displayOutline = b;
+        return this;
+    }
+
+    public void clear()
+    {
+        elements.clear();
     }
 
     private void displayScrollbar()
@@ -218,23 +236,6 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
         element.display(parent.getGraphics());
     }
 
-    public int getSpacing()
-    {
-        return spacing;
-    }
-
-    public GuiLinearLayout setSpacing(int spacing)
-    {
-        this.spacing = spacing;
-        return this;
-    }
-
-    public GuiLinearLayout setDisplayOutline(boolean b)
-    {
-        this.displayOutline = b;
-        return this;
-    }
-
     private void displayHorizontal()
     {
         if (contentSize > width)
@@ -252,11 +253,6 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
             scrollOffset = 0;
             scrolling    = false;
         }
-    }
-
-    public void clear()
-    {
-        elements.clear();
     }
 
     private void displayVertical()

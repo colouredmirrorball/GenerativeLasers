@@ -9,15 +9,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import java.util.function.IntFunction;
 
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
+import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
+import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
+import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
 import be.cmbsoft.ildaviewer.ProgramState;
 import be.cmbsoft.ildaviewer.oscillabstract.Oscillabstract;
+import be.cmbsoft.ildaviewer.oscillabstract.Workspace;
 import be.cmbsoft.laseroutput.Bounds;
 import be.cmbsoft.laseroutput.EtherdreamOutput;
 import be.cmbsoft.laseroutput.LaserOutput;
@@ -41,7 +42,6 @@ import be.cmbsoft.livecontrol.midi.MidiDeviceContainer;
 import be.cmbsoft.livecontrol.settings.ChannelAndNote;
 import be.cmbsoft.livecontrol.settings.Settings;
 import be.cmbsoft.livecontrol.settings.SourceSettings;
-import be.cmbsoft.livecontrol.settings.SourceType;
 import be.cmbsoft.livecontrol.sources.AudioEffectsSourceWrapper;
 import be.cmbsoft.livecontrol.sources.BeamSourceWrapper;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
@@ -49,23 +49,22 @@ import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
 import be.cmbsoft.livecontrol.sources.OscillabstractSourceWrapper;
 import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
+import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
-
-import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
-import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
-import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
-import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
@@ -103,7 +102,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private final Map<String, Parameter>                                    parameterMap   = new HashMap<>();
     private final MidiDeviceContainer                                       midiContainer;
     private final Oscillabstract                                            oscillabstract;
-    private final be.cmbsoft.ildaviewer.ProgramState                        oscState;
+    private final ProgramState oscState;
     //UI
     private ControlP5 controlP5;
     public        PGraphics                                                 previousIcon;
@@ -735,7 +734,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             : outputs.values().stream().distinct().skip(i).iterator().next();
     }
 
-    private Function<Integer, SourceWrapper> getSourceProvider()
+    private IntFunction<SourceWrapper> getSourceProvider()
     {
         return this::getSourceWrapperFromSettings;
     }
@@ -762,17 +761,15 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 //        etherdreamOutputSettings.alias = "6E851F3F2177";
 //        settings.etherdreamOutputs.add(etherdreamOutputSettings);
 
-        SourceSettings ildaSource = new SourceSettings();
-//        ildaSource.setIldaFolder("C:\\Users\\Florian\\ILDA\\Live");
-        ildaSource.setIldaFolder("D:\\Laser\\ILDA\\Live");
-        ildaSource.setType(SourceType.ILDA_FOLDER);
-        SourceSettings audioSource = new SourceSettings();
-        audioSource.setType(SourceType.AUDIO);
-        SourceSettings beamSource = new SourceSettings();
-        beamSource.setType(SourceType.BEAMS);
-        SourceSettings oscillabstractSource = new SourceSettings();
-        oscillabstractSource.setType(SourceType.OSCILLABSTRACT);
-        settings.setSources(List.of(ildaSource, audioSource, beamSource, oscillabstractSource));
+//        SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings("D:\\Laser\\ILDA\\Live");
+        SourceSettings ildaSource =
+            new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings("C:\\Users\\Florian\\ILDA\\Live");
+
+        SourceSettings audioSource = new AudioEffectsSourceWrapper.AudioEffectsSettings(0);
+        SourceSettings beamSource  = new BeamSourceWrapper.BeamSourceSettings(0);
+        SourceSettings oscillabstractSource =
+            new OscillabstractSourceWrapper.OscillabstractSourceSettings(List.of(createDefaultWorkspace()));
+        settings.setSources(new ArrayList<>(List.of(ildaSource, audioSource, beamSource, oscillabstractSource)));
 
         settings.setMidiMatrixInputDevice("MIDIIN2 (Launchpad Pro)");
         settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
@@ -785,6 +782,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         settings.getMidiMap().put(new ChannelAndNote(0, 32), "Beam one");
         settings.getMidiMap().put(new ChannelAndNote(0, 48), "Beam two");
         settings.getMidiMap().put(new ChannelAndNote(0, 64), "Beam three");
+    }
+
+    private Workspace createDefaultWorkspace()
+    {
+        return Oscillabstract.createDefaultWorkspace(oscState);
     }
 
     private void processLasers()
@@ -884,12 +886,20 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             return new EmptySourceWrapper();
         }
         SourceSettings sourceSettings = sources.get(i);
-        return switch (sourceSettings.getType())
+        return switch (sourceSettings)
         {
-            case ILDA_FOLDER -> new IldaFolderPlayerSourceWrapper(new File(sourceSettings.getIldaFolder()), this);
-            case AUDIO -> new AudioEffectsSourceWrapper(this);
-            case BEAMS -> new BeamSourceWrapper(this);
-            case OSCILLABSTRACT -> new OscillabstractSourceWrapper(this);
+            case
+                IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings ildaFolderPlayerSettings -> new IldaFolderPlayerSourceWrapper(
+                new File(ildaFolderPlayerSettings.ildaFolder()), this);
+            case AudioEffectsSourceWrapper.AudioEffectsSettings audioEffectsSettings -> new AudioEffectsSourceWrapper(
+                this).setSettings(audioEffectsSettings);
+            case BeamSourceWrapper.BeamSourceSettings beamSourceSettings -> new BeamSourceWrapper(this).setSettings(
+                beamSourceSettings);
+            case
+                OscillabstractSourceWrapper.OscillabstractSourceSettings oscillabstractSourceSettings -> new OscillabstractSourceWrapper(
+                this).setSettings(oscillabstractSourceSettings);
+
+            default -> throw new IllegalStateException("Unexpected value: " + sourceSettings);
         };
     }
 
@@ -897,6 +907,8 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     {
         try
         {
+            settings.getSources().clear();
+            settings.getSources().addAll(matrix.getSourceSettings());
             if (!settingsFile.exists() && !settingsFile.createNewFile())
             {
                 log("Could not create settings file!");

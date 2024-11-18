@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.ilda.IldaPoint;
@@ -15,6 +16,7 @@ import be.cmbsoft.livecontrol.chase.ChaseReceiver;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
 import be.cmbsoft.livecontrol.midi.MidiReceiver;
+import be.cmbsoft.livecontrol.settings.SourceSettings;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
 import static processing.core.PConstants.P3D;
@@ -43,7 +45,8 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
     private             boolean                               flashMode           = true;
 
     private final IldaFrame emptyDebugFrame;
-    public Matrix(Function<Integer, SourceWrapper> sourceProvider, Function<Integer, LaserOutputWrapper> outputProvider,
+
+    public Matrix(IntFunction<SourceWrapper> sourceProvider, Function<Integer, LaserOutputWrapper> outputProvider,
         OptimisationSettings optimisationSettings)
     {
         for (int i = 0; i < ROWS; i++)
@@ -242,6 +245,16 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
         listeners.add(listener);
     }
 
+    public List<SourceSettings> getSourceSettings()
+    {
+        List<SourceSettings> settings = new ArrayList<>();
+        for (SourceWrapper source : sources)
+        {
+            settings.add(source.getSettings());
+        }
+        return settings;
+    }
+
     private Effect getModifier(int modifierIndex)
     {
         if (modifiers.size() <= modifierIndex)
@@ -329,5 +342,6 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
     {
         this.flashMode = flashMode;
     }
+
 
 }

@@ -3,14 +3,21 @@ package be.cmbsoft.livecontrol.sources;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import be.cmbsoft.livecontrol.LiveControl;
 import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.SourceWrapper;
 import be.cmbsoft.livecontrol.fx.Parameter;
+import be.cmbsoft.livecontrol.settings.SourceSettings;
 
 public class IldaFolderPlayerSourceWrapper extends SourceWrapper
 {
+
+    public record IldaFolderPlayerSettings(String ildaFolder) implements SourceSettings
+    {
+
+    }
 
     private final List<IldaPlayerSource> sources = new ArrayList<>();
     private final File                   folder;
@@ -25,6 +32,12 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
         parent.newParameter("Playback speed", playbackSpeed);
     }
 
+
+    @Override
+    public SourceSettings getSettings()
+    {
+        return new IldaFolderPlayerSettings(Optional.ofNullable(folder).map(File::getAbsolutePath).orElse(null));
+    }
 
     @Override
     protected Source provideNextSource()
