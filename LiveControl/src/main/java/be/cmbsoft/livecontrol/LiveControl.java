@@ -222,13 +222,13 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     {
         surface.setResizable(true);
 
-        for (Settings.EtherdreamOutputSettings output : settings.etherdreamOutputs)
+        for (Settings.EtherdreamOutputSettings output : settings.getEtherdreamOutputs())
         {
             LaserOutputWrapper laser = createOutput(output);
             setBounds(output.getBounds(), laser.getWrappedOutput());
             outputs.put(output.getAlias(), laser);
         }
-        for (Settings.OutputSettings output : settings.lsxOutputs)
+        for (Settings.OutputSettings output : settings.getLsxOutputs())
         {
             outputs.put(UUID.randomUUID().toString(), createOutput(output));
         }
@@ -652,13 +652,13 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         //TODO
     }
 
-    private void persistBounds(LaserOutput laser, Bounds existingBounds)
+    public void redo()
     {
-        if (laser instanceof EtherdreamOutput etherdream)
+        log("redo");
+        if (!redoList.isEmpty())
         {
-            settings.etherdreamOutputs.stream()
-                                      .filter(output -> output.getAlias().equals(etherdream.getAlias()))
-                                      .forEach(output -> output.setBounds(existingBounds));
+            redoList.getLast().execute();
+            redoList.removeLast();
         }
     }
 
@@ -708,13 +708,13 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         }
     }
 
-    public void redo()
+    private void persistBounds(LaserOutput laser, Bounds existingBounds)
     {
-        log("redo");
-        if (!redoList.isEmpty())
+        if (laser instanceof EtherdreamOutput etherdream)
         {
-            redoList.get(redoList.size() - 1).execute();
-            redoList.remove(redoList.size() - 1);
+            settings.getEtherdreamOutputs().stream()
+                                      .filter(output -> output.getAlias().equals(etherdream.getAlias()))
+                                      .forEach(output -> output.setBounds(existingBounds));
         }
     }
 
@@ -898,6 +898,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             case
                 OscillabstractSourceWrapper.OscillabstractSourceSettings oscillabstractSourceSettings -> new OscillabstractSourceWrapper(
                 this).setSettings(oscillabstractSourceSettings);
+            case EmptySourceWrapper.EmptySourceSettings empty -> new EmptySourceWrapper();
 
             default -> throw new IllegalStateException("Unexpected value: " + sourceSettings);
         };

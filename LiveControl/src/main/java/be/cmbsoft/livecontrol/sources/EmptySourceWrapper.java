@@ -6,7 +6,7 @@ import be.cmbsoft.livecontrol.settings.SourceSettings;
 public class EmptySourceWrapper extends SourceWrapper
 {
 
-    private record EmptySourceSettings() implements SourceSettings
+    public record EmptySourceSettings() implements SourceSettings
     {
     }
 

@@ -10,66 +10,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 
 public class Settings
 {
-    public List<LsxOutputSettings>        lsxOutputs        = new ArrayList<>();
-    public List<EtherdreamOutputSettings> etherdreamOutputs = new ArrayList<>();
-    private List<SourceSettings> sources;
-    private String midiMatrixInputDevice;
-    private String midiMatrixOutputDevice;
-    private String midiControlDevice;
-    private String optimisationSettings;
-    private Map<ChannelAndNote, String> midiMap = new HashMap<>();
-
-    public List<SourceSettings> getSources()
-    {
-        return sources;
-    }
-
-    public void setSources(List<SourceSettings> sources)
-    {
-        this.sources = sources;
-    }
-
-    public String getMidiMatrixInputDevice()
-    {
-        return midiMatrixInputDevice;
-    }
-
-    public void setMidiMatrixInputDevice(String midiMatrixInputDevice)
-    {
-        this.midiMatrixInputDevice = midiMatrixInputDevice;
-    }
-
-    public String getMidiMatrixOutputDevice()
-    {
-        return midiMatrixOutputDevice;
-    }
-
-    public void setMidiMatrixOutputDevice(String midiMatrixOutputDevice)
-    {
-        this.midiMatrixOutputDevice = midiMatrixOutputDevice;
-    }
-
-    public String getMidiControlDevice()
-    {
-        return midiControlDevice;
-    }
-
-    public void setMidiControlDevice(String midiControlDevice)
-    {
-        this.midiControlDevice = midiControlDevice;
-    }
-
-    public String getOptimisationSettings()
-    {
-        return optimisationSettings;
-    }
-
-    public void setOptimisationSettings(String optimisationSettings)
-    {
-        this.optimisationSettings = optimisationSettings;
-    }
-
-
     public static class LsxOutputSettings extends OutputSettings
     {
 
@@ -100,7 +40,7 @@ public class Settings
 
     public static class EtherdreamOutputSettings extends OutputSettings
     {
-        String alias;
+        private String alias;
         private Bounds bounds;
         private boolean invertX;
         private boolean invertY;
@@ -158,13 +98,8 @@ public class Settings
 
     }
 
-
-    @JsonSubTypes({
-        @JsonSubTypes.Type(value = EtherdreamOutputSettings.class,
-            name = "Etherdream"),
-        @JsonSubTypes.Type(value = LsxOutputSettings.class,
-            name = "LSX")
-    })
+    @JsonSubTypes({@JsonSubTypes.Type(value = EtherdreamOutputSettings.class, name = "Etherdream"),
+        @JsonSubTypes.Type(value = LsxOutputSettings.class, name = "LSX")})
     public static class OutputSettings
     {
         String host;
@@ -192,13 +127,77 @@ public class Settings
 
     }
 
+    private final List<LsxOutputSettings>        lsxOutputs        = new ArrayList<>();
+    private final List<EtherdreamOutputSettings> etherdreamOutputs = new ArrayList<>();
+    private final Map<ChannelAndNote, String>    midiMap           = new HashMap<>();
+    private       List<SourceSettings>           sources;
+    private       String                         midiMatrixInputDevice;
+    private       String                         midiMatrixOutputDevice;
+    private       String                         midiControlDevice;
+    private       String                         optimisationSettings;
+
+    public List<SourceSettings> getSources()
+    {
+        return sources;
+    }
+
+    public void setSources(List<SourceSettings> sources)
+    {
+        this.sources = sources;
+    }
+
+    public String getMidiMatrixInputDevice()
+    {
+        return midiMatrixInputDevice;
+    }
+
+    public void setMidiMatrixInputDevice(String midiMatrixInputDevice)
+    {
+        this.midiMatrixInputDevice = midiMatrixInputDevice;
+    }
+
+    public String getMidiMatrixOutputDevice()
+    {
+        return midiMatrixOutputDevice;
+    }
+
+    public void setMidiMatrixOutputDevice(String midiMatrixOutputDevice)
+    {
+        this.midiMatrixOutputDevice = midiMatrixOutputDevice;
+    }
+
+    public String getMidiControlDevice()
+    {
+        return midiControlDevice;
+    }
+
+    public void setMidiControlDevice(String midiControlDevice)
+    {
+        this.midiControlDevice = midiControlDevice;
+    }
+
+    public String getOptimisationSettings()
+    {
+        return optimisationSettings;
+    }
+
+    public void setOptimisationSettings(String optimisationSettings)
+    {
+        this.optimisationSettings = optimisationSettings;
+    }
+
     public Map<ChannelAndNote, String> getMidiMap()
     {
         return midiMap;
     }
 
-    public void setMidiMap(Map<ChannelAndNote, String> midiMap)
+    public List<LsxOutputSettings> getLsxOutputs()
     {
-        this.midiMap = midiMap;
+        return lsxOutputs;
+    }
+
+    public List<EtherdreamOutputSettings> getEtherdreamOutputs()
+    {
+        return etherdreamOutputs;
     }
 }
