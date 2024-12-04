@@ -11,11 +11,12 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
+import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
-import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
-import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
-import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
 import be.cmbsoft.ildaviewer.ProgramState;
 import be.cmbsoft.ildaviewer.oscillabstract.Oscillabstract;
 import be.cmbsoft.ildaviewer.oscillabstract.Workspace;
@@ -49,22 +50,23 @@ import be.cmbsoft.livecontrol.sources.IldaFolderPlayerSourceWrapper;
 import be.cmbsoft.livecontrol.sources.OscillabstractSourceWrapper;
 import be.cmbsoft.livecontrol.sources.audio.AudioProcessor;
 import be.cmbsoft.livecontrol.ui.UIBuilder;
-import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 import be.cmbsoft.livecontrol.ui.UIConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PShape;
 import processing.core.PVector;
+
+import static be.cmbsoft.ildaviewer.IldaViewer.getDefaultSettings;
+import static be.cmbsoft.ildaviewer.IldaViewer.initialiseState;
+import static be.cmbsoft.ildaviewer.IldaViewer.setStateFromPApplet;
+import static be.cmbsoft.livecontrol.ui.UIBuilder.buildUI;
 
 public class LiveControl extends PApplet implements GUIContainer, EffectConfiguratorContainer
 {
@@ -283,13 +285,16 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         mouseClicked = false;
         mouseReleased = false;
         mouseDragged = false;
+
+        textFont(getFont(12));
+        fill(255);
+        text("FPS: " + (int) frameRate, width - 210, 10);
     }
 
     public void activateUITab(UIBuilder.Tab tab)
     {
         controlP5.getTab(StringUtils.capitalize(tab.name().toLowerCase())).bringToFront();
         activateTab(tab);
-
     }
 
     private void drawOscillabstract()
