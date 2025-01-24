@@ -11,7 +11,6 @@ import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.ilda.IldaPoint;
 import be.cmbsoft.ilda.OptimisationSettings;
 import be.cmbsoft.ilda.Optimiser;
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.chase.ChaseReceiver;
 import be.cmbsoft.livecontrol.fx.Effect;
 import be.cmbsoft.livecontrol.fx.TrivialEffect;
@@ -19,8 +18,10 @@ import be.cmbsoft.livecontrol.midi.MidiReceiver;
 import be.cmbsoft.livecontrol.settings.SourceSettings;
 import be.cmbsoft.livecontrol.sources.EmptySourceWrapper;
 import be.cmbsoft.livecontrol.sources.Source;
-import static processing.core.PConstants.P3D;
 import processing.core.PGraphics;
+
+import static be.cmbsoft.livecontrol.LiveControl.log;
+import static processing.core.PConstants.P3D;
 
 public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
 {
@@ -43,6 +44,11 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
     private final       Optimiser                             optimiser;
     private final       List<MatrixListener>                  listeners           = new ArrayList<>();
     private             boolean                               flashMode           = true;
+    private int offsetX       = 250;
+    private int offsetY       = 200;
+    private int elementWidth  = 80;
+    private int elementHeight = 80;
+    private int padding       = 15;
 
     private final IldaFrame emptyDebugFrame;
 
@@ -171,33 +177,31 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
     public void display(LiveControl parent)
     {
         drawSources(parent);
-        int x = 200;
-        int y = 80;
-        int w = 80;
-        int h = 80;
+        int x = offsetX + 150;
+        int y = offsetY - 120;
         for (int i = 0; i < MODIFIERS; i++)
         {
             if (i < modifiers.size())
             {
                 Effect modifier = modifiers.get(i);
-                drawModifier(parent, modifier, x, y, w, h);
+                drawModifier(parent, modifier, x, y, elementWidth, elementHeight);
             }
-            x += w + 15;
+            x += elementWidth + padding;
         }
         for (int i = 0; i < OUTPUTS; i++)
         {
             LaserOutputWrapper output = outputProvider.apply(i);
-            output.display(parent, x, y, w, h);
-            x += w + 15;
+            output.display(parent, x, y, elementWidth, elementHeight);
+            x += elementWidth + padding;
         }
-        x = 200;
-        y = 200;
+        x = offsetX + 150;
+        y = offsetY;
         parent.stroke(parent.getUiConfig().getForegroundColor());
         for (int i = 0; i < matrix.length; i++)
         {
             for (int j = 0; j < matrix[i].length; j++)
             {
-                if (parent.isMouseClicked() && parent.isMouseOver(x, y, x + w, y + h))
+                if (parent.isMouseClicked() && parent.isMouseOver(x, y, x + elementWidth, y + elementHeight))
                 {
                     toggleAndPublish(i, j);
                     parent.releaseMouse();
@@ -210,11 +214,11 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
                 {
                     parent.fill(0);
                 }
-                parent.rect(x, y, w, h);
-                x += w + 15;
+                parent.rect(x, y, elementWidth, elementHeight);
+                x += elementWidth + 15;
             }
-            x = 200;
-            y += h + 15;
+            x = offsetX + 150;
+            y += elementHeight + 15;
         }
     }
 
@@ -283,10 +287,10 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
 
     private void drawSources(LiveControl parent)
     {
-        int x = 50;
-        int y = 200;
-        int w = 80;
-        int h = 80;
+        int x = offsetX;
+        int y = offsetY;
+        int w = elementWidth;
+        int h = elementHeight;
         int i = 0;
         for (SourceWrapper wrapper : sources)
         {
@@ -328,7 +332,7 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
             parent.noStroke();
             parent.rect(x - 3, y - 3, w + 6, h + 6, 2);
             parent.image(visualisation, x, y);
-            y += h + 15;
+            y += h + padding;
             i++;
         }
     }
