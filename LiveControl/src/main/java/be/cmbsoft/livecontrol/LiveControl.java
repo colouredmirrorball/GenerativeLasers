@@ -685,6 +685,12 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         return height;
     }
 
+    @Override
+    public int getActiveGroupIndex()
+    {
+        return activeTab.ordinal();
+    }
+
     public UIConfig getUiConfig()
     {
         return uiConfig;

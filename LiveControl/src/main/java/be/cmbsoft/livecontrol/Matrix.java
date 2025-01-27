@@ -144,7 +144,7 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
                     {
                         if (!processedPoints.isEmpty())
                         {
-                            IldaPoint firstPoint = processedPoints.get(0);
+                            IldaPoint firstPoint = processedPoints.getFirst();
                             IldaPoint duplicateFirst = new IldaPoint(firstPoint);
                             duplicateFirst.setBlanked(true);
                             frame.add(duplicateFirst);

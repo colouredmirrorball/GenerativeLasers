@@ -49,4 +49,7 @@ public interface GUIContainer
     int getWidth();
 
     int getHeight();
+
+    int getActiveGroupIndex();
+
 }

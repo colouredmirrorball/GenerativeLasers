@@ -279,6 +279,7 @@ public abstract class GuiElement<T extends GuiElement<T>>
     public T setGroupIndex(int groupIndex)
     {
         this.groupIndex = groupIndex;
+        visible = parent.getActiveGroupIndex() == groupIndex;
         return me;
     }
 
