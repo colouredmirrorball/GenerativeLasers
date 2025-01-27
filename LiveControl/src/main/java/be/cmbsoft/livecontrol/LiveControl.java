@@ -342,8 +342,8 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         if (key == ESC)
         {
             outputs.values().forEach(LaserOutputWrapper::halt);
+            //TODO: maybe also consider disabling all active effects and sources
             key = 0;
-
         }
     }
 
@@ -358,7 +358,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     public void addOutput(String id)
     {
-//        outputs.put(uuid, null);
+        //TODO (for now, manually defined outputs only are supported which is sufficient for development)
     }
 
     private LaserOutputWrapper createOutput(Settings.OutputSettings output)
@@ -434,9 +434,11 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             }
             case LOWER_RIGHT_ANCHOR ->
             {
+                //TODO finish
             }
             case LOWER_LEFT_ANCHOR ->
             {
+                //TODO finish
             }
         }
         return new float[]{x, y};
