@@ -112,6 +112,13 @@ public class GUI
         return draggableList;
     }
 
+    public GuiMultipleImagesButton addMultipleImagesButton(String name, PImage icon)
+    {
+        GuiMultipleImagesButton button = new GuiMultipleImagesButton(parent, icon, name);
+        elements.add(button);
+        return button;
+    }
+
     public GuiElement addGuiElement(GuiElement element)
     {
         elements.add(element);

@@ -28,6 +28,9 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
     public static final int                                   ROWS                = 8;
     public static final int                                   MODIFIERS           = 4;
     public static final int                                   OUTPUTS             = 4;
+    public static final int DEFAULT_PADDING        = 15;
+    public static final int DEFAULT_ELEMENT_HEIGHT = 80;
+    public static final int DEFAULT_OFFSET_Y       = 200;
 
     public interface MatrixListener
     {
@@ -45,10 +48,10 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
     private final       List<MatrixListener>                  listeners           = new ArrayList<>();
     private             boolean                               flashMode           = true;
     private int offsetX       = 250;
-    private int offsetY       = 200;
+    private int offsetY       = DEFAULT_OFFSET_Y;
     private int elementWidth  = 80;
-    private int elementHeight = 80;
-    private int padding       = 15;
+    private int elementHeight = DEFAULT_ELEMENT_HEIGHT;
+    private int padding       = DEFAULT_PADDING;
 
     private final IldaFrame emptyDebugFrame;
 

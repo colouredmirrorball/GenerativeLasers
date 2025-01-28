@@ -6,7 +6,7 @@ import processing.core.PGraphics;
 import processing.core.PImage;
 
 /**
- * cmb.soft.text2laser.gui.GuiButton but with an image instead of text
+ * GuiButton but with an image instead of text
  * Created by Florian on 11/11/2017.
  */
 public class GuiImageButton extends GuiButton
@@ -28,6 +28,7 @@ public class GuiImageButton extends GuiButton
 
     }
 
+    @Override
     public void display(PGraphics graphics)
     {
 
@@ -63,12 +64,6 @@ public class GuiImageButton extends GuiButton
             }
             switch (namePosition)
             {
-                case PConstants.RIGHT:
-                default:
-                    if (image != null) graphics.image(image, x + 3, y + 3);
-                    graphics.textAlign(PConstants.LEFT, PConstants.CENTER);
-                    graphics.text(title, x + w + 13, y + 3, width - w - 13, height);
-                    break;
                 case PConstants.LEFT:
                     if (image != null) graphics.image(image, x + 3, y + 3);
                     graphics.textAlign(PConstants.RIGHT, PConstants.CENTER);
@@ -83,6 +78,12 @@ public class GuiImageButton extends GuiButton
                     if (image != null) graphics.image(image, x + 3, y + 3);
                     graphics.textAlign(PConstants.CENTER, PConstants.CENTER);
                     graphics.text(title, x + 3, y + 3 + h, width, height);
+                    break;
+                case PConstants.RIGHT:
+                default:
+                    if (image != null) graphics.image(image, x + 3, y + 3);
+                    graphics.textAlign(PConstants.LEFT, PConstants.CENTER);
+                    graphics.text(title, x + w + 13, y + 3, width - w - 13, height);
                     break;
             }
 
@@ -107,6 +108,7 @@ public class GuiImageButton extends GuiButton
         return this;
     }
 
+    @Override
     public GuiImageButton setSize(int sx, int sy)
     {
         this.width = sx;

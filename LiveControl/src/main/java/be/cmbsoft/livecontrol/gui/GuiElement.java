@@ -8,6 +8,7 @@ import java.util.Optional;
 import be.cmbsoft.livecontrol.actions.IAction;
 import processing.core.PConstants;
 import processing.core.PGraphics;
+import processing.core.PImage;
 import processing.core.PVector;
 
 /**
@@ -297,6 +298,11 @@ public abstract class GuiElement<T extends GuiElement<T>>
     public List<Visibility> getVisibilities()
     {
         return visibilities;
+    }
+
+    public T setImages(PImage[] sources)
+    {
+        return me;
     }
 
 }

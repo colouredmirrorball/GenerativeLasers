@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import be.cmbsoft.livecontrol.LiveControl;
+import be.cmbsoft.livecontrol.Matrix;
 import be.cmbsoft.livecontrol.actions.AddOutput;
 import be.cmbsoft.livecontrol.actions.ChaseDisabledAction;
 import be.cmbsoft.livecontrol.actions.ChaseEnabledAction;
@@ -24,6 +25,8 @@ import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.SETTINGS;
 
 public class UIBuilder
 {
+
+    public static final int CHASES_AMOUNT = 8;
 
     public static void buildUI(ControlP5 controlP5, GUI gui, LiveControl parent)
     {
@@ -46,8 +49,14 @@ public class UIBuilder
             .activateEvent(true)
             .setId(DEFAULT.ordinal());
 
-        for (int index = 0; index < 8; index++) {
+        for (int index = 0; index < CHASES_AMOUNT; index++)
+        {
             chaseButton(gui, parent, index);
+        }
+
+        for (int index = 0; index < Matrix.ROWS; index++)
+        {
+            modifySourceButton(gui, parent, index);
         }
 
 
@@ -130,6 +139,25 @@ public class UIBuilder
         parent.setUIPositions(positions);
         parent.updateUIPositions();
 
+    }
+
+    private static void modifySourceButton(GUI gui, LiveControl parent, int index)
+    {
+        gui.addMultipleImagesButton("Modify source " + index, parent.getIcon("settings",
+               Matrix.DEFAULT_ELEMENT_HEIGHT, Matrix.DEFAULT_ELEMENT_HEIGHT))
+           .setPosition(new be.cmbsoft.livecontrol.gui.PositionCalculator()
+           {
+               @Override
+               public PVector updatePosition(GUIContainer parent)
+               {
+                   return new PVector(25,
+                       Matrix.DEFAULT_OFFSET_Y + (Matrix.DEFAULT_ELEMENT_HEIGHT + Matrix.DEFAULT_PADDING) * index);
+               }
+           })
+           .setSize(64, 64)
+           .setInfoText("Modify source " + index)
+           .setPressAction(() -> parent.modifySource(index))
+           .setGroupIndex(DEFAULT.ordinal());
     }
 
     private static void chaseButton(GUI gui, LiveControl parent, int index)

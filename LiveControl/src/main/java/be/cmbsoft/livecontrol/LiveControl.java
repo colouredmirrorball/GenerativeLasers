@@ -973,4 +973,14 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         this.workspaceButtons = guiLinearLayout;
     }
 
+    public PImage getIcon(String name, int w, int h)
+    {
+        return shapeToPGraphic(w, h, color(0, 0), color(255, 255), loadIconShape(name).orElse(new PShape()));
+    }
+
+    public void modifySource(int index)
+    {
+        System.out.println("Modify source " + index);
+    }
+
 }
