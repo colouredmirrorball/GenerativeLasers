@@ -10,6 +10,7 @@ import be.cmbsoft.livecontrol.actions.ChaseDisabledAction;
 import be.cmbsoft.livecontrol.actions.ChaseEnabledAction;
 import be.cmbsoft.livecontrol.actions.FlashDisabledAction;
 import be.cmbsoft.livecontrol.actions.FlashEnabledAction;
+import be.cmbsoft.livecontrol.gui.AnchoredPositionCalculator;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import controlP5.ControlP5;
@@ -17,6 +18,8 @@ import controlP5.ControllerInterface;
 import processing.core.PVector;
 
 import static be.cmbsoft.livecontrol.LiveControl.log;
+import static be.cmbsoft.livecontrol.ui.PositionType.UPPER_LEFT_ANCHOR;
+import static be.cmbsoft.livecontrol.ui.PositionType.UPPER_RIGHT_ANCHOR;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.ABOUT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.DEFAULT;
 import static be.cmbsoft.livecontrol.ui.UIBuilder.Tab.OSCILLABSTRACT;
@@ -30,7 +33,7 @@ public class UIBuilder
 
     public static void buildUI(ControlP5 controlP5, GUI gui, LiveControl parent)
     {
-        Map<ControllerInterface<?>, PositionCalculator> positions = new HashMap<>();
+        Map<ControllerInterface<?>, AnchoredPositionCalculator> positions = new HashMap<>();
 
 
         int tabHeight = 64;
@@ -66,7 +69,7 @@ public class UIBuilder
            .setPosition(new be.cmbsoft.livecontrol.gui.PositionCalculator()
            {
                @Override
-               public PVector updatePosition(GUIContainer parent)
+               public PVector updatePosition(GUIContainer parent, int width, int height)
                {
                    return new PVector(parent.getWidth() - 300, 800);
                }
@@ -141,25 +144,6 @@ public class UIBuilder
 
     }
 
-    private static void modifySourceButton(GUI gui, LiveControl parent, int index)
-    {
-        gui.addMultipleImagesButton("Modify source " + index, parent.getIcon("settings",
-               Matrix.DEFAULT_ELEMENT_HEIGHT, Matrix.DEFAULT_ELEMENT_HEIGHT))
-           .setPosition(new be.cmbsoft.livecontrol.gui.PositionCalculator()
-           {
-               @Override
-               public PVector updatePosition(GUIContainer parent)
-               {
-                   return new PVector(25,
-                       Matrix.DEFAULT_OFFSET_Y + (Matrix.DEFAULT_ELEMENT_HEIGHT + Matrix.DEFAULT_PADDING) * index);
-               }
-           })
-           .setSize(64, 64)
-           .setInfoText("Modify source " + index)
-           .setPressAction(() -> parent.modifySource(index))
-           .setGroupIndex(DEFAULT.ordinal());
-    }
-
     private static void chaseButton(GUI gui, LiveControl parent, int index)
     {
         gui.addToggle("Chase " + index)
@@ -168,7 +152,7 @@ public class UIBuilder
             .setPosition(new be.cmbsoft.livecontrol.gui.PositionCalculator()
             {
                 @Override
-                public PVector updatePosition(GUIContainer parent)
+                public PVector updatePosition(GUIContainer parent, int width, int height)
                 {
                     return new PVector(parent.getWidth() - 300, 100 + 70 * index);
                 }
@@ -178,6 +162,25 @@ public class UIBuilder
             .setFontSize(32)
             .setGroupIndex(DEFAULT.ordinal())
         ;
+    }
+
+    private static void modifySourceButton(GUI gui, LiveControl parent, int index)
+    {
+        gui.addMultipleImagesButton("Modify source " + index, parent.getIcon("settings",
+               Matrix.DEFAULT_ELEMENT_HEIGHT, Matrix.DEFAULT_ELEMENT_HEIGHT))
+           .setPosition(new be.cmbsoft.livecontrol.gui.PositionCalculator()
+           {
+               @Override
+               public PVector updatePosition(GUIContainer parent, int width, int height)
+               {
+                   return new PVector(25,
+                       Matrix.DEFAULT_OFFSET_Y + (Matrix.DEFAULT_ELEMENT_HEIGHT + Matrix.DEFAULT_PADDING) * index);
+               }
+           })
+           .setSize(64, 64)
+           .setInfoText("Modify source " + index)
+           .setPressAction(() -> parent.modifySource(index))
+           .setGroupIndex(DEFAULT.ordinal());
     }
 
     public static void activateTab(GUI gui, Tab tab, LiveControl parent)
@@ -204,61 +207,22 @@ public class UIBuilder
 
     }
 
-    private static PositionCalculator upperLeft(int x, int y)
+    private static AnchoredPositionCalculator upperRight(int x, int y)
     {
-        PositionCalculator calculator = new PositionCalculator();
+        AnchoredPositionCalculator calculator = new AnchoredPositionCalculator();
         calculator.setOffsetX(x);
         calculator.setOffsetY(y);
-        calculator.setType(PositionType.UPPER_LEFT_ANCHOR);
+        calculator.setType(UPPER_RIGHT_ANCHOR);
         return calculator;
     }
 
-    private static PositionCalculator upperRight(int x, int y)
+    private static AnchoredPositionCalculator upperLeft(int x, int y)
     {
-        PositionCalculator calculator = new PositionCalculator();
-        calculator.offsetX = x;
-        calculator.offsetY = y;
-        calculator.type = PositionType.UPPER_RIGHT_ANCHOR;
+        AnchoredPositionCalculator calculator = new AnchoredPositionCalculator();
+        calculator.setOffsetX(x);
+        calculator.setOffsetY(y);
+        calculator.setType(UPPER_LEFT_ANCHOR);
         return calculator;
-    }
-
-    public static class PositionCalculator
-    {
-
-        private PositionType type;
-        private int          offsetX;
-        private int          offsetY;
-
-        public int getOffsetX()
-        {
-            return offsetX;
-        }
-
-        public void setOffsetX(int offsetX)
-        {
-            this.offsetX = offsetX;
-        }
-
-        public int getOffsetY()
-        {
-            return offsetY;
-        }
-
-        public void setOffsetY(int offsetY)
-        {
-            this.offsetY = offsetY;
-        }
-
-        public PositionType getType()
-        {
-            return type;
-        }
-
-        public void setType(PositionType type)
-        {
-            this.type = type;
-        }
-
     }
 
 

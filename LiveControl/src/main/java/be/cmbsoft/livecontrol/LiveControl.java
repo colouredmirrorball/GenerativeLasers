@@ -35,6 +35,7 @@ import be.cmbsoft.livecontrol.chase.Chaser;
 import be.cmbsoft.livecontrol.fx.EffectConfigurator;
 import be.cmbsoft.livecontrol.fx.EffectConfiguratorContainer;
 import be.cmbsoft.livecontrol.fx.Parameter;
+import be.cmbsoft.livecontrol.gui.AnchoredPositionCalculator;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
 import be.cmbsoft.livecontrol.gui.GuiElement;
@@ -88,31 +89,30 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     });
 
     // Program control flow
-    private final Settings                                                  settings;
-    private final File                                                      settingsFile   = new File("settings.json");
-    private final ObjectMapper                                              objectMapper;
-    private final Map<Integer, PFont>                                       fonts          = new HashMap<>();
-    private final CircularFifoQueue<UndoableAction>                         actions        = new CircularFifoQueue<>(
-        128);
-    private final List<UndoableAction>                                      redoList       = new ArrayList<>();
+    private final Settings                                                settings;
+    private final File                                                    settingsFile   = new File("settings.json");
+    private final ObjectMapper                                            objectMapper;
+    private final Map<Integer, PFont>                                     fonts          = new HashMap<>();
+    private final CircularFifoQueue<UndoableAction>                       actions        = new CircularFifoQueue<>(128);
+    private final List<UndoableAction>                                    redoList       = new ArrayList<>();
     // Laser processing
-    private final EtherdreamOutput                                          discoverDevice = new EtherdreamOutput();
-    private final Map<String, LaserOutputWrapper> outputs = new HashMap<>();
-    private final Matrix                                                    matrix;
-    private final Chaser                                                    chaser;
-    private final EffectConfigurator                                        effectConfigurator;
-    private final Map<String, Parameter>                                    parameterMap   = new HashMap<>();
-    private final MidiDeviceContainer                                       midiContainer;
-    private final Oscillabstract                                            oscillabstract;
-    private final ProgramState oscState;
+    private final EtherdreamOutput                                        discoverDevice = new EtherdreamOutput();
+    private final Map<String, LaserOutputWrapper>                         outputs        = new HashMap<>();
+    private final Matrix                                                  matrix;
+    private final Chaser                                                  chaser;
+    private final EffectConfigurator                                      effectConfigurator;
+    private final Map<String, Parameter>                                  parameterMap   = new HashMap<>();
+    private final MidiDeviceContainer                                     midiContainer;
+    private final Oscillabstract                                          oscillabstract;
+    private final ProgramState                                            oscState;
+    public        PGraphics                                               previousIcon;
+    public        PGraphics                                               nextIcon;
     //UI
-    private ControlP5 controlP5;
-    public        PGraphics                                                 previousIcon;
-    public        PGraphics                                                 nextIcon;
-    private       GUI                                                       gui;
-    private       PGraphics                                                 defaultIcon;
-    private       Map<ControllerInterface<?>, UIBuilder.PositionCalculator> uiPositions;
-    private       int                                                       prevWidth, prevHeight;
+    private       ControlP5                                               controlP5;
+    private       GUI                                                     gui;
+    private       PGraphics                                               defaultIcon;
+    private       Map<ControllerInterface<?>, AnchoredPositionCalculator> uiPositions;
+    private       int                                                     prevWidth, prevHeight;
     private boolean         mouseClicked  = false;
     private boolean         mouseReleased = false;
     private boolean         mouseDragged;
@@ -244,13 +244,13 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         // UI
 
         controlP5 = new ControlP5(this, getFont(36));
-        uiConfig  = new UIConfig(this);
-        network   = shapeToPGraphic(44, 44, uiConfig.getBackgroundColor(), uiConfig.getForegroundColor(),
+        uiConfig = new UIConfig(this);
+        network = shapeToPGraphic(44, 44, uiConfig.getBackgroundColor(), uiConfig.getForegroundColor(),
             loadIconShape("network").orElse(new PShape()));
-        nextIcon  =
-            shapeToPGraphic(20, 20, 0, uiConfig.getForegroundColor(), loadIconShape("next").orElse(new PShape()));
-        previousIcon =
-            shapeToPGraphic(20, 20, 0, uiConfig.getForegroundColor(), loadIconShape("previous").orElse(new PShape()));
+        nextIcon = shapeToPGraphic(20, 20, 0, uiConfig.getForegroundColor(),
+            loadIconShape("next").orElse(new PShape()));
+        previousIcon = shapeToPGraphic(20, 20, 0, uiConfig.getForegroundColor(),
+            loadIconShape("previous").orElse(new PShape()));
         buildUI(controlP5, gui, this);
         prevWidth = width;
         prevHeight = height;
@@ -387,15 +387,34 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         throw new IllegalStateException("Unknown output type");
     }
 
-    public void updateUIPositions()
+    private void buildDefaultSettings()
     {
-        for (Map.Entry<ControllerInterface<?>, UIBuilder.PositionCalculator> entry
-            : uiPositions.entrySet())
-        {
-            ControllerInterface<?> controller = entry.getKey();
-            UIBuilder.PositionCalculator position   = entry.getValue();
-            controller.setPosition(calculatePosition(position, controller));
-        }
+//        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
+//        etherdreamOutputSettings.alias = "6E851F3F2177";
+//        settings.etherdreamOutputs.add(etherdreamOutputSettings);
+
+//        SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings
+//        ("D:\\Laser\\ILDA\\Live");
+        SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings(
+            "C:\\Users\\Florian\\ILDA\\Live");
+
+        SourceSettings audioSource = new AudioEffectsSourceWrapper.AudioEffectsSettings(0);
+        SourceSettings beamSource  = new BeamSourceWrapper.BeamSourceSettings(0);
+        SourceSettings oscillabstractSource = new OscillabstractSourceWrapper.OscillabstractSourceSettings(
+            List.of(createDefaultWorkspace()));
+        settings.setSources(new ArrayList<>(List.of(ildaSource, audioSource, beamSource, oscillabstractSource)));
+
+        settings.setMidiMatrixInputDevice("MIDIIN2 (Launchpad Pro)");
+        settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
+        settings.setMidiControlDevice("nanoKONTROL2");
+
+        settings.getMidiMap().put(new ChannelAndNote(0, 7), "Chase speed");
+        settings.getMidiMap().put(new ChannelAndNote(0, 23), "First chase row");
+        settings.getMidiMap().put(new ChannelAndNote(1, 12), "waveformHue");
+        settings.getMidiMap().put(new ChannelAndNote(0, 0), "Playback speed");
+        settings.getMidiMap().put(new ChannelAndNote(0, 32), "Beam one");
+        settings.getMidiMap().put(new ChannelAndNote(0, 48), "Beam two");
+        settings.getMidiMap().put(new ChannelAndNote(0, 64), "Beam three");
     }
 
     public void doAction(UndoableAction action)
@@ -414,34 +433,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     {
         Optional.ofNullable(outputs.get(id)).ifPresent(LaserOutputWrapper::halt);
         outputs.remove(id);
-    }
-
-    private float[] calculatePosition(UIBuilder.PositionCalculator position, ControllerInterface<?> controller)
-    {
-        float x = 0;
-        float y = 0;
-        switch (position.getType())
-        {
-            case UPPER_RIGHT_ANCHOR ->
-            {
-                x = width - position.getOffsetX() - controller.getWidth();
-                y = position.getOffsetY();
-            }
-            case UPPER_LEFT_ANCHOR ->
-            {
-                x = position.getOffsetX();
-                y = position.getOffsetY();
-            }
-            case LOWER_RIGHT_ANCHOR ->
-            {
-                //TODO finish
-            }
-            case LOWER_LEFT_ANCHOR ->
-            {
-                //TODO finish
-            }
-        }
-        return new float[]{x, y};
     }
 
     private void drawOutputs()
@@ -527,9 +518,16 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     }
 
-    public void setUIPositions(Map<ControllerInterface<?>, UIBuilder.PositionCalculator> positions)
+    public void updateUIPositions()
     {
-        this.uiPositions = positions;
+        for (Map.Entry<ControllerInterface<?>, AnchoredPositionCalculator> entry : uiPositions.entrySet())
+        {
+            ControllerInterface<?>     controller = entry.getKey();
+            AnchoredPositionCalculator position   = entry.getValue();
+            PVector                    updated    = position.updatePosition(this, controller.getWidth(),
+                controller.getHeight());
+            controller.setPosition(updated.x, updated.y);
+        }
     }
 
     public void setBounds(Bounds bounds, LaserOutput laser)
@@ -721,14 +719,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         }
     }
 
-    private void persistBounds(LaserOutput laser, Bounds existingBounds)
+    public void setUIPositions(Map<ControllerInterface<?>, AnchoredPositionCalculator> positions)
     {
-        if (laser instanceof EtherdreamOutput etherdream)
-        {
-            settings.getEtherdreamOutputs().stream()
-                                      .filter(output -> output.getAlias().equals(etherdream.getAlias()))
-                                      .forEach(output -> output.setBounds(existingBounds));
-        }
+        this.uiPositions = positions;
     }
 
     public AudioProcessor getAudioProcessor()
@@ -741,10 +734,13 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         return mouseX >= x && mouseX <= x2 && mouseY >= y && mouseY <= y2;
     }
 
-    private Function<Integer, LaserOutputWrapper> getOutputProvider()
+    private void persistBounds(LaserOutput laser, Bounds existingBounds)
     {
-        return i -> i >= outputs.size() ? DUMMY_OUTPUT
-            : outputs.values().stream().distinct().skip(i).iterator().next();
+        if (laser instanceof EtherdreamOutput etherdream)
+        {
+            settings.getEtherdreamOutputs().stream().filter(output -> output.getAlias().equals(etherdream.getAlias()))
+                    .forEach(output -> output.setBounds(existingBounds));
+        }
     }
 
     private IntFunction<SourceWrapper> getSourceProvider()
@@ -768,33 +764,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         }).orElse(new PImage[]{getDefaultIcon()});
     }
 
-    private void buildDefaultSettings()
+    private Function<Integer, LaserOutputWrapper> getOutputProvider()
     {
-//        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
-//        etherdreamOutputSettings.alias = "6E851F3F2177";
-//        settings.etherdreamOutputs.add(etherdreamOutputSettings);
-
-//        SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings("D:\\Laser\\ILDA\\Live");
-        SourceSettings ildaSource =
-            new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings("C:\\Users\\Florian\\ILDA\\Live");
-
-        SourceSettings audioSource = new AudioEffectsSourceWrapper.AudioEffectsSettings(0);
-        SourceSettings beamSource  = new BeamSourceWrapper.BeamSourceSettings(0);
-        SourceSettings oscillabstractSource =
-            new OscillabstractSourceWrapper.OscillabstractSourceSettings(List.of(createDefaultWorkspace()));
-        settings.setSources(new ArrayList<>(List.of(ildaSource, audioSource, beamSource, oscillabstractSource)));
-
-        settings.setMidiMatrixInputDevice("MIDIIN2 (Launchpad Pro)");
-        settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
-        settings.setMidiControlDevice("nanoKONTROL2");
-
-        settings.getMidiMap().put(new ChannelAndNote(0, 7), "Chase speed");
-        settings.getMidiMap().put(new ChannelAndNote(0, 23), "First chase row");
-        settings.getMidiMap().put(new ChannelAndNote(1, 12), "waveformHue");
-        settings.getMidiMap().put(new ChannelAndNote(0, 0), "Playback speed");
-        settings.getMidiMap().put(new ChannelAndNote(0, 32), "Beam one");
-        settings.getMidiMap().put(new ChannelAndNote(0, 48), "Beam two");
-        settings.getMidiMap().put(new ChannelAndNote(0, 64), "Beam three");
+        return i -> i >= outputs.size() ? DUMMY_OUTPUT : outputs.values().stream().distinct().skip(i).iterator().next();
     }
 
     private Workspace createDefaultWorkspace()
@@ -860,11 +832,9 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     private void initOscillabstract()
     {
         workspaceButtons.clear();
-        oscillabstract.getWorkspaces()
-            .forEach(workspace -> workspaceButtons.addElement(gui.addButton(workspace.getName())
-                .setTitle(workspace.getName())
-                .setPressAction(() -> oscillabstract.activateWorkspace(workspace))
-                .setSize(200, 50)));
+        oscillabstract.getWorkspaces().forEach(workspace -> workspaceButtons.addElement(gui.addButton(
+            workspace.getName()).setTitle(workspace.getName()).setPressAction(
+            () -> oscillabstract.activateWorkspace(workspace)).setSize(200, 50)));
     }
 
     // Reflexive usage by ControlP5
@@ -901,16 +871,14 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         SourceSettings sourceSettings = sources.get(i);
         return switch (sourceSettings)
         {
-            case
-                IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings ildaFolderPlayerSettings -> new IldaFolderPlayerSourceWrapper(
-                new File(ildaFolderPlayerSettings.ildaFolder()), this);
+            case IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings ildaFolderPlayerSettings ->
+                new IldaFolderPlayerSourceWrapper(new File(ildaFolderPlayerSettings.ildaFolder()), this);
             case AudioEffectsSourceWrapper.AudioEffectsSettings audioEffectsSettings -> new AudioEffectsSourceWrapper(
                 this).setSettings(audioEffectsSettings);
             case BeamSourceWrapper.BeamSourceSettings beamSourceSettings -> new BeamSourceWrapper(this).setSettings(
                 beamSourceSettings);
-            case
-                OscillabstractSourceWrapper.OscillabstractSourceSettings oscillabstractSourceSettings -> new OscillabstractSourceWrapper(
-                this).setSettings(oscillabstractSourceSettings);
+            case OscillabstractSourceWrapper.OscillabstractSourceSettings oscillabstractSourceSettings ->
+                new OscillabstractSourceWrapper(this).setSettings(oscillabstractSourceSettings);
             case EmptySourceWrapper.EmptySourceSettings empty -> new EmptySourceWrapper();
 
             default -> throw new IllegalStateException("Unexpected value: " + sourceSettings);

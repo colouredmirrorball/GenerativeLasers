@@ -87,12 +87,12 @@ public abstract class GuiElement<T extends GuiElement<T>>
 
     public void updatePosition()
     {
-        PVector position = posCalc.updatePosition(parent);
+        PVector position = posCalc.updatePosition(parent, width, height);
         x = (int) position.x;
         y = (int) position.y;
         if (sizeCalc != null)
         {
-            PVector size = sizeCalc.updatePosition(parent);
+            PVector size = sizeCalc.updatePosition(parent, width, height);
             width = (int) size.x;
             height = (int) size.y;
         }
@@ -125,7 +125,7 @@ public abstract class GuiElement<T extends GuiElement<T>>
         {
             //Absolute position
             @Override
-            public PVector updatePosition(GUIContainer parent)
+            public PVector updatePosition(GUIContainer parent, int width, int height)
             {
                 position.set(x, y);
                 return position;
@@ -151,7 +151,7 @@ public abstract class GuiElement<T extends GuiElement<T>>
         sizeCalc = new PositionCalculator()
         {
             @Override
-            public PVector updatePosition(GUIContainer parent)
+            public PVector updatePosition(GUIContainer parent, int width, int height)
             {
                 position.set(sx, sy);
                 return position;
@@ -303,6 +303,16 @@ public abstract class GuiElement<T extends GuiElement<T>>
     public T setImages(PImage[] sources)
     {
         return me;
+    }
+
+    public int getWidth()
+    {
+        return width;
+    }
+
+    public int getHeight()
+    {
+        return height;
     }
 
 }

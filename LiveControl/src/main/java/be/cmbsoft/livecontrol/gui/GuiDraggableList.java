@@ -27,9 +27,9 @@ public class GuiDraggableList extends GuiLinearLayout implements ReceivingElemen
         elementsSize = new PositionCalculator()
         {
             @Override
-            public PVector updatePosition(GUIContainer parent)
+            public PVector updatePosition(GUIContainer parent, int width, int height)
             {
-                position.set(width, 30);
+                position.set(GuiDraggableList.this.width, 30);
                 return position;
             }
         };
@@ -79,18 +79,15 @@ public class GuiDraggableList extends GuiLinearLayout implements ReceivingElemen
         }
     }
 
-    public GuiDraggableList setElementSize(int elsx, int elsy)
+    public GuiDraggableButton addButton(PImage image, String text)
     {
-        setElementSize(new PositionCalculator()
-        {
-            @Override
-            public PVector updatePosition(GUIContainer parent)
-            {
-                position.set(elsx, elsy);
-                return position;
-            }
-        });
-        return this;
+        GuiDraggableButton button = new GuiDraggableButton(parent, image, text);
+        elements.add(button);
+        button.setSize((int) elementsSize.updatePosition(parent, button.getWidth(),
+            button.getHeight()).x, (int) elementsSize.updatePosition(parent, button.getWidth(),
+            button.getHeight()).y);
+        updateElementPositions();
+        return button;
     }
 
     public GuiDraggableList setElementSize(PositionCalculator calculator)
@@ -136,14 +133,11 @@ public class GuiDraggableList extends GuiLinearLayout implements ReceivingElemen
         return false;
     }
 
-
-    public GuiDraggableButton addButton(PImage image, String text)
+    public GuiDraggableList setSize(int sx, int sy)
     {
-        GuiDraggableButton button = new GuiDraggableButton(parent, image, text);
-        elements.add(button);
-        button.setSize((int) elementsSize.updatePosition(parent).x, (int) elementsSize.updatePosition(parent).y);
-        updateElementPositions();
-        return button;
+        super.setSize(sx, sy);
+        setElementSize(sx - (scrolling ? 10 : 0), (int) elementsSize.updatePosition(parent, width, height).y);
+        return this;
     }
 
     public void clearElements()
@@ -151,11 +145,17 @@ public class GuiDraggableList extends GuiLinearLayout implements ReceivingElemen
         elements.clear();
     }
 
-    public GuiDraggableList setSize(int sx, int sy)
+    public GuiDraggableList setElementSize(int elsx, int elsy)
     {
-
-        super.setSize(sx, sy);
-        setElementSize(sx - (scrolling ? 10 : 0), (int) elementsSize.updatePosition(parent).y);
+        setElementSize(new PositionCalculator()
+        {
+            @Override
+            public PVector updatePosition(GUIContainer parent, int width, int height)
+            {
+                position.set(elsx, elsy);
+                return position;
+            }
+        });
         return this;
     }
 

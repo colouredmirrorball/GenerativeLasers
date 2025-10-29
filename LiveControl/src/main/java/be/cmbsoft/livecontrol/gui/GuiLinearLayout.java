@@ -6,11 +6,12 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import be.cmbsoft.livecontrol.actions.SliderValueUpdatedAction;
+import processing.core.PGraphics;
+import processing.core.PVector;
+
 import static be.cmbsoft.livecontrol.gui.GuiLinearLayout.Orientation.HORIZONTAL;
 import static be.cmbsoft.livecontrol.gui.GuiLinearLayout.Orientation.VERTICAL;
 import static processing.core.PApplet.map;
-import processing.core.PGraphics;
-import processing.core.PVector;
 
 /**
  * Sort GUI elements in a nice list
@@ -196,9 +197,9 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
             }).setPosition(1f).setPosition(new PositionCalculator()
             {
                 @Override
-                public PVector updatePosition(GUIContainer parent)
+                public PVector updatePosition(GUIContainer parent, int width, int height)
                 {
-                    return new PVector(x + width - 10, y);
+                    return new PVector(x + GuiLinearLayout.this.width - 10, y);
                 }
             })
 
@@ -225,7 +226,7 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
 
     private void displayElement(GuiElement<?> element)
     {
-        PVector position = element.posCalc.updatePosition(parent);
+        PVector position = element.posCalc.updatePosition(parent, element.width, element.height);
         if (orientation == VERTICAL)
         {
             element.visible = (position.y >= y && position.y <= y + height);

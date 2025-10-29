@@ -17,7 +17,7 @@
         <dependency>
             <groupId>org.processing</groupId>
             <artifactId>core</artifactId>
-            <version>4.3</version>
+            <version>4.3.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -37,11 +37,11 @@
             <artifactId>jogl-all-main</artifactId>
             <version>2.3.2</version>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/org.jogamp.jogl/jogl-all -->
         <dependency>
             <groupId>org.jogamp.jogl</groupId>
             <artifactId>jogl-all</artifactId>
-            <version>2.3.2</version>
+            <version>2.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.jogamp.gluegen</groupId>
@@ -54,12 +54,13 @@
             <artifactId>newt</artifactId>
             <version>2.3.2</version>
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.jogamp.jogl/jogl-all-natives-windows-amd64 -->
-        <dependency>
-            <groupId>org.jogamp.jogl</groupId>
-            <artifactId>jogl-all-natives-windows-amd64</artifactId>
-            <version>2.4.0-rc-20210111</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.jogamp.jogl</groupId>-->
+        <!--            <artifactId>jogl-all-natives-windows-amd64</artifactId>-->
+        <!--            <version>2.4.0-rc-20210111</version>-->
+        <!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
         <dependency>
             <groupId>org.apache.commons</groupId>

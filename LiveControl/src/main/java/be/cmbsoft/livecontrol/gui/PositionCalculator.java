@@ -11,6 +11,6 @@ public abstract class PositionCalculator
 {
     public PVector position = new PVector();
 
-    public abstract PVector updatePosition(GUIContainer parent);
+    public abstract PVector updatePosition(GUIContainer parent, int width, int height);
 
 }
