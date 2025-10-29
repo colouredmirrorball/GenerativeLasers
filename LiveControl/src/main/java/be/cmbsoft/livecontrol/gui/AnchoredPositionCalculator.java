@@ -8,8 +8,6 @@ import static be.cmbsoft.livecontrol.ui.PositionType.UPPER_LEFT_ANCHOR;
 
 public class AnchoredPositionCalculator extends PositionCalculator
 {
-
-
     private PositionType type = UPPER_LEFT_ANCHOR;
     private int          offsetX;
     private int          offsetY;

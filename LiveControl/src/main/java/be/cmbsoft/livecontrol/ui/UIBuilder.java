@@ -31,21 +31,54 @@ public class UIBuilder
 
     public static final int CHASES_AMOUNT = 8;
 
-    public static void buildUI(ControlP5 controlP5, GUI gui, LiveControl parent)
+    public static void buildUI(ControlP5 cp5, GUI gui, LiveControl parent)
     {
         Map<ControllerInterface<?>, AnchoredPositionCalculator> positions = new HashMap<>();
 
+        controlP5.Tab.padding = 24;
 
         int tabHeight = 64;
-        controlP5.setTabEventsActive(true);
-        controlP5.setColorBackground(parent.getUiConfig().getBackgroundColor());
-        controlP5.setColorForeground(parent.getUiConfig().getForegroundColor());
-        controlP5.setColorActive(parent.getUiConfig().getActiveColor());
-        controlP5.setColorCaptionLabel(parent.getUiConfig().getFontColor());
+        cp5.setTabEventsActive(true);
+        cp5.setColorBackground(parent.getUiConfig().getBackgroundColor());
+        cp5.setColorForeground(parent.getUiConfig().getForegroundColor());
+        cp5.setColorActive(parent.getUiConfig().getActiveColor());
+        cp5.setColorCaptionLabel(parent.getUiConfig().getFontColor());
 
 
-        controlP5.Tab global = controlP5.getTab("global");
+        controlP5.Tab global = cp5.getTab("global");
 
+        configurePlayTab(cp5, gui, parent, tabHeight);
+
+        configureOutputsTab(cp5, gui, parent, tabHeight);
+
+        configureOscillabstractTab(cp5, gui, parent, tabHeight);
+
+        configureSettingsTab(cp5, gui, parent, tabHeight);
+
+        configureAboutTab(cp5, gui, parent, tabHeight);
+
+        positions.put(cp5.addButton("Undo")
+                         .addCallback(listener -> parent.doAction(parent::undo))
+                         .setImages(parent.getIcons("undo", 64, 64, parent.getUiConfig().getBackgroundColor(),
+                             parent.getUiConfig().getForegroundColor(), parent.getUiConfig().getActiveColor()))
+                         .moveTo(global)
+
+                         .setWidth(64)
+                         .setHeight(64), upperRight(84, 10));
+        positions.put(cp5.addButton("Redo")
+                         .addCallback(listener -> parent.doAction(parent::redo))
+                         .setImages(parent.getIcons("redo", 64, 64, parent.getUiConfig().getBackgroundColor(),
+                             parent.getUiConfig().getForegroundColor(), parent.getUiConfig().getActiveColor()))
+                         .moveTo(global)
+                         .setWidth(64)
+                         .setHeight(64), upperRight(10, 10));
+
+        parent.setUIPositions(positions);
+        parent.updateUIPositions();
+    }
+
+    private static void configurePlayTab(ControlP5 controlP5, GUI gui, LiveControl parent, int tabHeight)
+    {
         controlP5.Tab play = controlP5.getTab("default");
         play.setTitle("Play").setHeight(tabHeight)
             .addListener(listener -> activateTab(gui, DEFAULT, parent))
@@ -79,9 +112,11 @@ public class UIBuilder
            .setFontSize(32)
            .setGroupIndex(DEFAULT.ordinal())
         ;
+    }
 
+    private static void configureOutputsTab(ControlP5 controlP5, GUI gui, LiveControl parent, int tabHeight)
+    {
         controlP5.Tab output = controlP5.addTab("Outputs").setHeight(tabHeight)
-
                                         .addListener(listener -> activateTab(gui, OUTPUTS, parent))
                                         .activateEvent(true)
                                         .setId(OUTPUTS.ordinal());
@@ -94,6 +129,10 @@ public class UIBuilder
            .setGroupIndex(OUTPUTS.ordinal())
            .setPressAction(() -> parent.doAction(new AddOutput(parent)));
 
+    }
+
+    private static void configureOscillabstractTab(ControlP5 controlP5, GUI gui, LiveControl parent, int tabHeight)
+    {
         controlP5.Tab oscillabstract = controlP5.addTab("Oscillabstract").setHeight(tabHeight)
                                                 .addListener(listener -> activateTab(gui, OSCILLABSTRACT, parent))
                                                 .activateEvent(true)
@@ -104,44 +143,22 @@ public class UIBuilder
                                                     .setSize(256, 64)
                                                     .setSpacing(60)
                                                     .setGroupIndex(OSCILLABSTRACT.ordinal()));
+    }
 
-
-//        positions.put(controlP5.addButton("Detect")
-//                        .moveTo(output)
-//                        .setWidth(256)
-//                        .setHeight(80)
-//                        .addCallback(listener -> parent.doAction(new AddOutput(parent))),
-//            upperLeft(10, 128));
-
+    private static void configureSettingsTab(ControlP5 controlP5, GUI gui, LiveControl parent, int tabHeight)
+    {
         controlP5.Tab settings = controlP5.addTab("Settings").setHeight(tabHeight)
                                           .addListener(listener -> activateTab(gui, SETTINGS, parent))
                                           .activateEvent(true)
                                           .setId(SETTINGS.ordinal());
+    }
 
+    private static void configureAboutTab(ControlP5 controlP5, GUI gui, LiveControl parent, int tabHeight)
+    {
         controlP5.Tab about = controlP5.addTab("About").setHeight(tabHeight)
                                        .addListener(listener -> activateTab(gui, ABOUT, parent))
                                        .activateEvent(true)
                                        .setId(ABOUT.ordinal());
-
-        positions.put(controlP5.addButton("Undo")
-                               .addCallback(listener -> parent.doAction(parent::undo))
-                               .setImages(parent.getIcons("undo", 64, 64, parent.getUiConfig().getBackgroundColor(),
-                                   parent.getUiConfig().getForegroundColor(), parent.getUiConfig().getActiveColor()))
-                               .moveTo(global)
-
-                               .setWidth(64)
-                               .setHeight(64), upperRight(84, 10));
-        positions.put(controlP5.addButton("Redo")
-                               .addCallback(listener -> parent.doAction(parent::redo))
-                               .setImages(parent.getIcons("redo", 64, 64, parent.getUiConfig().getBackgroundColor(),
-                                   parent.getUiConfig().getForegroundColor(), parent.getUiConfig().getActiveColor()))
-                               .moveTo(global)
-                               .setWidth(64)
-                               .setHeight(64), upperRight(10, 10));
-
-        parent.setUIPositions(positions);
-        parent.updateUIPositions();
-
     }
 
     private static void chaseButton(GUI gui, LiveControl parent, int index)
