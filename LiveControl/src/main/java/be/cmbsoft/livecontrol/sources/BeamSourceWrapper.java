@@ -53,6 +53,12 @@ public class BeamSourceWrapper extends SourceWrapper
     }
 
     @Override
+    protected void editImpl()
+    {
+
+    }
+
+    @Override
     public void mouseClicked()
     {
         sources.get(position).mouseClicked();

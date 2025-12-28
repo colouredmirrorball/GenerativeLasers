@@ -59,4 +59,10 @@ public class AudioEffectsSourceWrapper extends SourceWrapper
         return sources.get(position);
     }
 
+    @Override
+    protected void editImpl()
+    {
+
+    }
+
 }

@@ -2,8 +2,9 @@ package be.cmbsoft.livecontrol;
 
 import be.cmbsoft.ilda.IldaFrame;
 import be.cmbsoft.livecontrol.settings.SourceSettings;
-import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 import be.cmbsoft.livecontrol.sources.Source;
+
+import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 
 public abstract class SourceWrapper
 {
@@ -38,5 +39,12 @@ public abstract class SourceWrapper
     }
 
     protected abstract Source providePreviousSource();
+
+    public void edit()
+    {
+        editImpl();
+    }
+
+    protected abstract void editImpl();
 
 }

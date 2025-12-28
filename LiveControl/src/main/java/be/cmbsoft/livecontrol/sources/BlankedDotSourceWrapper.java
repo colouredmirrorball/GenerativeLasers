@@ -27,4 +27,11 @@ public class BlankedDotSourceWrapper extends SourceWrapper
     {
         return null;
     }
+
+    @Override
+    protected void editImpl()
+    {
+
+    }
+
 }

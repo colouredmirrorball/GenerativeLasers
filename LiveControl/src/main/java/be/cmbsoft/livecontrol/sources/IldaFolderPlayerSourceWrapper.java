@@ -6,10 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 import be.cmbsoft.livecontrol.LiveControl;
-import static be.cmbsoft.livecontrol.LiveControl.log;
 import be.cmbsoft.livecontrol.SourceWrapper;
 import be.cmbsoft.livecontrol.fx.Parameter;
 import be.cmbsoft.livecontrol.settings.SourceSettings;
+
+import static be.cmbsoft.livecontrol.LiveControl.log;
 
 public class IldaFolderPlayerSourceWrapper extends SourceWrapper
 {
@@ -79,6 +80,12 @@ public class IldaFolderPlayerSourceWrapper extends SourceWrapper
             index = files.length - 1;
         }
         return getSource(files);
+    }
+
+    @Override
+    protected void editImpl()
+    {
+
     }
 
     private Source getSource(File[] files)

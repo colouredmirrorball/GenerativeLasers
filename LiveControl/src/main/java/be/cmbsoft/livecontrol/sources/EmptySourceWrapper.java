@@ -30,4 +30,10 @@ public class EmptySourceWrapper extends SourceWrapper
         return emptySource;
     }
 
+    @Override
+    protected void editImpl()
+    {
+
+    }
+
 }

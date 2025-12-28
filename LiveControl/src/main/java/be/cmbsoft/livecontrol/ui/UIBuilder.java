@@ -13,6 +13,7 @@ import be.cmbsoft.livecontrol.actions.FlashEnabledAction;
 import be.cmbsoft.livecontrol.gui.AnchoredPositionCalculator;
 import be.cmbsoft.livecontrol.gui.GUI;
 import be.cmbsoft.livecontrol.gui.GUIContainer;
+import be.cmbsoft.livecontrol.gui.PositionCalculator;
 import controlP5.ControlP5;
 import controlP5.ControllerInterface;
 import controlP5.Textarea;
@@ -125,6 +126,8 @@ public class UIBuilder
     {
         controlP5.Tab settings = controlP5.addTab("Settings").setHeight(tabHeight).addListener(
             listener -> activateTab(gui, SETTINGS, parent)).activateEvent(true).setId(SETTINGS.ordinal());
+
+
     }
 
     private static void configureAboutTab(ControlP5 controlP5, GUI gui, LiveControl parent, int tabHeight)
@@ -160,7 +163,7 @@ public class UIBuilder
         controlP5.addButton("Project Repository").setPosition(20, 540).setSize(240, 40).moveTo(about).setFont(
             parent.getFont(18)).addCallback(e ->
         {
-            if (e.getAction() == ControlP5.ACTION_PRESSED)
+            if (e.getAction() == ControlP5.ACTION_PRESS)
             {
                 parent.link("https://github.com/colouredmirrorball/GenerativeLasers");
             }
@@ -169,7 +172,7 @@ public class UIBuilder
         controlP5.addButton("Documentation").setPosition(280, 540).setSize(240, 40).moveTo(about).setFont(
             parent.getFont(18)).addCallback(e ->
         {
-            if (e.getAction() == ControlP5.ACTION_PRESSED)
+            if (e.getAction() == ControlP5.ACTION_PRESS)
             {
                 parent.link("https://github.com/colouredmirrorball/GenerativeLasers");
             }
@@ -178,7 +181,7 @@ public class UIBuilder
         controlP5.addButton("Issue Tracker").setPosition(540, 540).setSize(240, 40).moveTo(about).setFont(
             parent.getFont(18)).addCallback(e ->
         {
-            if (e.getAction() == ControlP5.ACTION_PRESSED)
+            if (e.getAction() == ControlP5.ACTION_PRESS)
             {
                 parent.link("https://github.com/colouredmirrorball/GenerativeLasers/issues");
             }
@@ -203,7 +206,7 @@ public class UIBuilder
     {
         gui.addMultipleImagesButton("Modify source " + index,
                parent.getIcon("settings", Matrix.DEFAULT_ELEMENT_HEIGHT, Matrix.DEFAULT_ELEMENT_HEIGHT)).setPosition(
-               new be.cmbsoft.livecontrol.gui.PositionCalculator()
+               new PositionCalculator()
                {
                    @Override
                    public PVector updatePosition(GUIContainer parent, int width, int height)
@@ -259,3 +262,4 @@ public class UIBuilder
 
 
 }
+

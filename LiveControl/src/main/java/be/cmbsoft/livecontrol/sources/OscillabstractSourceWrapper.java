@@ -47,6 +47,13 @@ public class OscillabstractSourceWrapper extends SourceWrapper
     }
 
     @Override
+    protected void editImpl()
+    {
+        parent.activateUITab(UIBuilder.Tab.OSCILLABSTRACT);
+        parent.getOscillabstract().activateWorkspace(osc.getWorkspace());
+    }
+
+    @Override
     public void mouseClicked()
     {
         parent.activateUITab(UIBuilder.Tab.OSCILLABSTRACT);

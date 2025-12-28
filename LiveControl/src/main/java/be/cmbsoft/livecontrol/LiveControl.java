@@ -89,35 +89,39 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
     });
 
     // Program control flow
-    private final Settings                                                settings;
-    private final File                                                    settingsFile   = new File("settings.json");
-    private final ObjectMapper                                            objectMapper;
-    private final Map<Integer, PFont>                                     fonts          = new HashMap<>();
-    private final CircularFifoQueue<UndoableAction>                       actions        = new CircularFifoQueue<>(128);
-    private final List<UndoableAction>                                    redoList       = new ArrayList<>();
+    private final Settings                          settings;
+    private final File                              settingsFile = new File("settings.json");
+    private final ObjectMapper                      objectMapper;
+    private final Map<Integer, PFont>               fonts        = new HashMap<>();
+    private final CircularFifoQueue<UndoableAction> actions      = new CircularFifoQueue<>(128);
+    private final List<UndoableAction>              redoList     = new ArrayList<>();
+
     // Laser processing
-    private final EtherdreamOutput                                        discoverDevice = new EtherdreamOutput();
-    private final Map<String, LaserOutputWrapper>                         outputs        = new HashMap<>();
-    private final Matrix                                                  matrix;
-    private final Chaser                                                  chaser;
-    private final EffectConfigurator                                      effectConfigurator;
-    private final Map<String, Parameter>                                  parameterMap   = new HashMap<>();
-    private final MidiDeviceContainer                                     midiContainer;
-    private final Oscillabstract                                          oscillabstract;
-    private final ProgramState                                            oscState;
-    public        PGraphics                                               previousIcon;
-    public        PGraphics                                               nextIcon;
+    private final EtherdreamOutput                discoverDevice = new EtherdreamOutput();
+    private final Map<String, LaserOutputWrapper> outputs        = new HashMap<>();
+    private final Matrix                          matrix;
+    private final Chaser                          chaser;
+    private final EffectConfigurator              effectConfigurator;
+    private final Map<String, Parameter>          parameterMap   = new HashMap<>();
+    private final MidiDeviceContainer             midiContainer;
+    private final Oscillabstract                  oscillabstract;
+    private final ProgramState                    oscState;
+    public        PGraphics                       previousIcon;
+    public        PGraphics                       nextIcon;
+
     //UI
-    private       ControlP5                                               controlP5;
-    private       GUI                                                     gui;
-    private       PGraphics                                               defaultIcon;
-    private       Map<ControllerInterface<?>, AnchoredPositionCalculator> uiPositions;
-    private       int                                                     prevWidth, prevHeight;
-    private boolean         mouseClicked  = false;
-    private boolean         mouseReleased = false;
-    private boolean         mouseDragged;
-    private UIConfig        uiConfig;
-    private UIBuilder.Tab   activeTab     = UIBuilder.Tab.DEFAULT;
+    private ControlP5                                               controlP5;
+    private GUI                                                     gui;
+    private PGraphics                                               defaultIcon;
+    private int                                                     prevWidth;
+    private int                                                     prevHeight;
+    private boolean                                                 mouseClicked  = false;
+    private boolean                                                 mouseReleased = false;
+    private boolean                                                 mouseDragged;
+    private UIConfig                                                uiConfig;
+    private UIBuilder.Tab                                           activeTab     = UIBuilder.Tab.DEFAULT;
+    private Map<ControllerInterface<?>, AnchoredPositionCalculator> uiPositions;
+
     // I/O
     private AudioProcessor  audioProcessor;
     private PImage          network;
@@ -389,12 +393,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     private void buildDefaultSettings()
     {
-//        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
-//        etherdreamOutputSettings.alias = "6E851F3F2177";
-//        settings.etherdreamOutputs.add(etherdreamOutputSettings);
 
-//        SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings
-//        ("D:\\Laser\\ILDA\\Live");
         SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings(
             "C:\\Users\\Florian\\ILDA\\Live");
 
@@ -524,7 +523,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         {
             ControllerInterface<?>     controller = entry.getKey();
             AnchoredPositionCalculator position   = entry.getValue();
-            PVector                    updated    = position.updatePosition(this, controller.getWidth(),
+            PVector updated = position.updatePosition(this, controller.getWidth(),
                 controller.getHeight());
             controller.setPosition(updated.x, updated.y);
         }
@@ -948,7 +947,8 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     public void modifySource(int index)
     {
-        System.out.println("Modify source " + index);
+        SourceWrapper sourceWrapper = getSourceProvider().apply(index);
+        sourceWrapper.edit();
     }
 
 }
