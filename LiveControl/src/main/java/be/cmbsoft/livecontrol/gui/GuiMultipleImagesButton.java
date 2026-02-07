@@ -27,12 +27,18 @@ public class GuiMultipleImagesButton extends GuiButton
     {
         super(parent, name);
         images = generateImages(requireValue(image, "Image cannot be null"));
+        width = image.width;
+        height = image.height;
     }
 
     private PImage[] generateImages(@NotNull PImage baseImage)
     {
-        return new PImage[]{recolourImage(baseImage, parent.getGuiStrokeColor()), recolourImage(baseImage,
-            parent.getGuiMouseOverColor()), recolourImage(baseImage, parent.getGuiActiveColor())};
+        return new PImage[]
+            {
+                recolourImage(baseImage, parent.getGuiStrokeColor()),
+                recolourImage(baseImage, parent.getGuiActiveColor()),
+                recolourImage(baseImage, parent.getGuiActiveColor())
+            };
     }
 
     private PImage recolourImage(@NotNull PImage baseImage, int colour)
@@ -43,9 +49,10 @@ public class GuiMultipleImagesButton extends GuiButton
         image.loadPixels();
         baseImage.loadPixels();
         int color = color(255, red(colour), green(colour), blue(colour));
+        int white = color(255, 0, 0, 0);
         for (int i = 0; i < image.pixels.length; i++)
         {
-            image.pixels[i] = baseImage.pixels[i] == 0 ? 0 : color;
+            image.pixels[i] = baseImage.pixels[i] == 0 || baseImage.pixels[i] == white ? 0 : color;
         }
         image.updatePixels();
         image.endDraw();
@@ -62,7 +69,8 @@ public class GuiMultipleImagesButton extends GuiButton
     @Override
     public void display(PGraphics graphics)
     {
-        graphics.stroke(parent.getGuiStrokeColor());
+        graphics.noStroke();
+        graphics.noFill();
         graphics.rect(x, y, width, height);
         PImage image = images[0];
         if (mouseOver)
@@ -74,6 +82,23 @@ public class GuiMultipleImagesButton extends GuiButton
             image = images[2];
         }
         graphics.image(image, x, y);
+    }
+
+    @Override
+    public GuiMultipleImagesButton setSize(int sx, int sy)
+    {
+        if (images != null)
+        {
+            for (int i = 0; i < images.length; i++)
+            {
+                PGraphics image = parent.createGraphics(sx, sy);
+                image.beginDraw();
+                image.image(images[i], 0, 0, sx, sy);
+                image.endDraw();
+                images[i] = image.get();
+            }
+        }
+        return (GuiMultipleImagesButton) super.setSize(sx, sy);
     }
 
 }

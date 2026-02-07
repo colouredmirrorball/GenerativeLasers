@@ -208,7 +208,8 @@ public class UIBuilder
     private static void modifySourceButton(GUI gui, LiveControl parent, int index)
     {
         gui.addMultipleImagesButton("Modify source " + index,
-               parent.getIcon("settings", Matrix.DEFAULT_ELEMENT_HEIGHT, Matrix.DEFAULT_ELEMENT_HEIGHT)).setPosition(
+               parent.getIcon("settings", Matrix.DEFAULT_ELEMENT_HEIGHT, Matrix.DEFAULT_ELEMENT_HEIGHT))
+           .setPosition(
                new PositionCalculator()
                {
                    @Override
@@ -217,7 +218,9 @@ public class UIBuilder
                        return new PVector(25,
                            Matrix.DEFAULT_OFFSET_Y + (Matrix.DEFAULT_ELEMENT_HEIGHT + Matrix.DEFAULT_PADDING) * index);
                    }
-               }).setSize(64, 64).setInfoText("Modify source " + index).setPressAction(() -> parent.modifySource(index))
+               })
+           .setSize(64, 64).setInfoText("Modify source " + index)
+           .setPressAction(() -> parent.modifySource(index))
            .setGroupIndex(DEFAULT.ordinal());
     }
 
