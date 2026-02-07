@@ -20,7 +20,7 @@ public class OscillabstractSource extends Source
 
     public OscillabstractSource(ProgramState state, Oscillabstract oscillabstract)
     {
-        ExternalOutput externalOutput = new ExternalOutput(state).setOutput(f -> this.frame = f);
+        ExternalOutput externalOutput = new ExternalOutput(state).setOutput(f -> this.frame = f).initialise();
         workspace.getElements().add(externalOutput);
         workspace.setName("Workspace " + oscillabstract.getWorkspaces().size());
         oscillabstract.registerWorkspace(workspace);
