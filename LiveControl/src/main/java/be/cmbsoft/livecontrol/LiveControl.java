@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.apache.commons.lang3.StringUtils;
@@ -163,7 +162,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         oscState.setSettings(getDefaultSettings());
         initialiseState(oscState, this, "Arial");
         oscillabstract = new Oscillabstract(oscState);
-        matrix = new Matrix(getSourceProvider(), getOutputProvider(), optimisationSettings);
+        matrix = new Matrix(this::getSourceWrapperFromSettings, getOutputProvider(), optimisationSettings);
         effectConfigurator = new EffectConfigurator(this);
         midiContainer = new MidiDeviceContainer();
         matrix.addListener((i, j, matrix) ->
@@ -192,11 +191,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         String[]    appletArgs  = new String[]{LiveControl.class.getPackageName()};
         LiveControl liveControl = new LiveControl();
         PApplet.runSketch(appletArgs, liveControl);
-    }
-
-    private IntFunction<SourceWrapper> getSourceProvider()
-    {
-        return this::getSourceWrapperFromSettings;
     }
 
     private SourceWrapper getSourceWrapperFromSettings(Integer i)
@@ -961,7 +955,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     public void modifySource(int index)
     {
-        SourceWrapper sourceWrapper = getSourceProvider().apply(index);
+        SourceWrapper sourceWrapper = matrix.getSource(index);
         sourceWrapper.edit();
     }
 

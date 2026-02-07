@@ -350,5 +350,10 @@ public class Matrix implements ChaseReceiver, MidiReceiver.NoteListener
         this.flashMode = flashMode;
     }
 
+    public SourceWrapper getSource(int row)
+    {
+        return sources[row];
+    }
+
 
 }
