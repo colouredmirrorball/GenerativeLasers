@@ -26,7 +26,9 @@ public class GUI
     {
         try
         {
-            for (GuiElement<?> element : elements)
+            // We create a copy of the list to avoid concurrent modification exceptions when an element is removed
+            // while iterating
+            for (GuiElement<?> element : new ArrayList<>(elements))
             {
                 boolean invisible = false;
                 for (Visibility v : element.getVisibilities())

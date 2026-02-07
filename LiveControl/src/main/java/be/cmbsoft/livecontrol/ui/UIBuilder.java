@@ -220,7 +220,11 @@ public class UIBuilder
                    }
                })
            .setSize(64, 64).setInfoText("Modify source " + index)
-           .setPressAction(() -> parent.modifySource(index))
+           .setPressAction(() ->
+           {
+               activateTab(gui, OSCILLABSTRACT, parent);
+               parent.modifySource(index);
+           })
            .setGroupIndex(DEFAULT.ordinal());
     }
 
