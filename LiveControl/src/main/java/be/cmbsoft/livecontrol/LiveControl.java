@@ -177,13 +177,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         chaser = new Chaser(this, matrix);
     }
 
-    public static void main(String[] passedArgs)
-    {
-        String[]    appletArgs  = new String[]{LiveControl.class.getPackageName()};
-        LiveControl liveControl = new LiveControl();
-        PApplet.runSketch(appletArgs, liveControl);
-    }
-
     public static void log(String what)
     {
         println(what);
@@ -194,10 +187,45 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         exception.printStackTrace();
     }
 
-    public static void error(String s, Exception e)
+    public static void main(String[] passedArgs)
     {
-        println(s);
-        error(e);
+        String[]    appletArgs  = new String[]{LiveControl.class.getPackageName()};
+        LiveControl liveControl = new LiveControl();
+        PApplet.runSketch(appletArgs, liveControl);
+    }
+
+    private IntFunction<SourceWrapper> getSourceProvider()
+    {
+        return this::getSourceWrapperFromSettings;
+    }
+
+    private SourceWrapper getSourceWrapperFromSettings(Integer i)
+    {
+        List<SourceSettings> sources = settings.getSources();
+        if (sources == null || sources.size() <= i)
+        {
+            return new EmptySourceWrapper();
+        }
+        SourceSettings sourceSettings = sources.get(i);
+        return switch (sourceSettings)
+        {
+            case IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings ildaFolderPlayerSettings ->
+                new IldaFolderPlayerSourceWrapper(new File(ildaFolderPlayerSettings.ildaFolder()), this);
+            case AudioEffectsSourceWrapper.AudioEffectsSettings audioEffectsSettings -> new AudioEffectsSourceWrapper(
+                this).setSettings(audioEffectsSettings);
+            case BeamSourceWrapper.BeamSourceSettings beamSourceSettings -> new BeamSourceWrapper(this).setSettings(
+                beamSourceSettings);
+            case OscillabstractSourceWrapper.OscillabstractSourceSettings oscillabstractSourceSettings ->
+                new OscillabstractSourceWrapper(this).setSettings(oscillabstractSourceSettings);
+            case EmptySourceWrapper.EmptySourceSettings empty -> new EmptySourceWrapper();
+
+            default -> throw new IllegalStateException("Unexpected value: " + sourceSettings);
+        };
+    }
+
+    private Function<Integer, LaserOutputWrapper> getOutputProvider()
+    {
+        return i -> i >= outputs.size() ? DUMMY_OUTPUT : outputs.values().stream().distinct().skip(i).iterator().next();
     }
 
     @Override
@@ -295,147 +323,32 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         text("FPS: " + (int) frameRate, width - 210, 10);
     }
 
-    public void activateUITab(UIBuilder.Tab tab)
-    {
-        controlP5.getTab(StringUtils.capitalize(tab.name().toLowerCase())).bringToFront();
-        activateTab(tab);
-    }
-
-    private void drawOscillabstract()
-    {
-        oscillabstract.update(oscState, this.g);
-    }
-
     private void updateProgramState()
     {
         setStateFromPApplet(oscState, this);
     }
 
-    @Override
-    public void mouseReleased()
+    public void updateUIPositions()
     {
-        this.mouseReleased = true;
-        updateProgramState();
-    }
-
-    @Override
-    public void mousePressed()
-    {
-        updateProgramState();
-
-        if (activeTab == UIBuilder.Tab.OSCILLABSTRACT) oscillabstract.mousePressed(oscState);
-    }
-
-    @Override
-    public void mouseClicked()
-    {
-        this.mouseClicked = true;
-        updateProgramState();
-    }
-
-    @Override
-    public void mouseDragged()
-    {
-        this.mouseDragged = true;
-        updateProgramState();
-    }
-
-    @Override
-    public void keyPressed()
-    {
-        if (key == ESC)
+        for (Map.Entry<ControllerInterface<?>, AnchoredPositionCalculator> entry : uiPositions.entrySet())
         {
-            outputs.values().forEach(LaserOutputWrapper::halt);
-            //TODO: maybe also consider disabling all active effects and sources
-            key = 0;
+            ControllerInterface<?>     controller = entry.getKey();
+            AnchoredPositionCalculator position   = entry.getValue();
+            PVector updated = position.updatePosition(this, controller.getWidth(),
+                controller.getHeight());
+            controller.setPosition(updated.x, updated.y);
         }
     }
 
-    @Override
-    public void exit()
+    private void processLasers()
     {
-        outputs.values().forEach(LaserOutputWrapper::halt);
-        saveSettings();
-        midiContainer.close();
-        super.exit();
+        chaser.update();
+        matrix.update();
     }
 
-    public void addOutput(String id)
+    private void drawDefault()
     {
-        //TODO (for now, manually defined outputs only are supported which is sufficient for development)
-    }
-
-    private LaserOutputWrapper createOutput(Settings.OutputSettings output)
-    {
-
-        if (output instanceof Settings.LsxOutputSettings lsxOutput)
-        {
-            return new LaserOutputWrapper(
-                new LsxOscOutput(lsxOutput.getTimeline(), lsxOutput.getFrameNumber(), lsxOutput.getHost(),
-                    lsxOutput.getPort()));
-        }
-        if (output instanceof Settings.EtherdreamOutputSettings etherdreamSettings)
-        {
-            EtherdreamOutput etherdreamOutput = new EtherdreamOutput().setAlias(etherdreamSettings.getAlias());
-            if (etherdreamSettings.isInvertX())
-            {
-                etherdreamOutput.option(OutputOption.INVERT_X);
-            }
-            if (etherdreamSettings.isInvertY())
-            {
-                etherdreamOutput.option(OutputOption.INVERT_Y);
-            }
-            etherdreamOutput.setIntensity(etherdreamSettings.getIntensity());
-            return new LaserOutputWrapper(etherdreamOutput);
-        }
-        throw new IllegalStateException("Unknown output type");
-    }
-
-    private void buildDefaultSettings()
-    {
-        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
-        etherdreamOutputSettings.setAlias("D88039AAE23F");
-        etherdreamOutputSettings.setIntensity(0.2f);
-        settings.getEtherdreamOutputs().add(etherdreamOutputSettings);
-
-        SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings(
-            "C:\\Users\\Florian\\ILDA\\Live");
-
-        SourceSettings audioSource = new AudioEffectsSourceWrapper.AudioEffectsSettings(0);
-        SourceSettings beamSource  = new BeamSourceWrapper.BeamSourceSettings(0);
-        SourceSettings oscillabstractSource = new OscillabstractSourceWrapper.OscillabstractSourceSettings(
-            List.of(createDefaultWorkspace()));
-        settings.setSources(new ArrayList<>(List.of(ildaSource, audioSource, beamSource, oscillabstractSource)));
-
-        settings.setMidiMatrixInputDevice("MIDIIN2 (Launchpad Pro)");
-        settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
-        settings.setMidiControlDevice("nanoKONTROL2");
-
-        settings.getMidiMap().put(new ChannelAndNote(0, 7), "Chase speed");
-        settings.getMidiMap().put(new ChannelAndNote(0, 23), "First chase row");
-        settings.getMidiMap().put(new ChannelAndNote(1, 12), "waveformHue");
-        settings.getMidiMap().put(new ChannelAndNote(0, 0), "Playback speed");
-        settings.getMidiMap().put(new ChannelAndNote(0, 32), "Beam one");
-        settings.getMidiMap().put(new ChannelAndNote(0, 48), "Beam two");
-        settings.getMidiMap().put(new ChannelAndNote(0, 64), "Beam three");
-    }
-
-    public void doAction(UndoableAction action)
-    {
-        action.execute();
-        actions.add(action);
-        redoList.clear();
-    }
-
-    public void doAction(ISimpleAction action)
-    {
-        action.execute();
-    }
-
-    public void removeOutput(String id)
-    {
-        Optional.ofNullable(outputs.get(id)).ifPresent(LaserOutputWrapper::halt);
-        outputs.remove(id);
+        matrix.display(this);
     }
 
     private void drawOutputs()
@@ -521,16 +434,140 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     }
 
-    public void updateUIPositions()
+    private void drawOscillabstract()
     {
-        for (Map.Entry<ControllerInterface<?>, AnchoredPositionCalculator> entry : uiPositions.entrySet())
+        oscillabstract.update(oscState, this.g);
+    }
+
+    private void drawSettings()
+    {
+
+    }
+
+    private void drawAbout()
+    {
+
+    }
+
+    public boolean isMouseOver(int x, int y, int x2, int y2)
+    {
+        return mouseX >= x && mouseX <= x2 && mouseY >= y && mouseY <= y2;
+    }
+
+    private @NotNull PVector getRemappedMouse(int x, int w, int y, int h)
+    {
+        return new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h, -1, 1));
+    }
+
+    @Override
+    public void mousePressed()
+    {
+        updateProgramState();
+
+        if (activeTab == UIBuilder.Tab.OSCILLABSTRACT)
         {
-            ControllerInterface<?>     controller = entry.getKey();
-            AnchoredPositionCalculator position   = entry.getValue();
-            PVector updated = position.updatePosition(this, controller.getWidth(),
-                controller.getHeight());
-            controller.setPosition(updated.x, updated.y);
+            try
+            {
+                oscillabstract.mousePressed(oscState);
+            }
+            catch (Exception e)
+            {
+                error("Error when processing mouse press in Oscillabstract workspace!", e);
+            }
         }
+    }
+
+    public static void error(String s, Exception e)
+    {
+        println(s);
+        error(e);
+    }
+
+    @Override
+    public void mouseReleased()
+    {
+        this.mouseReleased = true;
+        updateProgramState();
+    }
+
+    @Override
+    public void mouseClicked()
+    {
+        this.mouseClicked = true;
+        updateProgramState();
+    }
+
+    @Override
+    public void mouseDragged()
+    {
+        this.mouseDragged = true;
+        updateProgramState();
+    }
+
+    @Override
+    public void keyPressed()
+    {
+        if (key == ESC)
+        {
+            outputs.values().forEach(LaserOutputWrapper::halt);
+            //TODO: maybe also consider disabling all active effects and sources
+            key = 0;
+        }
+    }
+
+    @Override
+    public void exit()
+    {
+        outputs.values().forEach(LaserOutputWrapper::halt);
+        saveSettings();
+        midiContainer.close();
+        super.exit();
+    }
+
+    private void saveSettings()
+    {
+        try
+        {
+            settings.getSources().clear();
+            settings.getSources().addAll(matrix.getSourceSettings());
+            if (!settingsFile.exists() && !settingsFile.createNewFile())
+            {
+                log("Could not create settings file!");
+            }
+            objectMapper.writeValue(settingsFile, settings);
+            log("Persisted the settings");
+        }
+        catch (Exception e)
+        {
+            error(e);
+            log("Could not write settings file...");
+        }
+    }
+
+    private LaserOutputWrapper createOutput(Settings.OutputSettings output)
+    {
+
+        if (output instanceof Settings.LsxOutputSettings lsxOutput)
+        {
+            return new LaserOutputWrapper(
+                new LsxOscOutput(lsxOutput.getTimeline(), lsxOutput.getFrameNumber(), lsxOutput.getHost(),
+                    lsxOutput.getPort()));
+        }
+        if (output instanceof Settings.EtherdreamOutputSettings etherdreamSettings)
+        {
+            EtherdreamOutput etherdreamOutput = new EtherdreamOutput().setAlias(etherdreamSettings.getAlias());
+            if (etherdreamSettings.isInvertX())
+            {
+                etherdreamOutput.option(OutputOption.INVERT_X);
+            }
+            if (etherdreamSettings.isInvertY())
+            {
+                etherdreamOutput.option(OutputOption.INVERT_Y);
+            }
+            etherdreamOutput.setIntensity(etherdreamSettings.getIntensity());
+            return new LaserOutputWrapper(etherdreamOutput);
+        }
+        throw new IllegalStateException("Unknown output type");
     }
 
     public void setBounds(Bounds bounds, LaserOutput laser)
@@ -551,6 +588,113 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             existingBounds.setUpperLeft(new PVector(-1, -1));
         }
         persistBounds(laser, existingBounds);
+    }
+
+    private void buildDefaultSettings()
+    {
+        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
+        etherdreamOutputSettings.setAlias("D88039AAE23F");
+        etherdreamOutputSettings.setIntensity(0.2f);
+        settings.getEtherdreamOutputs().add(etherdreamOutputSettings);
+
+        SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings(
+            "C:\\Users\\Florian\\ILDA\\Live");
+
+        SourceSettings audioSource = new AudioEffectsSourceWrapper.AudioEffectsSettings(0);
+        SourceSettings beamSource  = new BeamSourceWrapper.BeamSourceSettings(0);
+        SourceSettings oscillabstractSource = new OscillabstractSourceWrapper.OscillabstractSourceSettings(
+            List.of(createDefaultWorkspace()));
+        settings.setSources(new ArrayList<>(List.of(ildaSource, audioSource, beamSource, oscillabstractSource)));
+
+        settings.setMidiMatrixInputDevice("MIDIIN2 (Launchpad Pro)");
+        settings.setMidiMatrixOutputDevice("MIDIOUT3 (Launchpad Pro)");
+        settings.setMidiControlDevice("nanoKONTROL2");
+
+        settings.getMidiMap().put(new ChannelAndNote(0, 7), "Chase speed");
+        settings.getMidiMap().put(new ChannelAndNote(0, 23), "First chase row");
+        settings.getMidiMap().put(new ChannelAndNote(1, 12), "waveformHue");
+        settings.getMidiMap().put(new ChannelAndNote(0, 0), "Playback speed");
+        settings.getMidiMap().put(new ChannelAndNote(0, 32), "Beam one");
+        settings.getMidiMap().put(new ChannelAndNote(0, 48), "Beam two");
+        settings.getMidiMap().put(new ChannelAndNote(0, 64), "Beam three");
+    }
+
+    private Workspace createDefaultWorkspace()
+    {
+        return Oscillabstract.createDefaultWorkspace(oscState);
+    }
+
+    private @NotNull PGraphics shapeToPGraphic(int width, int height, int backgroundColor, int foregroundColor,
+        PShape shape)
+    {
+        PGraphics def = createGraphics(width, height);
+        def.beginDraw();
+        def.background(backgroundColor);
+        def.fill(foregroundColor);
+        def.stroke(foregroundColor);
+        shape.setStroke(foregroundColor);
+        shape.setFill(foregroundColor);
+        def.shape(shape, 0, 0, width, height);
+        def.endDraw();
+        return def;
+    }
+
+    private @NotNull Optional<PShape> loadIconShape(String key)
+    {
+        String fileName = "data/icons/" + key + ".svg";
+        File   file     = sketchFile(fileName);
+        if (file.exists())
+        {
+            return Optional.ofNullable(loadShape(fileName));
+        }
+        else
+        {
+            log("Could not find icon file " + fileName);
+            return Optional.empty();
+        }
+    }
+
+    private void persistBounds(LaserOutput laser, Bounds existingBounds)
+    {
+        if (laser instanceof EtherdreamOutput etherdream)
+        {
+            settings.getEtherdreamOutputs().stream().filter(output -> output.getAlias().equals(etherdream.getAlias()))
+                    .forEach(output -> output.setBounds(existingBounds));
+        }
+    }
+
+    public void activateUITab(UIBuilder.Tab tab)
+    {
+        controlP5.getTab(StringUtils.capitalize(tab.name().toLowerCase())).bringToFront();
+        activateTab(tab);
+    }
+
+    public void activateTab(UIBuilder.Tab tab)
+    {
+        this.activeTab = tab;
+        if (tab == UIBuilder.Tab.OSCILLABSTRACT)
+        {
+            initOscillabstract();
+        }
+    }
+
+    private void initOscillabstract()
+    {
+        workspaceButtons.clear();
+        oscillabstract.getWorkspaces().forEach(workspace -> workspaceButtons.addElement(gui.addButton(
+            workspace.getName()).setTitle(workspace.getName()).setPressAction(
+            () -> oscillabstract.activateWorkspace(workspace)).setSize(200, 50)));
+    }
+
+    public void addOutput(String id)
+    {
+        //TODO (for now, manually defined outputs only are supported which is sufficient for development)
+    }
+
+    public void removeOutput(String id)
+    {
+        Optional.ofNullable(outputs.get(id)).ifPresent(LaserOutputWrapper::halt);
+        outputs.remove(id);
     }
 
     @Override
@@ -639,19 +783,29 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         return fonts.computeIfAbsent(size, s -> createFont("Roboto", s));
     }
 
-    private @NotNull Optional<PShape> loadIconShape(String key)
+    @Override
+    public void doAction(IAction action)
     {
-        String fileName = "data/icons/" + key + ".svg";
-        File   file     = sketchFile(fileName);
-        if (file.exists())
+        if (action instanceof ISimpleAction simpleAction)
         {
-            return Optional.ofNullable(loadShape(fileName));
+            doAction(simpleAction);
         }
-        else
+        else if (action instanceof UndoableAction undoableAction)
         {
-            log("Could not find icon file " + fileName);
-            return Optional.empty();
+            doAction(undoableAction);
         }
+    }
+
+    public void doAction(ISimpleAction action)
+    {
+        action.execute();
+    }
+
+    public void doAction(UndoableAction action)
+    {
+        action.execute();
+        actions.add(action);
+        redoList.clear();
     }
 
     @Override
@@ -660,14 +814,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         //TODO
     }
 
-    public void redo()
+    @Override
+    public void addGuiElement(GuiElement<?> element)
     {
-        log("redo");
-        if (!redoList.isEmpty())
-        {
-            redoList.getLast().execute();
-            redoList.removeLast();
-        }
+        gui.addGuiElement(element);
     }
 
     @Override
@@ -694,18 +844,19 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         return activeTab.ordinal();
     }
 
+    public void redo()
+    {
+        log("redo");
+        if (!redoList.isEmpty())
+        {
+            redoList.getLast().execute();
+            redoList.removeLast();
+        }
+    }
+
     public UIConfig getUiConfig()
     {
         return uiConfig;
-    }
-
-    public void activateTab(UIBuilder.Tab tab)
-    {
-        this.activeTab = tab;
-        if (tab == UIBuilder.Tab.OSCILLABSTRACT)
-        {
-            initOscillabstract();
-        }
     }
 
     public void undo()
@@ -732,25 +883,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         return audioProcessor;
     }
 
-    public boolean isMouseOver(int x, int y, int x2, int y2)
-    {
-        return mouseX >= x && mouseX <= x2 && mouseY >= y && mouseY <= y2;
-    }
-
-    private void persistBounds(LaserOutput laser, Bounds existingBounds)
-    {
-        if (laser instanceof EtherdreamOutput etherdream)
-        {
-            settings.getEtherdreamOutputs().stream().filter(output -> output.getAlias().equals(etherdream.getAlias()))
-                    .forEach(output -> output.setBounds(existingBounds));
-        }
-    }
-
-    private IntFunction<SourceWrapper> getSourceProvider()
-    {
-        return this::getSourceWrapperFromSettings;
-    }
-
     public PImage[] getIcons(String key, int width, int height, int backgroundColor, int foregroundColor,
         int activeColor)
     {
@@ -765,32 +897,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
             active.endDraw();
             return new PImage[]{def, active, active, active};
         }).orElse(new PImage[]{getDefaultIcon()});
-    }
-
-    private Function<Integer, LaserOutputWrapper> getOutputProvider()
-    {
-        return i -> i >= outputs.size() ? DUMMY_OUTPUT : outputs.values().stream().distinct().skip(i).iterator().next();
-    }
-
-    private Workspace createDefaultWorkspace()
-    {
-        return Oscillabstract.createDefaultWorkspace(oscState);
-    }
-
-    private void processLasers()
-    {
-        chaser.update();
-        matrix.update();
-    }
-
-    private void drawAbout()
-    {
-
-    }
-
-    private void drawSettings()
-    {
-
     }
 
     private PGraphics getDefaultIcon()
@@ -809,37 +915,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         return defaultIcon;
     }
 
-    private @NotNull PVector getRemappedMouse(int x, int w, int y, int h)
-    {
-        return new PVector(map(mouseX, x, x + w, -1, 1), map(mouseY, y, y + h, -1, 1));
-    }
-
-    private void drawDefault()
-    {
-        matrix.display(this);
-    }
-
-    @Override
-    public void doAction(IAction action)
-    {
-        if (action instanceof ISimpleAction simpleAction)
-        {
-            doAction(simpleAction);
-        }
-        else if (action instanceof UndoableAction undoableAction)
-        {
-            doAction(undoableAction);
-        }
-    }
-
-    private void initOscillabstract()
-    {
-        workspaceButtons.clear();
-        oscillabstract.getWorkspaces().forEach(workspace -> workspaceButtons.addElement(gui.addButton(
-            workspace.getName()).setTitle(workspace.getName()).setPressAction(
-            () -> oscillabstract.activateWorkspace(workspace)).setSize(200, 50)));
-    }
-
     // Reflexive usage by ControlP5
     public void controlEvent(ControlEvent theControlEvent)
     {
@@ -847,71 +922,6 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
         {
             UIBuilder.activateTab(gui, UIBuilder.Tab.values()[theControlEvent.getTab().getId()], this);
         }
-    }
-
-    private @NotNull PGraphics shapeToPGraphic(int width, int height, int backgroundColor, int foregroundColor,
-        PShape shape)
-    {
-        PGraphics def = createGraphics(width, height);
-        def.beginDraw();
-        def.background(backgroundColor);
-        def.fill(foregroundColor);
-        def.stroke(foregroundColor);
-        shape.setStroke(foregroundColor);
-        shape.setFill(foregroundColor);
-        def.shape(shape, 0, 0, width, height);
-        def.endDraw();
-        return def;
-    }
-
-    private SourceWrapper getSourceWrapperFromSettings(Integer i)
-    {
-        List<SourceSettings> sources = settings.getSources();
-        if (sources == null || sources.size() <= i)
-        {
-            return new EmptySourceWrapper();
-        }
-        SourceSettings sourceSettings = sources.get(i);
-        return switch (sourceSettings)
-        {
-            case IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings ildaFolderPlayerSettings ->
-                new IldaFolderPlayerSourceWrapper(new File(ildaFolderPlayerSettings.ildaFolder()), this);
-            case AudioEffectsSourceWrapper.AudioEffectsSettings audioEffectsSettings -> new AudioEffectsSourceWrapper(
-                this).setSettings(audioEffectsSettings);
-            case BeamSourceWrapper.BeamSourceSettings beamSourceSettings -> new BeamSourceWrapper(this).setSettings(
-                beamSourceSettings);
-            case OscillabstractSourceWrapper.OscillabstractSourceSettings oscillabstractSourceSettings ->
-                new OscillabstractSourceWrapper(this).setSettings(oscillabstractSourceSettings);
-            case EmptySourceWrapper.EmptySourceSettings empty -> new EmptySourceWrapper();
-
-            default -> throw new IllegalStateException("Unexpected value: " + sourceSettings);
-        };
-    }
-
-    private void saveSettings()
-    {
-        try
-        {
-            settings.getSources().clear();
-            settings.getSources().addAll(matrix.getSourceSettings());
-            if (!settingsFile.exists() && !settingsFile.createNewFile())
-            {
-                log("Could not create settings file!");
-            }
-            objectMapper.writeValue(settingsFile, settings);
-            log("Persisted the settings");
-        }
-        catch (Exception e)
-        {
-            error(e);
-            log("Could not write settings file...");
-        }
-    }
-
-    @Override
-    public void addGuiElement(GuiElement<?> element)
-    {
-        gui.addGuiElement(element);
     }
 
     public void enableChase(int chaseIndex)
