@@ -118,8 +118,11 @@ public class UIBuilder
         controlP5.Tab oscillabstract = controlP5.addTab("Oscillabstract").setHeight(tabHeight).addListener(
             listener -> activateTab(gui, OSCILLABSTRACT, parent)).activateEvent(true).setId(OSCILLABSTRACT.ordinal());
 
-        parent.setOscillabstractWorkspaceButtons(gui.addLinearLayout().setPosition(10, 100).setSize(256, 64)
-                                                    .setSpacing(60).setGroupIndex(OSCILLABSTRACT.ordinal()));
+        parent.setOscillabstractWorkspaceButtons(gui.addLinearLayout()
+                                                    .setPosition(10, 100)
+                                                    .setSize(256, 64)
+                                                    .setSpacing(60)
+                                                    .setGroupIndex(OSCILLABSTRACT.ordinal()));
     }
 
     private static void configureSettingsTab(ControlP5 controlP5, GUI gui, LiveControl parent, int tabHeight)

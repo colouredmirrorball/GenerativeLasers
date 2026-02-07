@@ -65,6 +65,7 @@ public class GuiLinearLayout extends GuiElement<GuiLinearLayout>
     public GuiLinearLayout addElement(GuiElement<?> element)
     {
         elements.add(element);
+        element.addVisibility(p -> visible);
         updateElementPositions();
         return this;
     }

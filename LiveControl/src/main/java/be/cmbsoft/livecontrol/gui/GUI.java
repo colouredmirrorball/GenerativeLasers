@@ -33,27 +33,28 @@ public class GUI
                 {
                     invisible = invisible || !v.isVisible(parent);
                 }
-                if (!invisible)
+                if (invisible)
                 {
-                    element.updatePosition();
-                    boolean over = element.checkMouseOver(parent.getMouseX(), parent.getMouseY());
-                    if (over && parent.isMouseClicked())
-                    {
-                        element.mouseClicked();
-                    }
-                    if (element.clicked)
-                    {
-                        if (parent.isMouseReleased())
-                        {
-                            element.mouseReleased();
-                        }
-                        else if (parent.isMousePressed())
-                        {
-                            element.mousePressed();
-                        }
-                    }
-                    element.display(parent.getGraphics());
+                    continue;
                 }
+                element.updatePosition();
+                boolean over = element.checkMouseOver(parent.getMouseX(), parent.getMouseY());
+                if (over && parent.isMouseClicked())
+                {
+                    element.mouseClicked();
+                }
+                if (element.clicked)
+                {
+                    if (parent.isMouseReleased())
+                    {
+                        element.mouseReleased();
+                    }
+                    else if (parent.isMousePressed())
+                    {
+                        element.mousePressed();
+                    }
+                }
+                element.display(parent.getGraphics());
             }
         }
         catch (Exception e)

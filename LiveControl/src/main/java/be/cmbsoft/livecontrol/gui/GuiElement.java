@@ -48,14 +48,7 @@ public abstract class GuiElement<T extends GuiElement<T>>
         strokecolour = parent.getGuiStrokeColor();
         mouseovercolour = parent.getGuiMouseOverColor();
         activecolour = parent.getGuiActiveColor();
-        visibilities.add(new Visibility()
-        {
-            @Override
-            public boolean isVisible(GUIContainer parent)
-            {
-                return visible;
-            }
-        });
+        visibilities.add(ignored -> visible);
         setPosition(x, y);
         me = (T) this;
     }

@@ -9,8 +9,9 @@ package be.cmbsoft.livecontrol.gui;
  * <p>
  * Created by Florian on 10/11/2017.
  */
-public abstract class Visibility
+@FunctionalInterface
+public interface Visibility
 {
-    public abstract boolean isVisible(GUIContainer parent);
+    boolean isVisible(GUIContainer parent);
 
 }

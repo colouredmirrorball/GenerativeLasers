@@ -393,6 +393,10 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     private void buildDefaultSettings()
     {
+        Settings.EtherdreamOutputSettings etherdreamOutputSettings = new Settings.EtherdreamOutputSettings();
+        etherdreamOutputSettings.setAlias("D88039AAE23F");
+        etherdreamOutputSettings.setIntensity(0.2f);
+        settings.getEtherdreamOutputs().add(etherdreamOutputSettings);
 
         SourceSettings ildaSource = new IldaFolderPlayerSourceWrapper.IldaFolderPlayerSettings(
             "C:\\Users\\Florian\\ILDA\\Live");
