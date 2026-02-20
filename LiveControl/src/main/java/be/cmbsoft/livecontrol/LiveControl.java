@@ -955,6 +955,7 @@ public class LiveControl extends PApplet implements GUIContainer, EffectConfigur
 
     public void modifySource(int index)
     {
+        // TODO: this should provide an UI to select a new source type instead
         SourceWrapper sourceWrapper = matrix.getSource(index);
         sourceWrapper.edit();
     }

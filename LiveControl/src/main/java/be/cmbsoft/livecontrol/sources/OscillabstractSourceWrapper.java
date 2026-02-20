@@ -18,6 +18,7 @@ public class OscillabstractSourceWrapper extends SourceWrapper
     private final OscillabstractSource osc;
     private final List<Workspace>      workspaces = new ArrayList<>();
     private final LiveControl parent;
+    private int position = 0;
 
     public OscillabstractSourceWrapper(LiveControl parent)
     {
@@ -35,14 +36,24 @@ public class OscillabstractSourceWrapper extends SourceWrapper
     @Override
     protected Source provideNextSource()
     {
-        osc.loadWorkspace();
+        position++;
+        if (position >= workspaces.size())
+        {
+            position = 0;
+        }
+        osc.loadWorkspace(workspaces.get(position));
         return osc;
     }
 
     @Override
     protected Source providePreviousSource()
     {
-        osc.loadWorkspace();
+        position--;
+        if (position < 0)
+        {
+            position = workspaces.size() - 1;
+        }
+        osc.loadWorkspace(workspaces.get(position));
         return osc;
     }
 

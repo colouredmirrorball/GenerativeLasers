@@ -14,13 +14,13 @@ import static be.cmbsoft.livecontrol.sources.EmptySource.EMPTY_FRAME;
 public class OscillabstractSource extends Source
 {
 
-    private final Workspace workspace = new Workspace();
     private final Oscillabstract   oscillabstract;
     private       IldaFrameWrapper frame;
 
     public OscillabstractSource(ProgramState state, Oscillabstract oscillabstract)
     {
         ExternalOutput externalOutput = new ExternalOutput(state).setOutput(f -> this.frame = f).initialise();
+        Workspace workspace = new Workspace();
         workspace.getElements().add(externalOutput);
         workspace.setName("Workspace " + oscillabstract.getWorkspaces().size());
         oscillabstract.registerWorkspace(workspace);
@@ -39,13 +39,14 @@ public class OscillabstractSource extends Source
 //oscillabstract is updated externally
     }
 
-    public void loadWorkspace()
+    public void loadWorkspace(Workspace workspace)
     {
-
+        oscillabstract.registerWorkspace(workspace);
     }
 
     public Workspace getWorkspace()
     {
-        return workspace;
+        return oscillabstract.getActiveWorkspace();
     }
+
 }
